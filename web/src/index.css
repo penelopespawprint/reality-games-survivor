@@ -17,7 +17,7 @@
 @layer components {
   /* Buttons */
   .btn {
-    @apply px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-sm;
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold transition-all duration-200 text-sm;
   }
 
   .btn-primary {
@@ -32,13 +32,21 @@
     @apply bg-transparent border-2 border-burgundy-500 text-burgundy-500 hover:bg-burgundy-500 hover:text-white;
   }
 
+  .btn-sm {
+    @apply px-4 py-2 text-xs;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-base;
+  }
+
   /* Cards */
   .card {
     @apply bg-white rounded-2xl shadow-card p-6 transition-shadow duration-200;
   }
 
   .card-hover {
-    @apply hover:shadow-card-hover;
+    @apply hover:shadow-card-hover cursor-pointer;
   }
 
   .card-elevated {
@@ -55,27 +63,71 @@
     @apply border-error-500 focus:ring-error-500/20 focus:border-error-500;
   }
 
-  /* Table styles from mockups */
+  /* Select */
+  .select {
+    @apply w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-neutral-800
+           focus:outline-none focus:ring-2 focus:ring-burgundy-500/20 focus:border-burgundy-500 transition-all
+           appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+  }
+
+  /* Toggle Switch */
+  .toggle {
+    @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer;
+  }
+
+  .toggle-on {
+    @apply bg-burgundy-500;
+  }
+
+  .toggle-off {
+    @apply bg-neutral-200;
+  }
+
+  .toggle-knob {
+    @apply inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm;
+  }
+
+  /* Table styles from Figma */
   .table-header {
     @apply bg-burgundy-500 text-white;
+  }
+
+  .table-header th {
+    @apply px-4 py-3 text-left text-sm font-semibold;
+  }
+
+  .table-header th:first-child {
+    @apply rounded-tl-lg;
+  }
+
+  .table-header th:last-child {
+    @apply rounded-tr-lg;
   }
 
   .table-row {
     @apply bg-white border-b border-neutral-100 hover:bg-cream-50 transition-colors;
   }
 
+  .table-row td {
+    @apply px-4 py-3 text-sm;
+  }
+
   /* Navigation */
   .nav-link {
-    @apply text-neutral-600 hover:text-burgundy-500 font-medium transition-colors;
+    @apply text-neutral-600 hover:text-burgundy-500 font-medium transition-colors text-sm;
   }
 
   .nav-link-active {
     @apply text-burgundy-500 font-semibold;
   }
 
-  /* Progress bars from mockups */
+  /* Progress bars */
   .progress-bar {
-    @apply h-3 bg-cream-300 rounded-full overflow-hidden;
+    @apply h-2 bg-cream-300 rounded-full overflow-hidden;
   }
 
   .progress-fill {
@@ -88,20 +140,77 @@
   }
 
   .badge-success {
-    @apply bg-success-100 text-success-600;
+    @apply bg-green-100 text-green-700;
+  }
+
+  .badge-warning {
+    @apply bg-amber-100 text-amber-700;
   }
 
   .badge-error {
-    @apply bg-error-100 text-error-600;
+    @apply bg-red-100 text-red-700;
   }
 
   .badge-neutral {
     @apply bg-neutral-100 text-neutral-600;
   }
 
-  /* Avatar */
+  .badge-burgundy {
+    @apply bg-burgundy-500/10 text-burgundy-500;
+  }
+
+  /* Avatar - matches Figma with burgundy ring option */
   .avatar {
-    @apply rounded-full object-cover border-2 border-white shadow-sm;
+    @apply rounded-full object-cover;
+  }
+
+  .avatar-ring {
+    @apply ring-2 ring-burgundy-500 ring-offset-2;
+  }
+
+  .avatar-sm {
+    @apply w-8 h-8;
+  }
+
+  .avatar-md {
+    @apply w-10 h-10;
+  }
+
+  .avatar-lg {
+    @apply w-12 h-12;
+  }
+
+  .avatar-xl {
+    @apply w-16 h-16;
+  }
+
+  /* Castaway Card - matches Figma draft cards */
+  .castaway-card {
+    @apply bg-white rounded-xl shadow-card overflow-hidden transition-all hover:shadow-card-hover;
+  }
+
+  .castaway-card-selected {
+    @apply ring-2 ring-burgundy-500 shadow-card-hover;
+  }
+
+  .castaway-card-image {
+    @apply w-full aspect-square object-cover bg-cream-100;
+  }
+
+  .castaway-card-body {
+    @apply p-4;
+  }
+
+  .castaway-card-name {
+    @apply font-semibold text-neutral-800;
+  }
+
+  .castaway-card-meta {
+    @apply text-xs text-neutral-500 mt-1;
+  }
+
+  .castaway-card-stats {
+    @apply flex gap-4 mt-2 text-xs text-neutral-600;
   }
 
   /* Section headers */
@@ -111,5 +220,55 @@
 
   .section-subtitle {
     @apply text-neutral-500 text-sm mt-1;
+  }
+
+  /* Modal/Dialog backdrop */
+  .modal-backdrop {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-40;
+  }
+
+  .modal-content {
+    @apply fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-elevated z-50 max-w-md w-full mx-4;
+  }
+
+  /* Countdown timer */
+  .countdown {
+    @apply inline-flex items-center gap-1 text-burgundy-500 font-medium;
+  }
+
+  /* Week selector dropdown */
+  .week-selector {
+    @apply select px-3 py-2 text-sm bg-cream-100 border-cream-300;
+  }
+
+  /* Legend items */
+  .legend-item {
+    @apply flex items-center gap-2 text-xs text-neutral-600;
+  }
+
+  .legend-dot {
+    @apply w-3 h-3 rounded-full;
+  }
+
+  /* Form sections */
+  .form-section {
+    @apply space-y-4;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-neutral-700 mb-1.5;
+  }
+
+  .form-helper {
+    @apply text-xs text-neutral-500 mt-1;
+  }
+
+  /* Notification bell with badge */
+  .notification-bell {
+    @apply relative p-2 text-neutral-600 hover:text-neutral-800 transition-colors;
+  }
+
+  .notification-badge {
+    @apply absolute -top-0.5 -right-0.5 w-4 h-4 bg-burgundy-500 text-white text-xs rounded-full flex items-center justify-center;
   }
 }
