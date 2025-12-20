@@ -135,14 +135,7 @@ export function Dashboard() {
                           {row.rank}
                         </span>
                       </td>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <div className="avatar avatar-sm bg-burgundy-500 flex items-center justify-center text-white text-xs font-medium">
-                            {row.name.charAt(0)}
-                          </div>
-                          {row.name}
-                        </div>
-                      </td>
+                      <td>{row.name}</td>
                       <td className="font-medium">{row.totalPts}</td>
                       <td>
                         <span className="badge badge-success">
