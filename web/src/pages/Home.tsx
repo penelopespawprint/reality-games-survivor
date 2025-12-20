@@ -41,9 +41,9 @@ export function Home() {
   const { user } = useAuth();
 
   return (
-    <div className="h-screen flex flex-col bg-cream-200 overflow-hidden">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-cream-300">
+    <div className="h-screen flex flex-col bg-gradient-to-b from-cream-100 to-cream-200 overflow-hidden">
+      {/* Navigation - elevated glass effect */}
+      <nav className="bg-white/70 backdrop-blur-md border-b border-cream-200/50 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2">
@@ -56,13 +56,13 @@ export function Home() {
             </div>
             <div className="flex items-center gap-4">
               {user ? (
-                <Link to="/dashboard" className="btn btn-primary">
+                <Link to="/dashboard" className="btn btn-primary shadow-elevated">
                   Dashboard
                 </Link>
               ) : (
                 <>
                   <Link to="/login" className="nav-link">Login</Link>
-                  <Link to="/signup" className="btn btn-primary">
+                  <Link to="/signup" className="btn btn-primary shadow-elevated">
                     Sign Up
                   </Link>
                 </>
@@ -74,55 +74,63 @@ export function Home() {
 
       {/* Hero - fills remaining viewport */}
       <div className="flex-1 flex items-center justify-center relative px-4">
+        {/* Subtle radial gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-cream-300/30 pointer-events-none" />
+
         {/* Decorative torches on sides */}
-        <div className="absolute left-8 top-1/2 -translate-y-1/2 opacity-20 hidden lg:block">
-          <TorchIcon className="h-64" />
+        <div className="absolute left-12 top-1/2 -translate-y-1/2 opacity-10 hidden xl:block">
+          <TorchIcon className="h-72" />
         </div>
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-20 hidden lg:block">
-          <TorchIcon className="h-64" />
+        <div className="absolute right-12 top-1/2 -translate-y-1/2 opacity-10 hidden xl:block">
+          <TorchIcon className="h-72" />
         </div>
 
-        <div className="max-w-3xl text-center relative z-10">
+        <div className="max-w-3xl text-center relative z-10 animate-fade-in">
           {/* Main torch accent */}
-          <div className="flex justify-center mb-6">
-            <TorchIcon className="h-20 drop-shadow-lg" />
+          <div className="flex justify-center mb-8">
+            <TorchIcon className="h-24 drop-shadow-lg" />
           </div>
 
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-neutral-800 leading-tight">
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-neutral-800 leading-tight tracking-tight">
             SURVIVOR FANTASY LEAGUE
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg text-neutral-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-8 text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto leading-relaxed">
             Bored of the same old fantasy leagues where you pick one Survivor and pray for luck?
-            Get ready for something completely different.
           </p>
 
-          <p className="mt-4 text-base sm:text-lg text-neutral-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-4 text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto leading-relaxed">
             We've created a scoring system with{' '}
             <span className="font-semibold text-burgundy-500">100+ game-tested rules</span>{' '}
             that reward real strategy, not just luck.
           </p>
 
-          <div className="mt-8">
+          <div className="mt-10">
             {user ? (
-              <Link to="/dashboard" className="btn btn-primary text-lg px-10 py-4">
+              <Link
+                to="/dashboard"
+                className="btn btn-primary text-lg px-12 py-4 shadow-float hover:shadow-elevated-lg transition-all duration-300 hover:-translate-y-0.5"
+              >
                 Go to Dashboard
               </Link>
             ) : (
-              <Link to="/signup" className="btn btn-primary text-lg px-10 py-4">
+              <Link
+                to="/signup"
+                className="btn btn-primary text-lg px-12 py-4 shadow-float hover:shadow-elevated-lg transition-all duration-300 hover:-translate-y-0.5"
+              >
                 JOIN NOW
               </Link>
             )}
           </div>
 
-          <p className="mt-6 text-sm text-neutral-500">
+          <p className="mt-8 text-sm text-neutral-500 tracking-wide">
             Season 50 registration opens December 19, 2025
           </p>
         </div>
       </div>
 
       {/* Minimal footer */}
-      <footer className="py-4 text-center text-neutral-500 text-sm">
+      <footer className="py-4 text-center text-neutral-400 text-sm border-t border-cream-200/50 bg-white/30">
         © 2025 Reality Games Fantasy League · Not affiliated with CBS or Survivor
       </footer>
     </div>

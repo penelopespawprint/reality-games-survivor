@@ -27,22 +27,30 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cream-200 px-4">
-      <div className="card-elevated max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-cream-100 to-cream-200 px-4 py-12">
+      {/* Card with elevated shadow */}
+      <div className="bg-white rounded-2xl shadow-float max-w-md w-full p-8 animate-slide-up">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <Link to="/">
+            <img src="/logo.png" alt="RGFL" className="h-12 w-auto" />
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
-          <h1 className="font-display text-3xl text-neutral-800">Login</h1>
-          <p className="text-neutral-500 mt-2">Log in to continue to your dashboard.</p>
+          <h1 className="font-display text-3xl text-neutral-800">Welcome Back</h1>
+          <p className="text-neutral-500 mt-2">Log in to continue to your dashboard</p>
         </div>
 
         {error && (
-          <div className="bg-error-50 border border-error-200 rounded-lg p-3 mb-6">
+          <div className="bg-error-50 border border-error-200 rounded-xl p-4 mb-6">
             <p className="text-error-600 text-sm">{error}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
               Email address
             </label>
             <input
@@ -57,7 +65,7 @@ export function Login() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-1.5">
+            <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
               Password
             </label>
             <div className="relative">
@@ -66,14 +74,14 @@ export function Login() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input pr-10"
+                className="input pr-12"
                 placeholder="••••••••"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
               >
                 {showPassword ? (
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -89,29 +97,20 @@ export function Login() {
             </div>
           </div>
 
+          <div className="flex items-center justify-end">
+            <Link to="/forgot-password" className="text-sm text-burgundy-500 hover:text-burgundy-600 font-medium">
+              Forgot Password?
+            </Link>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn btn-primary w-full shadow-elevated hover:shadow-elevated-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Logging in...' : 'Continue'}
           </button>
         </form>
-
-        <div className="mt-4 text-right">
-          <Link to="/forgot-password" className="text-sm text-burgundy-500 hover:text-burgundy-600">
-            Forgot Password?
-          </Link>
-        </div>
-
-        <div className="mt-6 text-center">
-          <p className="text-neutral-500 text-sm">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-burgundy-500 hover:text-burgundy-600 font-medium">
-              Signup
-            </Link>
-          </p>
-        </div>
 
         <div className="mt-6 relative">
           <div className="absolute inset-0 flex items-center">
@@ -123,13 +122,7 @@ export function Login() {
         </div>
 
         <div className="mt-6 space-y-3">
-          <button className="btn btn-secondary w-full flex items-center justify-center gap-3">
-            <svg className="w-5 h-5 text-[#0077B5]" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-            </svg>
-            Continue with LinkedIn
-          </button>
-          <button className="btn btn-secondary w-full flex items-center justify-center gap-3">
+          <button className="btn btn-secondary w-full flex items-center justify-center gap-3 shadow-card hover:shadow-card-hover transition-all">
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -138,6 +131,22 @@ export function Login() {
             </svg>
             Continue with Google
           </button>
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-neutral-500 text-sm">
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-burgundy-500 hover:text-burgundy-600 font-semibold">
+              Sign up
+            </Link>
+          </p>
+        </div>
+
+        {/* Back to home */}
+        <div className="mt-6 text-center">
+          <Link to="/" className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors">
+            ← Back to home
+          </Link>
         </div>
       </div>
     </div>
