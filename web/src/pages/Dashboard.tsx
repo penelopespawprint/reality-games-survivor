@@ -2,6 +2,28 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 
+interface UserProfile {
+  id: string;
+  email: string;
+  display_name: string;
+  role: string;
+}
+
+interface Season {
+  id: string;
+  number: number;
+  name: string;
+  is_active: boolean;
+}
+
+interface League {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+  is_global: boolean;
+}
+
 export function Dashboard() {
   const { user } = useAuth();
 
@@ -14,7 +36,7 @@ export function Dashboard() {
         .eq('id', user!.id)
         .single();
       if (error) throw error;
-      return data;
+      return data as UserProfile;
     },
     enabled: !!user?.id,
   });
@@ -27,8 +49,8 @@ export function Dashboard() {
         .select('*')
         .eq('is_active', true)
         .single();
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
-      return data;
+      if (error && error.code !== 'PGRST116') throw error;
+      return data as Season | null;
     },
   });
 
@@ -48,7 +70,9 @@ export function Dashboard() {
         `)
         .eq('user_id', user!.id);
       if (error) throw error;
-      return data?.map((m) => m.league).filter(Boolean) ?? [];
+      type LeagueResult = { league: League | null };
+      const results = data as unknown as LeagueResult[];
+      return results.map((r) => r.league).filter((l): l is League => l !== null);
     },
     enabled: !!user?.id,
   });
@@ -95,20 +119,20 @@ export function Dashboard() {
         {myLeagues && myLeagues.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {myLeagues.map((league) => (
-              <div key={league?.id} className="card hover:border-neutral-700 transition-colors cursor-pointer">
+              <div key={league.id} className="card hover:border-neutral-700 transition-colors cursor-pointer">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-semibold text-white">{league?.name}</h3>
-                    <p className="text-neutral-400 text-sm mt-1">Code: {league?.code}</p>
+                    <h3 className="font-semibold text-white">{league.name}</h3>
+                    <p className="text-neutral-400 text-sm mt-1">Code: {league.code}</p>
                   </div>
-                  {league?.is_global && (
+                  {league.is_global && (
                     <span className="px-2 py-1 bg-tribal-500/20 text-tribal-400 text-xs rounded-full">
                       Global
                     </span>
                   )}
                 </div>
                 <div className="mt-4 pt-4 border-t border-neutral-800">
-                  <span className="text-sm text-neutral-500 capitalize">{league?.status}</span>
+                  <span className="text-sm text-neutral-500 capitalize">{league.status}</span>
                 </div>
               </div>
             ))}

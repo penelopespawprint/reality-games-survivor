@@ -216,7 +216,35 @@ export interface Database {
           updated_at?: string;
         };
       };
-      // Add more tables as needed - this is a starting subset
+      league_members: {
+        Row: {
+          id: string;
+          league_id: string;
+          user_id: string;
+          draft_position: number | null;
+          total_points: number;
+          rank: number | null;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          league_id: string;
+          user_id: string;
+          draft_position?: number | null;
+          total_points?: number;
+          rank?: number | null;
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          league_id?: string;
+          user_id?: string;
+          draft_position?: number | null;
+          total_points?: number;
+          rank?: number | null;
+          joined_at?: string;
+        };
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
