@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Users, Lock, DollarSign, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { Navigation } from '@/components/Navigation';
 
 interface League {
   id: string;
@@ -132,62 +133,73 @@ export default function JoinLeague() {
 
   if (sessionLoading || leagueLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
-      </div>
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+        </div>
+      </>
     );
   }
 
   if (leagueError || !league) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-elevated p-8 border border-cream-200 max-w-md text-center">
-          <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
-            League Not Found
-          </h1>
-          <p className="text-neutral-500 mb-6">
-            The invite code "{code}" doesn't match any league. Check the code and try again.
-          </p>
-          <Link
-            to="/dashboard"
-            className="btn btn-primary inline-block"
-          >
-            Go to Dashboard
-          </Link>
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl shadow-elevated p-8 border border-cream-200 max-w-md text-center">
+            <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
+              League Not Found
+            </h1>
+            <p className="text-neutral-500 mb-6">
+              The invite code "{code}" doesn't match any league. Check the code and try again.
+            </p>
+            <Link
+              to="/dashboard"
+              className="btn btn-primary inline-block"
+            >
+              Go to Dashboard
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (isMember) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-elevated p-8 border border-cream-200 max-w-md text-center">
-          <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
-            Already a Member
-          </h1>
-          <p className="text-neutral-500 mb-6">
-            You're already a member of {league.name}!
-          </p>
-          <Link
-            to={`/leagues/${league.id}`}
-            className="btn btn-primary inline-block"
-          >
-            Go to League
-          </Link>
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl shadow-elevated p-8 border border-cream-200 max-w-md text-center">
+            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
+              Already a Member
+            </h1>
+            <p className="text-neutral-500 mb-6">
+              You're already a member of {league.name}!
+            </p>
+            <Link
+              to={`/leagues/${league.id}`}
+              className="btn btn-primary inline-block"
+            >
+              Go to League
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   const isFull = memberCount !== undefined && memberCount >= league.max_players;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-elevated p-8 border border-cream-200 max-w-md w-full">
-        {/* League Info */}
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-elevated p-8 border border-cream-200 max-w-md w-full">
+          {/* League Info */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
             {league.name}
@@ -286,7 +298,8 @@ export default function JoinLeague() {
             </button>
           </form>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

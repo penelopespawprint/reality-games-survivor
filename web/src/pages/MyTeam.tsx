@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Users, Trophy, Calendar, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { Navigation } from '@/components/Navigation';
 
 export default function MyTeam() {
   const { leagueId } = useParams<{ leagueId: string }>();
@@ -86,8 +87,10 @@ export default function MyTeam() {
   const totalPoints = pickHistory?.reduce((sum, pick) => sum + (pick.points_earned || 0), 0) || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-      {/* Header */}
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+        {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Link
           to={`/leagues/${leagueId}`}
@@ -223,7 +226,8 @@ export default function MyTeam() {
             No picks yet. Season starts soon!
           </p>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

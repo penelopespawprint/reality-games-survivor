@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Users, Search, Shield, ShieldCheck, ShieldAlert, Loader2, Mail, Phone, Calendar, MoreVertical } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Navigation } from '@/components/Navigation';
 
 type UserRole = 'player' | 'commissioner' | 'admin';
 
@@ -98,22 +99,27 @@ export function AdminUsers() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
-      </div>
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link
-          to="/admin"
-          className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
-        >
-          <ArrowLeft className="h-5 w-5 text-neutral-600" />
-        </Link>
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <Link
+            to="/admin"
+            className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
+          >
+            <ArrowLeft className="h-5 w-5 text-neutral-600" />
+          </Link>
         <div>
           <h1 className="text-2xl font-display font-bold text-neutral-800 flex items-center gap-2">
             <Users className="h-6 w-6 text-burgundy-500" />
@@ -271,7 +277,8 @@ export function AdminUsers() {
             <p className="text-neutral-500">No users found.</p>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Globe, Trophy, Users, TrendingUp, Crown, Medal, Loader2, Star } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Navigation } from '@/components/Navigation';
 
 export function AdminGlobal() {
   // Fetch global league
@@ -77,15 +78,50 @@ export function AdminGlobal() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
-      </div>
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+        </div>
+      </>
     );
   }
 
   if (!globalLeague) {
     return (
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+          <div className="flex items-center gap-3 mb-6">
+            <Link
+              to="/admin"
+              className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
+            >
+              <ArrowLeft className="h-5 w-5 text-neutral-600" />
+            </Link>
+            <h1 className="text-2xl font-display font-bold text-neutral-800">Global League</h1>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-card p-8 border border-cream-200 text-center">
+            <Globe className="h-16 w-16 text-neutral-400 mx-auto mb-4" />
+            <h2 className="text-xl font-display font-bold text-neutral-800 mb-2">No Global League Found</h2>
+            <p className="text-neutral-500 mb-6">
+              Create a global league to enable cross-league rankings.
+            </p>
+            <button className="btn btn-primary">
+              Create Global League
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Navigation />
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+        {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Link
             to="/admin"
@@ -93,33 +129,6 @@ export function AdminGlobal() {
           >
             <ArrowLeft className="h-5 w-5 text-neutral-600" />
           </Link>
-          <h1 className="text-2xl font-display font-bold text-neutral-800">Global League</h1>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-card p-8 border border-cream-200 text-center">
-          <Globe className="h-16 w-16 text-neutral-400 mx-auto mb-4" />
-          <h2 className="text-xl font-display font-bold text-neutral-800 mb-2">No Global League Found</h2>
-          <p className="text-neutral-500 mb-6">
-            Create a global league to enable cross-league rankings.
-          </p>
-          <button className="btn btn-primary">
-            Create Global League
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link
-          to="/admin"
-          className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
-        >
-          <ArrowLeft className="h-5 w-5 text-neutral-600" />
-        </Link>
         <div>
           <h1 className="text-2xl font-display font-bold text-neutral-800 flex items-center gap-2">
             <Globe className="h-6 w-6 text-burgundy-500" />
@@ -254,7 +263,8 @@ export function AdminGlobal() {
             <span className="text-neutral-800">{globalLeague.max_players}</span>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

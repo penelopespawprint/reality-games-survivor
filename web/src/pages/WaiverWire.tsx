@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, ArrowUp, ArrowDown, Check, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { Navigation } from '@/components/Navigation';
 
 export default function WaiverWire() {
   const { leagueId } = useParams<{ leagueId: string }>();
@@ -182,8 +183,10 @@ export default function WaiverWire() {
 
   if (!waiverOpen) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-        <div className="flex items-center gap-3 mb-6">
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+          <div className="flex items-center gap-3 mb-6">
           <Link
             to={`/leagues/${leagueId}`}
             className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
@@ -196,32 +199,35 @@ export default function WaiverWire() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-card p-8 border border-cream-200 text-center">
-          <Clock className="h-12 w-12 text-burgundy-500 mx-auto mb-4" />
-          <h2 className="text-xl font-display font-bold text-neutral-800 mb-2">Waiver Window Closed</h2>
-          <p className="text-neutral-500">
-            The waiver wire opens Saturday at 12pm PST after results are posted.
-          </p>
+          <div className="bg-white rounded-2xl shadow-card p-8 border border-cream-200 text-center">
+            <Clock className="h-12 w-12 text-burgundy-500 mx-auto mb-4" />
+            <h2 className="text-xl font-display font-bold text-neutral-800 mb-2">Waiver Window Closed</h2>
+            <p className="text-neutral-500">
+              The waiver wire opens Saturday at 12pm PST after results are posted.
+            </p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link
-          to={`/leagues/${leagueId}`}
-          className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
-        >
-          <ArrowLeft className="h-5 w-5 text-neutral-600" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-display font-bold text-neutral-800">Waiver Wire</h1>
-          <p className="text-neutral-500">{league?.name}</p>
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <Link
+            to={`/leagues/${leagueId}`}
+            className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
+          >
+            <ArrowLeft className="h-5 w-5 text-neutral-600" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-display font-bold text-neutral-800">Waiver Wire</h1>
+            <p className="text-neutral-500">{league?.name}</p>
+          </div>
         </div>
-      </div>
 
       {/* Status Alert */}
       {needsWaiver && (
@@ -359,7 +365,8 @@ export default function WaiverWire() {
             No castaways available on waivers.
           </p>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

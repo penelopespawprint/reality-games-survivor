@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, DollarSign, Search, Loader2, CreditCard, RefreshCw, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Navigation } from '@/components/Navigation';
 
 export function AdminPayments() {
   const queryClient = useQueryClient();
@@ -90,18 +91,23 @@ export function AdminPayments() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
-      </div>
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link
-          to="/admin"
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <Link
+            to="/admin"
           className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
         >
           <ArrowLeft className="h-5 w-5 text-neutral-600" />
@@ -259,7 +265,8 @@ export function AdminPayments() {
             <p className="text-neutral-500">No payments found.</p>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Tv, Plus, Check, Loader2, Edit2, Trash2, Star } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Navigation } from '@/components/Navigation';
 
 export function AdminEpisodes() {
   const { seasonId } = useParams<{ seasonId: string }>();
@@ -201,19 +202,24 @@ export function AdminEpisodes() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
-      </div>
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Link
-            to="/admin/seasons"
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Link
+              to="/admin/seasons"
             className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
           >
             <ArrowLeft className="h-5 w-5 text-neutral-600" />
@@ -444,7 +450,8 @@ export function AdminEpisodes() {
             )}
           </div>
         ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

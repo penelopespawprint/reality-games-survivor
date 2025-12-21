@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Clock, Play, CheckCircle, XCircle, AlertCircle, Loader2, RefreshCw, Calendar, Zap } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { Navigation } from '@/components/Navigation';
 
 interface Job {
   name: string;
@@ -167,8 +168,10 @@ export function AdminJobs() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-      {/* Header */}
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+        {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Link
           to="/admin"
@@ -290,7 +293,8 @@ export function AdminJobs() {
             </p>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

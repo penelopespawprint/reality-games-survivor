@@ -7,6 +7,7 @@ import {
   X, AlertTriangle
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { Navigation } from '@/components/Navigation';
 
 export default function LeagueSettings() {
   const { leagueId } = useParams<{ leagueId: string }>();
@@ -225,34 +226,42 @@ export default function LeagueSettings() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
-      </div>
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+        </div>
+      </>
     );
   }
 
   if (!isCommissioner) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-          <h1 className="text-xl font-display font-bold text-neutral-800 mb-2">Access Denied</h1>
-          <p className="text-neutral-500 mb-4">Only the league commissioner can access settings.</p>
-          <Link
-            to={`/leagues/${leagueId}`}
-            className="text-burgundy-500 hover:text-burgundy-600"
-          >
-            Back to League
-          </Link>
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+            <h1 className="text-xl font-display font-bold text-neutral-800 mb-2">Access Denied</h1>
+            <p className="text-neutral-500 mb-4">Only the league commissioner can access settings.</p>
+            <Link
+              to={`/leagues/${leagueId}`}
+              className="text-burgundy-500 hover:text-burgundy-600"
+            >
+              Back to League
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   const otherMembers = members?.filter((m: any) => m.user_id !== currentUser?.id) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-      {/* Header */}
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+        {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Link
           to={`/leagues/${leagueId}`}
@@ -648,6 +657,7 @@ export default function LeagueSettings() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
