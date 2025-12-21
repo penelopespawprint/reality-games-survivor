@@ -377,36 +377,6 @@ export function Dashboard() {
               </div>
             </div>
 
-            {/* Global League Stats */}
-            {myLeagues?.find(l => l.league.is_global) && (
-              <div className="bg-gradient-to-br from-burgundy-500 to-burgundy-600 rounded-2xl p-6 text-white shadow-elevated">
-                <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <Trophy className="h-5 w-5" />
-                  Global Rankings
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-white/10 rounded-xl">
-                    <p className="text-2xl font-display">
-                      {myLeagues.find(l => l.league.is_global)?.total_points || 0}
-                    </p>
-                    <p className="text-xs text-burgundy-200 mt-1">Total Points</p>
-                  </div>
-                  <div className="text-center p-3 bg-white/10 rounded-xl">
-                    <p className="text-2xl font-display">
-                      #{myLeagues.find(l => l.league.is_global)?.rank || '—'}
-                    </p>
-                    <p className="text-xs text-burgundy-200 mt-1">Global Rank</p>
-                  </div>
-                </div>
-                <Link
-                  to="/leaderboard"
-                  className="mt-4 block text-center text-sm text-burgundy-200 hover:text-white transition-colors"
-                >
-                  View Full Leaderboard →
-                </Link>
-              </div>
-            )}
-
             {/* Upcoming */}
             <div className="bg-white rounded-2xl shadow-card p-6 border border-cream-200">
               <div className="flex items-center gap-3 mb-4">
