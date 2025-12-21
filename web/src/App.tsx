@@ -13,11 +13,38 @@ import { WeeklyPick } from './pages/WeeklyPick';
 import { Leaderboard } from './pages/Leaderboard';
 import { ScoringRules } from './pages/ScoringRules';
 import { NotFound } from './pages/NotFound';
+import HowToPlay from './pages/HowToPlay';
+import JoinLeague from './pages/JoinLeague';
+import Profile from './pages/Profile';
+import LeagueHome from './pages/LeagueHome';
+import MyTeam from './pages/MyTeam';
+import WaiverWire from './pages/WaiverWire';
+import EpisodeResults from './pages/EpisodeResults';
+import CreateLeague from './pages/CreateLeague';
+import LeagueSettings from './pages/LeagueSettings';
+import ResetPassword from './pages/ResetPassword';
+import SMSCommands from './pages/SMSCommands';
+import SeasonSchedule from './pages/SeasonSchedule';
+import SeasonCastaways from './pages/SeasonCastaways';
+import PaymentHistory from './pages/PaymentHistory';
+import PublicLeaderboard from './pages/PublicLeaderboard';
+import LeagueHistory from './pages/LeagueHistory';
+import Notifications from './pages/Notifications';
+import DraftSettings from './pages/DraftSettings';
+import InviteLink from './pages/InviteLink';
 
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminScoring } from './pages/admin/AdminScoring';
 import { AdminCastaways } from './pages/admin/AdminCastaways';
+import { AdminSeasons } from './pages/admin/AdminSeasons';
+import { AdminEpisodes } from './pages/admin/AdminEpisodes';
+import { AdminLeagues } from './pages/admin/AdminLeagues';
+import { AdminUsers } from './pages/admin/AdminUsers';
+import { AdminPayments } from './pages/admin/AdminPayments';
+import { AdminJobs } from './pages/admin/AdminJobs';
+import { AdminGlobal } from './pages/admin/AdminGlobal';
+import { AdminScoringRules } from './pages/admin/AdminScoringRules';
 
 export default function App() {
   return (
@@ -27,22 +54,53 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/register" element={<Signup />} />
+        <Route path="/how-to-play" element={<HowToPlay />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/sms" element={<SMSCommands />} />
+        <Route path="/l/:code" element={<PublicLeaderboard />} />
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
           </Route>
           {/* Full-page protected routes (no Layout wrapper) */}
+          <Route path="/join/:code" element={<JoinLeague />} />
+          <Route path="/leagues/create" element={<CreateLeague />} />
+          <Route path="/leagues/:id" element={<LeagueHome />} />
           <Route path="/leagues/:leagueId/draft" element={<Draft />} />
+          <Route path="/leagues/:leagueId/draft/settings" element={<DraftSettings />} />
           <Route path="/leagues/:leagueId/pick" element={<WeeklyPick />} />
-          <Route path="/leagues/:leagueId/leaderboard" element={<Leaderboard />} />
+          <Route path="/leagues/:leagueId/team" element={<MyTeam />} />
+          <Route path="/leagues/:leagueId/waivers" element={<WaiverWire />} />
+          <Route path="/leagues/:leagueId/settings" element={<LeagueSettings />} />
+          <Route path="/leagues/:leagueId/invite" element={<InviteLink />} />
+          <Route path="/leagues/:leagueId/history" element={<LeagueHistory />} />
+          <Route path="/leagues/:leagueId/episodes/:episodeId" element={<EpisodeResults />} />
           <Route path="/rules" element={<ScoringRules />} />
+          <Route path="/profile/payments" element={<PaymentHistory />} />
+          <Route path="/profile/notifications" element={<Notifications />} />
+          <Route path="/seasons/:id/schedule" element={<SeasonSchedule />} />
+          <Route path="/seasons/:id/castaways" element={<SeasonCastaways />} />
 
           {/* Admin routes */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/scoring" element={<AdminScoring />} />
           <Route path="/admin/castaways" element={<AdminCastaways />} />
+          <Route path="/admin/seasons" element={<AdminSeasons />} />
+          <Route path="/admin/seasons/:seasonId" element={<AdminSeasons />} />
+          <Route path="/admin/seasons/:seasonId/episodes" element={<AdminEpisodes />} />
+          <Route path="/admin/seasons/:seasonId/castaways" element={<AdminCastaways />} />
+          <Route path="/admin/episodes/:episodeId/scoring" element={<AdminScoring />} />
+          <Route path="/admin/leagues" element={<AdminLeagues />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/payments" element={<AdminPayments />} />
+          <Route path="/admin/jobs" element={<AdminJobs />} />
+          <Route path="/admin/global" element={<AdminGlobal />} />
+          <Route path="/admin/scoring-rules" element={<AdminScoringRules />} />
         </Route>
 
         {/* 404 */}

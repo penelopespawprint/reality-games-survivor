@@ -223,6 +223,14 @@ export function AdminScoring() {
   const selectedEpisode = episodes?.find(e => e.id === selectedEpisodeId);
   const selectedCastaway = castaways?.find(c => c.id === selectedCastawayId);
 
+  // Calculate live total as user edits
+  const liveTotal = useMemo(() => {
+    return Object.entries(scores).reduce((total, [ruleId, quantity]) => {
+      const rule = scoringRules?.find(r => r.id === ruleId);
+      return total + (rule?.points || 0) * quantity;
+    }, 0);
+  }, [scores, scoringRules]);
+
   if (profile && profile.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
@@ -339,7 +347,7 @@ export function AdminScoring() {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Castaway Header */}
+                {/* Castaway Header with Live Total */}
                 <div className="bg-gradient-to-r from-burgundy-500 to-burgundy-600 rounded-2xl p-6 text-white shadow-elevated">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -355,13 +363,22 @@ export function AdminScoring() {
                         <p className="text-burgundy-100">Episode {selectedEpisode?.number}</p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => saveScoresMutation.mutate()}
-                      disabled={saveScoresMutation.isPending}
-                      className="btn bg-white text-burgundy-600 hover:bg-cream-50 shadow-lg disabled:opacity-50"
-                    >
-                      {saveScoresMutation.isPending ? 'Saving...' : 'Save Scores'}
-                    </button>
+                    <div className="flex items-center gap-6">
+                      {/* Live Total */}
+                      <div className="text-center">
+                        <p className="text-burgundy-200 text-sm">Episode Total</p>
+                        <p className={`text-4xl font-display font-bold ${liveTotal >= 0 ? 'text-white' : 'text-red-200'}`}>
+                          {liveTotal >= 0 ? '+' : ''}{liveTotal}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => saveScoresMutation.mutate()}
+                        disabled={saveScoresMutation.isPending}
+                        className="btn bg-white text-burgundy-600 hover:bg-cream-50 shadow-lg disabled:opacity-50"
+                      >
+                        {saveScoresMutation.isPending ? 'Saving...' : 'Save Scores'}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -372,42 +389,54 @@ export function AdminScoring() {
                       <h3 className="font-semibold text-neutral-800">{category}</h3>
                     </div>
                     <div className="divide-y divide-cream-100">
-                      {rules.map((rule) => (
-                        <div key={rule.id} className="p-5 flex items-center gap-4">
-                          <div className={`w-14 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
-                            rule.is_negative ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                          }`}>
-                            {rule.points >= 0 ? '+' : ''}{rule.points}
+                      {rules.map((rule) => {
+                        const quantity = scores[rule.id] || 0;
+                        const ruleTotal = rule.points * quantity;
+                        return (
+                          <div key={rule.id} className="p-5 flex items-center gap-4">
+                            <div className={`w-14 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
+                              rule.is_negative ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                            }`}>
+                              {rule.points >= 0 ? '+' : ''}{rule.points}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-neutral-800">{rule.name}</p>
+                              {rule.description && (
+                                <p className="text-xs text-neutral-500 mt-0.5">{rule.description}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => updateScore(rule.id, quantity - 1)}
+                                  className="w-8 h-8 rounded-lg bg-cream-100 text-neutral-600 hover:bg-cream-200 flex items-center justify-center font-bold"
+                                >
+                                  −
+                                </button>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={quantity}
+                                  onChange={(e) => updateScore(rule.id, parseInt(e.target.value) || 0)}
+                                  className="w-14 h-10 text-center border border-cream-200 rounded-lg focus:ring-2 focus:ring-burgundy-500"
+                                />
+                                <button
+                                  onClick={() => updateScore(rule.id, quantity + 1)}
+                                  className="w-8 h-8 rounded-lg bg-cream-100 text-neutral-600 hover:bg-cream-200 flex items-center justify-center font-bold"
+                                >
+                                  +
+                                </button>
+                              </div>
+                              {/* Show calculated points for this rule */}
+                              {quantity > 0 && (
+                                <div className={`w-16 text-right font-bold ${ruleTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  = {ruleTotal >= 0 ? '+' : ''}{ruleTotal}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-neutral-800">{rule.name}</p>
-                            {rule.description && (
-                              <p className="text-xs text-neutral-500 mt-0.5">{rule.description}</p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => updateScore(rule.id, (scores[rule.id] || 0) - 1)}
-                              className="w-8 h-8 rounded-lg bg-cream-100 text-neutral-600 hover:bg-cream-200 flex items-center justify-center"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min="0"
-                              value={scores[rule.id] || 0}
-                              onChange={(e) => updateScore(rule.id, parseInt(e.target.value) || 0)}
-                              className="w-16 h-10 text-center border border-cream-200 rounded-lg focus:ring-2 focus:ring-burgundy-500"
-                            />
-                            <button
-                              onClick={() => updateScore(rule.id, (scores[rule.id] || 0) + 1)}
-                              className="w-8 h-8 rounded-lg bg-cream-100 text-neutral-600 hover:bg-cream-200 flex items-center justify-center"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
