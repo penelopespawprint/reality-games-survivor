@@ -1,7 +1,10 @@
 {
-  "name": "@rgfl/server",
+  "name": "rgfl-survivor-api",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
