@@ -1,7 +1,8 @@
 {
-  "buildCommand": "cd web && rm -rf node_modules package-lock.json && npm install && npm run build",
+  "buildCommand": "rm -rf node_modules package-lock.json web/node_modules && npm install && npm run build",
   "outputDirectory": "web/dist",
   "framework": "vite",
+  "installCommand": "echo 'Skipping default install'",
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ]
