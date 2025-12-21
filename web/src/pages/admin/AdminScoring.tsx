@@ -1,0 +1,421 @@
+import { useState, useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth';
+import { AppNav } from '@/components/AppNav';
+
+interface Episode {
+  id: string;
+  number: number;
+  title: string | null;
+  air_date: string;
+  is_scored: boolean;
+  season_id: string;
+}
+
+interface Castaway {
+  id: string;
+  name: string;
+  photo_url: string | null;
+  tribe_original: string | null;
+  status: string;
+}
+
+interface ScoringRule {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  points: number;
+  category: string | null;
+  is_negative: boolean;
+}
+
+interface EpisodeScore {
+  id: string;
+  episode_id: string;
+  castaway_id: string;
+  scoring_rule_id: string;
+  quantity: number;
+  points: number;
+}
+
+interface UserProfile {
+  id: string;
+  display_name: string;
+  role: string;
+}
+
+export function AdminScoring() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const episodeIdParam = searchParams.get('episode');
+
+  const [selectedEpisodeId, setSelectedEpisodeId] = useState<string | null>(episodeIdParam);
+  const [selectedCastawayId, setSelectedCastawayId] = useState<string | null>(null);
+  const [scores, setScores] = useState<Record<string, number>>({});
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, display_name, role')
+        .eq('id', user!.id)
+        .single();
+      if (error) throw error;
+      return data as UserProfile;
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: activeSeason } = useQuery({
+    queryKey: ['activeSeason'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('seasons')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+  });
+
+  const { data: episodes } = useQuery({
+    queryKey: ['episodes', activeSeason?.id],
+    queryFn: async () => {
+      if (!activeSeason?.id) return [];
+      const { data, error } = await supabase
+        .from('episodes')
+        .select('*')
+        .eq('season_id', activeSeason.id)
+        .order('number', { ascending: true });
+      if (error) throw error;
+      return data as Episode[];
+    },
+    enabled: !!activeSeason?.id,
+  });
+
+  const { data: castaways } = useQuery({
+    queryKey: ['castaways', activeSeason?.id],
+    queryFn: async () => {
+      if (!activeSeason?.id) return [];
+      const { data, error } = await supabase
+        .from('castaways')
+        .select('*')
+        .eq('season_id', activeSeason.id)
+        .order('name');
+      if (error) throw error;
+      return data as Castaway[];
+    },
+    enabled: !!activeSeason?.id,
+  });
+
+  const { data: scoringRules } = useQuery({
+    queryKey: ['scoringRules', activeSeason?.id],
+    queryFn: async () => {
+      if (!activeSeason?.id) return [];
+      const { data, error } = await supabase
+        .from('scoring_rules')
+        .select('*')
+        .eq('season_id', activeSeason.id)
+        .eq('is_active', true)
+        .order('sort_order');
+      if (error) throw error;
+      return data as ScoringRule[];
+    },
+    enabled: !!activeSeason?.id,
+  });
+
+  const { data: existingScores } = useQuery({
+    queryKey: ['episodeScores', selectedEpisodeId],
+    queryFn: async () => {
+      if (!selectedEpisodeId) return [];
+      const { data, error } = await supabase
+        .from('episode_scores')
+        .select('*')
+        .eq('episode_id', selectedEpisodeId);
+      if (error) throw error;
+      return data as EpisodeScore[];
+    },
+    enabled: !!selectedEpisodeId,
+  });
+
+  // Group rules by category
+  const groupedRules = useMemo(() => {
+    return scoringRules?.reduce((acc, rule) => {
+      const category = rule.category || 'Other';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(rule);
+      return acc;
+    }, {} as Record<string, ScoringRule[]>) || {};
+  }, [scoringRules]);
+
+  // Initialize scores from existing data
+  useMemo(() => {
+    if (existingScores && selectedCastawayId) {
+      const castawayScores = existingScores.filter(s => s.castaway_id === selectedCastawayId);
+      const scoreMap: Record<string, number> = {};
+      castawayScores.forEach(s => {
+        scoreMap[s.scoring_rule_id] = s.quantity;
+      });
+      setScores(scoreMap);
+    } else {
+      setScores({});
+    }
+  }, [existingScores, selectedCastawayId]);
+
+  const saveScoresMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedEpisodeId || !selectedCastawayId || !user?.id) {
+        throw new Error('Missing required data');
+      }
+
+      // Delete existing scores for this castaway/episode
+      await supabase
+        .from('episode_scores')
+        .delete()
+        .eq('episode_id', selectedEpisodeId)
+        .eq('castaway_id', selectedCastawayId);
+
+      // Insert new scores
+      const scoresToInsert = Object.entries(scores)
+        .filter(([_, quantity]) => quantity > 0)
+        .map(([ruleId, quantity]) => {
+          const rule = scoringRules?.find(r => r.id === ruleId);
+          return {
+            episode_id: selectedEpisodeId,
+            castaway_id: selectedCastawayId,
+            scoring_rule_id: ruleId,
+            quantity,
+            points: (rule?.points || 0) * quantity,
+            entered_by: user.id,
+          };
+        });
+
+      if (scoresToInsert.length > 0) {
+        const { error } = await supabase
+          .from('episode_scores')
+          .insert(scoresToInsert);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['episodeScores', selectedEpisodeId] });
+    },
+  });
+
+  const updateScore = (ruleId: string, value: number) => {
+    setScores(prev => ({
+      ...prev,
+      [ruleId]: Math.max(0, value),
+    }));
+  };
+
+  const calculateCastawayTotal = (castawayId: string) => {
+    const castawayScores = existingScores?.filter(s => s.castaway_id === castawayId) || [];
+    return castawayScores.reduce((sum, s) => sum + s.points, 0);
+  };
+
+  const selectedEpisode = episodes?.find(e => e.id === selectedEpisodeId);
+  const selectedCastaway = castaways?.find(c => c.id === selectedCastawayId);
+
+  if (profile && profile.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
+        <AppNav userName={profile?.display_name} userInitial={profile?.display_name?.charAt(0).toUpperCase()} />
+        <main className="max-w-4xl mx-auto px-4 py-16 text-center">
+          <div className="bg-white rounded-2xl shadow-elevated p-12">
+            <h1 className="text-2xl font-display text-neutral-800 mb-3">Access Denied</h1>
+            <p className="text-neutral-500 mb-8">You don't have permission to access this page.</p>
+            <Link to="/dashboard" className="btn btn-primary">Back to Dashboard</Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
+      <AppNav
+        userName={profile?.display_name}
+        userInitial={profile?.display_name?.charAt(0).toUpperCase()}
+      />
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8 animate-fade-in">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Link to="/admin" className="text-neutral-400 hover:text-neutral-600 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </Link>
+              <h1 className="text-2xl font-display text-neutral-800">Score Episode</h1>
+            </div>
+            <p className="text-neutral-500">Enter scores for each castaway</p>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Episode & Castaway Selection */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Episode Selector */}
+            <div className="bg-white rounded-2xl shadow-elevated p-5">
+              <h3 className="font-semibold text-neutral-800 mb-3">Select Episode</h3>
+              <select
+                value={selectedEpisodeId || ''}
+                onChange={(e) => {
+                  setSelectedEpisodeId(e.target.value || null);
+                  setSelectedCastawayId(null);
+                }}
+                className="w-full p-3 border border-cream-200 rounded-xl focus:ring-2 focus:ring-burgundy-500 focus:border-burgundy-500"
+              >
+                <option value="">Choose episode...</option>
+                {episodes?.map((ep) => (
+                  <option key={ep.id} value={ep.id}>
+                    Ep {ep.number}: {ep.title || 'TBD'} {ep.is_scored ? '✓' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Castaway List */}
+            {selectedEpisodeId && (
+              <div className="bg-white rounded-2xl shadow-elevated overflow-hidden">
+                <div className="p-5 border-b border-cream-100">
+                  <h3 className="font-semibold text-neutral-800">Castaways</h3>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {castaways?.map((castaway) => {
+                    const total = calculateCastawayTotal(castaway.id);
+                    return (
+                      <button
+                        key={castaway.id}
+                        onClick={() => setSelectedCastawayId(castaway.id)}
+                        className={`w-full p-4 flex items-center gap-3 text-left transition-colors ${
+                          selectedCastawayId === castaway.id
+                            ? 'bg-burgundy-50 border-l-4 border-burgundy-500'
+                            : 'hover:bg-cream-50'
+                        }`}
+                      >
+                        <div className="w-10 h-10 bg-cream-200 rounded-full flex items-center justify-center">
+                          {castaway.photo_url ? (
+                            <img src={castaway.photo_url} alt={castaway.name} className="w-10 h-10 rounded-full object-cover" />
+                          ) : (
+                            <span className="text-sm font-bold text-neutral-500">{castaway.name.charAt(0)}</span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-neutral-800">{castaway.name}</p>
+                          <p className="text-xs text-neutral-500">{castaway.tribe_original}</p>
+                        </div>
+                        {total !== 0 && (
+                          <span className={`text-sm font-bold ${total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {total >= 0 ? '+' : ''}{total}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Scoring Form */}
+          <div className="lg:col-span-3">
+            {!selectedEpisodeId ? (
+              <div className="bg-white rounded-2xl shadow-elevated p-12 text-center">
+                <p className="text-neutral-500">Select an episode to begin scoring</p>
+              </div>
+            ) : !selectedCastawayId ? (
+              <div className="bg-white rounded-2xl shadow-elevated p-12 text-center">
+                <p className="text-neutral-500">Select a castaway to enter scores</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Castaway Header */}
+                <div className="bg-gradient-to-r from-burgundy-500 to-burgundy-600 rounded-2xl p-6 text-white shadow-elevated">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                        {selectedCastaway?.photo_url ? (
+                          <img src={selectedCastaway.photo_url} alt={selectedCastaway.name} className="w-16 h-16 rounded-xl object-cover" />
+                        ) : (
+                          <span className="text-2xl font-bold">{selectedCastaway?.name.charAt(0)}</span>
+                        )}
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-display">{selectedCastaway?.name}</h2>
+                        <p className="text-burgundy-100">Episode {selectedEpisode?.number}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => saveScoresMutation.mutate()}
+                      disabled={saveScoresMutation.isPending}
+                      className="btn bg-white text-burgundy-600 hover:bg-cream-50 shadow-lg disabled:opacity-50"
+                    >
+                      {saveScoresMutation.isPending ? 'Saving...' : 'Save Scores'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Scoring Rules */}
+                {Object.entries(groupedRules).map(([category, rules]) => (
+                  <div key={category} className="bg-white rounded-2xl shadow-elevated overflow-hidden">
+                    <div className="p-5 border-b border-cream-100 bg-cream-50">
+                      <h3 className="font-semibold text-neutral-800">{category}</h3>
+                    </div>
+                    <div className="divide-y divide-cream-100">
+                      {rules.map((rule) => (
+                        <div key={rule.id} className="p-5 flex items-center gap-4">
+                          <div className={`w-14 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
+                            rule.is_negative ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                          }`}>
+                            {rule.points >= 0 ? '+' : ''}{rule.points}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-neutral-800">{rule.name}</p>
+                            {rule.description && (
+                              <p className="text-xs text-neutral-500 mt-0.5">{rule.description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => updateScore(rule.id, (scores[rule.id] || 0) - 1)}
+                              className="w-8 h-8 rounded-lg bg-cream-100 text-neutral-600 hover:bg-cream-200 flex items-center justify-center"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              min="0"
+                              value={scores[rule.id] || 0}
+                              onChange={(e) => updateScore(rule.id, parseInt(e.target.value) || 0)}
+                              className="w-16 h-10 text-center border border-cream-200 rounded-lg focus:ring-2 focus:ring-burgundy-500"
+                            />
+                            <button
+                              onClick={() => updateScore(rule.id, (scores[rule.id] || 0) + 1)}
+                              className="w-8 h-8 rounded-lg bg-cream-100 text-neutral-600 hover:bg-cream-200 flex items-center justify-center"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
