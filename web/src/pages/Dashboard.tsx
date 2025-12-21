@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { Navigation } from '@/components/Navigation';
 import { Flame, Users, Trophy, Calendar, ChevronRight, Megaphone, Clock, UserPlus } from 'lucide-react';
 
 interface UserProfile {
@@ -153,9 +152,7 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
-      <Navigation />
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="pb-8">
         {/* Welcome Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold text-neutral-800">
@@ -424,7 +421,6 @@ export function Dashboard() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

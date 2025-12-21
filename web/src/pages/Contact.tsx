@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Navigation } from '@/components/Navigation';
 import { useAuth } from '@/lib/auth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -93,10 +92,7 @@ export default function Contact() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
-        <Navigation />
-
-        <div className="max-w-2xl mx-auto p-4 py-12">
+      <div className="max-w-2xl mx-auto py-12">
           <div className="bg-white rounded-2xl shadow-elevated p-8 border border-cream-200 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="h-8 w-8 text-green-600" />
@@ -125,16 +121,12 @@ export default function Contact() {
               Send Another Message
             </button>
           </div>
-        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
-      <Navigation />
-
-      <div className="max-w-2xl mx-auto p-4 pb-24">
+    <div className="max-w-2xl mx-auto pb-24">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-burgundy-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -314,7 +306,6 @@ export default function Contact() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

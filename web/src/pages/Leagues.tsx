@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { Navigation } from '@/components/Navigation';
 import {
   Users,
   Search,
@@ -117,10 +116,7 @@ export default function Leagues() {
   const isAlreadyMember = (leagueId: string) => myMemberships?.includes(leagueId);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
-      <Navigation />
-
-      <div className="max-w-6xl mx-auto p-4 pb-24">
+    <div className="max-w-6xl mx-auto pb-24">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -382,7 +378,6 @@ export default function Leagues() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }
