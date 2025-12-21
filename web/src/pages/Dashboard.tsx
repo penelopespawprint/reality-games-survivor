@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
@@ -201,9 +202,10 @@ export function Dashboard() {
               {myLeagues && myLeagues.length > 0 ? (
                 <div className="space-y-3">
                   {myLeagues.slice(0, 3).map((league) => (
-                    <div
+                    <Link
                       key={league.id}
-                      className="flex items-center justify-between p-3 bg-cream-50 rounded-xl hover:bg-cream-100 hover:shadow-sm transition-all cursor-pointer"
+                      to={`/leagues/${league.id}`}
+                      className="flex items-center justify-between p-3 bg-cream-50 rounded-xl hover:bg-cream-100 hover:shadow-sm transition-all"
                     >
                       <div>
                         <p className="font-medium text-neutral-800 text-sm">{league.name}</p>
@@ -212,15 +214,15 @@ export function Dashboard() {
                       {league.is_global && (
                         <span className="badge badge-burgundy text-xs">Global</span>
                       )}
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-6 bg-cream-50 rounded-xl">
                   <p className="text-sm text-neutral-500 mb-3">No leagues joined yet</p>
-                  <button className="btn btn-primary btn-sm shadow-card">
-                    Join a League
-                  </button>
+                  <Link to="/leagues/create" className="btn btn-primary btn-sm shadow-card">
+                    Create a League
+                  </Link>
                 </div>
               )}
             </div>
