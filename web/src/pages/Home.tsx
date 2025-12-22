@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
-import { Flame } from 'lucide-react';
 
 // Check if we're on the main domain (splash page) or survivor subdomain (full app)
 const isMainDomain = () => {
@@ -65,78 +64,49 @@ function RGFLLogo({ className }: { className?: string }) {
 // Splash page for main domain (realitygamesfantasyleague.com)
 function SplashPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 via-cream-50 to-white flex flex-col">
-      {/* Hero Section - Big Logo & Tagline */}
-      <section className="flex-1 flex items-center justify-center relative overflow-hidden">
-        {/* Background glow */}
+    <div className="min-h-screen bg-gradient-to-b from-cream-100 via-cream-50 to-white">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-radial from-orange-100/30 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-5xl mx-auto px-4 py-16 lg:py-24">
           <div className="text-center animate-fade-in">
-            {/* Big Logo */}
+            {/* Logo */}
             <div className="flex justify-center mb-6">
-              <RGFLLogo className="h-48 sm:h-56 lg:h-64 drop-shadow-xl" />
+              <RGFLLogo className="h-40 sm:h-48 drop-shadow-xl" />
             </div>
 
             {/* Brand Name */}
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-neutral-800 leading-tight tracking-tight mb-4">
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-neutral-800 leading-tight tracking-tight mb-2">
               REALITY GAMES
               <br />
               <span className="text-burgundy-600">FANTASY LEAGUE</span>
             </h1>
 
             {/* Tagline */}
-            <p className="text-xl sm:text-2xl lg:text-3xl text-neutral-600 max-w-3xl mx-auto leading-relaxed mb-12">
+            <p className="text-lg text-neutral-600 max-w-2xl mx-auto leading-relaxed mb-10">
               Fantasy leagues built by superfans, for superfans.
             </p>
 
-            {/* Survivor Season 50 CTA */}
-            <div className="bg-gradient-to-br from-burgundy-500 to-burgundy-700 rounded-3xl p-8 sm:p-10 max-w-2xl mx-auto shadow-elevated">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <Flame className="h-8 w-8 text-orange-400" />
-                <span className="text-burgundy-200 font-medium uppercase tracking-wider text-sm">Now Open</span>
-                <Flame className="h-8 w-8 text-orange-400" />
-              </div>
-
-              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl text-white mb-3">
-                Survivor Season 50
-              </h2>
-              <p className="text-burgundy-100 text-lg mb-6">
-                In the Hands of the Fans
-              </p>
-
-              <p className="text-burgundy-200 text-sm mb-8 max-w-md mx-auto">
-                100+ scoring rules that reward real strategy. Draft your team, make weekly picks, and compete with friends.
-              </p>
-
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <a
                 href={SURVIVOR_APP_URL}
-                className="inline-block bg-white text-burgundy-600 font-bold text-lg px-10 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+                className="btn btn-primary text-lg px-10 py-4 shadow-float hover:shadow-elevated-lg transition-all duration-300 hover:-translate-y-0.5"
               >
-                Join for Survivor Season 50
+                Join Survivor Season 50
               </a>
-
-              <p className="text-burgundy-300 text-xs mt-6">
-                Premiere: February 25, 2026
-              </p>
-            </div>
-
-            {/* Secondary links */}
-            <div className="mt-8 flex items-center justify-center gap-6 text-sm">
               <a
                 href={`${SURVIVOR_APP_URL}/how-to-play`}
-                className="text-neutral-500 hover:text-burgundy-600 transition-colors font-medium"
+                className="btn btn-secondary text-lg px-10 py-4 transition-all duration-300 hover:-translate-y-0.5"
               >
                 How It Works
               </a>
-              <span className="text-neutral-300">|</span>
-              <a
-                href={`${SURVIVOR_APP_URL}/login`}
-                className="text-neutral-500 hover:text-burgundy-600 transition-colors font-medium"
-              >
-                Already have an account? Log in
-              </a>
             </div>
+
+            <p className="text-sm text-neutral-500">
+              Premiere: February 25, 2026
+            </p>
           </div>
         </div>
       </section>
@@ -149,6 +119,9 @@ function SplashPage() {
               © 2025 Reality Games Fantasy League. Not affiliated with CBS or Survivor.
             </p>
             <div className="flex items-center gap-6 text-sm">
+              <a href={`${SURVIVOR_APP_URL}/login`} className="text-neutral-500 hover:text-burgundy-600 transition-colors">
+                Log In
+              </a>
               <a href={`${SURVIVOR_APP_URL}/contact`} className="text-neutral-500 hover:text-burgundy-600 transition-colors">
                 Contact
               </a>
