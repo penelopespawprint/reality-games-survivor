@@ -100,11 +100,12 @@ export function Draft() {
   });
 
   // Fetch user's existing global rankings for this season
+  // Note: Using type assertion until Supabase types are regenerated with draft_rankings table
   const { data: existingRankings, isLoading: rankingsLoading } = useQuery({
     queryKey: ['draft-rankings', league?.season_id, user?.id],
     queryFn: async () => {
       if (!league?.season_id || !user?.id) return null;
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('draft_rankings')
         .select('*')
         .eq('season_id', league.season_id)
@@ -144,11 +145,12 @@ export function Draft() {
   }, [existingRankings, castaways]);
 
   // Save rankings mutation - global rankings for the season
+  // Note: Using type assertion until Supabase types are regenerated with draft_rankings table
   const saveRankings = useMutation({
     mutationFn: async () => {
       if (!league?.season_id || !user?.id) throw new Error('Missing required data');
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('draft_rankings')
         .upsert({
           season_id: league.season_id,

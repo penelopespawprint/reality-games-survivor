@@ -61,8 +61,15 @@ export function AdminScoring() {
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [skipNextScoreReset, setSkipNextScoreReset] = useState(false);
   const previousCastawayRef = useRef<string | null>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scoresRef = useRef<Record<string, number>>(scores);
+
+  // Keep scoresRef in sync with scores state
+  useEffect(() => {
+    scoresRef.current = scores;
+  }, [scores]);
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -166,6 +173,12 @@ export function AdminScoring() {
     // Don't reset scores while saving (could cause data loss)
     if (isSaving) return;
 
+    // Skip the reset if we just saved (prevents race condition)
+    if (skipNextScoreReset) {
+      setSkipNextScoreReset(false);
+      return;
+    }
+
     if (existingScores && selectedCastawayId) {
       const castawayScores = existingScores.filter(s => s.castaway_id === selectedCastawayId);
       const scoreMap: Record<string, number> = {};
@@ -218,6 +231,8 @@ export function AdminScoring() {
 
     setLastSavedAt(new Date());
     setIsDirty(false);
+    // Skip the next score reset to prevent the query invalidation from resetting local state
+    setSkipNextScoreReset(true);
     queryClient.invalidateQueries({ queryKey: ['episodeScores', selectedEpisodeId] });
   }, [selectedEpisodeId, user?.id, scoringRules, queryClient]);
 
@@ -251,6 +266,7 @@ export function AdminScoring() {
 
   // Debounced auto-save (2 seconds after last change)
   useEffect(() => {
+    // Don't start a new timeout if we're already saving
     if (!isDirty || !selectedCastawayId) return;
 
     // Clear existing timeout
@@ -258,11 +274,16 @@ export function AdminScoring() {
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
+    // Capture current castaway ID for the timeout
+    const castawayToSave = selectedCastawayId;
+
     // Set new timeout for auto-save
     autoSaveTimeoutRef.current = setTimeout(async () => {
+      // Use ref to get the latest scores at time of save
+      const currentScores = { ...scoresRef.current };
       setIsSaving(true);
       try {
-        await saveScoresForCastaway(selectedCastawayId, scores);
+        await saveScoresForCastaway(castawayToSave, currentScores);
       } finally {
         setIsSaving(false);
       }
@@ -273,6 +294,7 @@ export function AdminScoring() {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
+    // Include scores in deps so timeout resets on each change
   }, [scores, isDirty, selectedCastawayId, saveScoresForCastaway]);
 
   const updateScore = (ruleId: string, value: number) => {
