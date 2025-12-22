@@ -161,8 +161,11 @@ export function AdminScoring() {
     }, {} as Record<string, ScoringRule[]>) || {};
   }, [scoringRules]);
 
-  // Initialize scores from existing data
-  useMemo(() => {
+  // Initialize scores from existing data when castaway changes
+  useEffect(() => {
+    // Don't reset scores while saving (could cause data loss)
+    if (isSaving) return;
+
     if (existingScores && selectedCastawayId) {
       const castawayScores = existingScores.filter(s => s.castaway_id === selectedCastawayId);
       const scoreMap: Record<string, number> = {};
@@ -170,10 +173,13 @@ export function AdminScoring() {
         scoreMap[s.scoring_rule_id] = s.quantity;
       });
       setScores(scoreMap);
-    } else {
+      setIsDirty(false);
+    } else if (selectedCastawayId) {
       setScores({});
+      setIsDirty(false);
     }
-  }, [existingScores, selectedCastawayId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCastawayId, existingScores]); // Load initial scores when data is available or castaway changes
 
   // Save scores for a specific castaway
   const saveScoresForCastaway = useCallback(async (castawayId: string, scoresToSave: Record<string, number>) => {
@@ -234,7 +240,10 @@ export function AdminScoring() {
     if (previousCastaway && previousCastaway !== selectedCastawayId && isDirty) {
       // Save the previous castaway's scores
       const previousScores = { ...scores };
-      saveScoresForCastaway(previousCastaway, previousScores);
+      setIsSaving(true);
+      saveScoresForCastaway(previousCastaway, previousScores).finally(() => {
+        setIsSaving(false);
+      });
     }
 
     previousCastawayRef.current = selectedCastawayId;
