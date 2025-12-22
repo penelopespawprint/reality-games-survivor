@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './lib/auth';
 import { Layout } from './components/Layout';
@@ -80,6 +80,7 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
           </Route>
           {/* Full-page protected routes (no Layout wrapper) */}
+          <Route path="/join" element={<Navigate to="/signup" replace />} />
           <Route path="/join/:code" element={<JoinLeague />} />
           <Route path="/leagues/create" element={<CreateLeague />} />
           <Route path="/leagues/:id" element={<LeagueHome />} />
