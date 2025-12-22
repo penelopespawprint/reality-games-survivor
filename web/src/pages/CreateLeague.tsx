@@ -74,7 +74,7 @@ export default function CreateLeague() {
           password_hash: isPrivate && joinCode ? joinCode : null,
           require_donation: requireDonation,
           donation_amount: requireDonation ? parseFloat(donationAmount) : null,
-          donation_notes: description || (requireDonation ? 'Winner recommends a charity for the full prize pool donation.' : null),
+          donation_notes: requireDonation ? 'The winner of this league will recommend a charity for the full donation pool.' : null,
           max_players: maxPlayers,
           is_public: !isPrivate,
           status: 'forming',
@@ -302,13 +302,11 @@ export default function CreateLeague() {
               <div className="mt-6 pt-4 border-t border-cream-200 animate-fade-in">
                 <div className="bg-gradient-to-br from-burgundy-50 to-cream-50 rounded-xl p-4 mb-4 border border-burgundy-100">
                   <p className="text-neutral-700 text-sm leading-relaxed">
-                    Make your competition count! All entry fees are pooled together, and the winner
-                    gets to choose which charity receives the full donation. It's fantasy sports
-                    with a purpose — outwit, outplay, <span className="font-semibold text-burgundy-600">outlast for good</span>.
+                    <span className="font-semibold text-burgundy-600">The winner of your league will recommend a charity</span> of their choice for the full donation pool. Outwit, outplay, outlast — for good.
                   </p>
                 </div>
 
-                <p className="text-neutral-500 text-sm mb-3 font-medium">Select entry fee:</p>
+                <p className="text-neutral-500 text-sm mb-3 font-medium">Entry fee per player (minimum $10):</p>
                 <div className="grid grid-cols-4 gap-2">
                   {DONATION_AMOUNTS.map((amount) => (
                     <button

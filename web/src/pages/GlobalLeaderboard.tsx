@@ -157,6 +157,10 @@ export default function GlobalLeaderboard() {
     };
   };
 
+  const seasonTitle = activeSeason?.number === 50
+    ? 'Survivor Season 50: In the Hands of the Fans'
+    : `Season ${activeSeason?.number}: ${activeSeason?.name}`;
+
   return (
     <div className="max-w-4xl mx-auto pb-24">
         {/* Header */}
@@ -164,11 +168,11 @@ export default function GlobalLeaderboard() {
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="h-8 w-8 text-burgundy-500" />
             <h1 className="text-3xl font-display font-bold text-neutral-800">
-              Global Leaderboard
+              {seasonTitle}
             </h1>
           </div>
           <p className="text-neutral-500">
-            Season {activeSeason?.number}: {activeSeason?.name} - Rankings by average points across all leagues
+            Rankings by average points across all leagues
           </p>
         </div>
 

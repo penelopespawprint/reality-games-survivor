@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Users, Search, Shield, ShieldCheck, ShieldAlert, Loader2, Mail, Phone, Calendar, MoreVertical, MapPin, Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Users, Search, Shield, ShieldCheck, ShieldAlert, Loader2, Mail, Phone, Calendar, MoreVertical, MapPin, Heart, ChevronDown, ChevronUp, Edit2, X, Check } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Navigation } from '@/components/Navigation';
 
 type UserRole = 'player' | 'commissioner' | 'admin';
+
+interface EditForm {
+  display_name: string;
+  email: string;
+  phone: string;
+  hometown: string;
+  favorite_castaway: string;
+  timezone: string;
+}
 
 export function AdminUsers() {
   const queryClient = useQueryClient();
@@ -13,6 +22,15 @@ export function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EditForm>({
+    display_name: '',
+    email: '',
+    phone: '',
+    hometown: '',
+    favorite_castaway: '',
+    timezone: '',
+  });
 
   // Fetch all users
   const { data: users, isLoading } = useQuery({
@@ -58,6 +76,42 @@ export function AdminUsers() {
       setSelectedUser(null);
     },
   });
+
+  // Update user details mutation
+  const updateUser = useMutation({
+    mutationFn: async ({ userId, data }: { userId: string; data: Partial<EditForm> }) => {
+      const { error } = await supabase
+        .from('users')
+        .update(data)
+        .eq('id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      setEditingUser(null);
+    },
+  });
+
+  const startEditing = (user: any) => {
+    setEditingUser(user.id);
+    setEditForm({
+      display_name: user.display_name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      hometown: user.hometown || '',
+      favorite_castaway: user.favorite_castaway || '',
+      timezone: user.timezone || 'America/Los_Angeles',
+    });
+    setExpandedUser(user.id);
+  };
+
+  const saveUser = () => {
+    if (!editingUser) return;
+    updateUser.mutate({
+      userId: editingUser,
+      data: editForm,
+    });
+  };
 
   const filteredUsers = users?.filter((user: any) => {
     const matchesSearch =
@@ -278,56 +332,155 @@ export function AdminUsers() {
             {/* Expanded Profile Details */}
             {expandedUser === user.id && (
               <div className="mt-4 pt-4 border-t border-cream-200 space-y-3">
-                <h4 className="font-medium text-neutral-700 text-sm">Full Profile</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <label className="text-neutral-400 text-xs uppercase tracking-wide">User ID</label>
-                    <p className="font-mono text-xs text-neutral-600 break-all">{user.id}</p>
-                  </div>
-                  <div>
-                    <label className="text-neutral-400 text-xs uppercase tracking-wide">Email</label>
-                    <p className="text-neutral-800">{user.email}</p>
-                  </div>
-                  <div>
-                    <label className="text-neutral-400 text-xs uppercase tracking-wide">Phone</label>
-                    <p className="text-neutral-800 flex items-center gap-1">
-                      {user.phone || 'Not provided'}
-                      {user.phone_verified && <span className="text-green-500 text-xs">(verified)</span>}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-neutral-400 text-xs uppercase tracking-wide">Hometown</label>
-                    <p className="text-neutral-800 flex items-center gap-1">
-                      {user.hometown ? (
-                        <><MapPin className="h-3 w-3" /> {user.hometown}</>
-                      ) : (
-                        <span className="text-neutral-400">Not provided</span>
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-neutral-400 text-xs uppercase tracking-wide">Favorite Castaway</label>
-                    <p className="text-neutral-800 flex items-center gap-1">
-                      {user.favorite_castaway ? (
-                        <><Heart className="h-3 w-3" /> {user.favorite_castaway}</>
-                      ) : (
-                        <span className="text-neutral-400">Not provided</span>
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-neutral-400 text-xs uppercase tracking-wide">Timezone</label>
-                    <p className="text-neutral-800">{user.timezone || 'America/Los_Angeles'}</p>
-                  </div>
-                  <div>
-                    <label className="text-neutral-400 text-xs uppercase tracking-wide">Created</label>
-                    <p className="text-neutral-800">{new Date(user.created_at).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <label className="text-neutral-400 text-xs uppercase tracking-wide">Last Updated</label>
-                    <p className="text-neutral-800">{new Date(user.updated_at).toLocaleString()}</p>
-                  </div>
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium text-neutral-700 text-sm">Full Profile</h4>
+                  {editingUser === user.id ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={saveUser}
+                        disabled={updateUser.isPending}
+                        className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg flex items-center gap-1"
+                      >
+                        {updateUser.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingUser(null)}
+                        className="px-3 py-1 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 text-xs rounded-lg flex items-center gap-1"
+                      >
+                        <X className="h-3 w-3" />
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => startEditing(user)}
+                      className="px-3 py-1 bg-burgundy-100 hover:bg-burgundy-200 text-burgundy-700 text-xs rounded-lg flex items-center gap-1"
+                    >
+                      <Edit2 className="h-3 w-3" />
+                      Edit
+                    </button>
+                  )}
                 </div>
+
+                {editingUser === user.id ? (
+                  // Edit Form
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide block mb-1">Display Name</label>
+                      <input
+                        type="text"
+                        value={editForm.display_name}
+                        onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
+                        className="input text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide block mb-1">Email</label>
+                      <input
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                        className="input text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide block mb-1">Phone</label>
+                      <input
+                        type="tel"
+                        value={editForm.phone}
+                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                        className="input text-sm"
+                        placeholder="+1 555-123-4567"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide block mb-1">Hometown</label>
+                      <input
+                        type="text"
+                        value={editForm.hometown}
+                        onChange={(e) => setEditForm({ ...editForm, hometown: e.target.value })}
+                        className="input text-sm"
+                        placeholder="City, State"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide block mb-1">Favorite Castaway</label>
+                      <input
+                        type="text"
+                        value={editForm.favorite_castaway}
+                        onChange={(e) => setEditForm({ ...editForm, favorite_castaway: e.target.value })}
+                        className="input text-sm"
+                        placeholder="Boston Rob, Parvati..."
+                      />
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide block mb-1">Timezone</label>
+                      <select
+                        value={editForm.timezone}
+                        onChange={(e) => setEditForm({ ...editForm, timezone: e.target.value })}
+                        className="input text-sm"
+                      >
+                        <option value="America/Los_Angeles">Pacific (LA)</option>
+                        <option value="America/Denver">Mountain (Denver)</option>
+                        <option value="America/Chicago">Central (Chicago)</option>
+                        <option value="America/New_York">Eastern (NYC)</option>
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  // View Mode
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide">User ID</label>
+                      <p className="font-mono text-xs text-neutral-600 break-all">{user.id}</p>
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide">Email</label>
+                      <p className="text-neutral-800">{user.email}</p>
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide">Phone</label>
+                      <p className="text-neutral-800 flex items-center gap-1">
+                        {user.phone || 'Not provided'}
+                        {user.phone_verified && <span className="text-green-500 text-xs">(verified)</span>}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide">Hometown</label>
+                      <p className="text-neutral-800 flex items-center gap-1">
+                        {user.hometown ? (
+                          <><MapPin className="h-3 w-3" /> {user.hometown}</>
+                        ) : (
+                          <span className="text-neutral-400">Not provided</span>
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide">Favorite Castaway</label>
+                      <p className="text-neutral-800 flex items-center gap-1">
+                        {user.favorite_castaway ? (
+                          <><Heart className="h-3 w-3" /> {user.favorite_castaway}</>
+                        ) : (
+                          <span className="text-neutral-400">Not provided</span>
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide">Timezone</label>
+                      <p className="text-neutral-800">{user.timezone || 'America/Los_Angeles'}</p>
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide">Created</label>
+                      <p className="text-neutral-800">{new Date(user.created_at).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <label className="text-neutral-400 text-xs uppercase tracking-wide">Last Updated</label>
+                      <p className="text-neutral-800">{new Date(user.updated_at).toLocaleString()}</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-3 gap-2 pt-2">
                   <div className={`p-2 rounded-lg text-center ${user.notification_email ? 'bg-green-50 text-green-700' : 'bg-neutral-100 text-neutral-400'}`}>
                     <Mail className="h-4 w-4 mx-auto mb-1" />

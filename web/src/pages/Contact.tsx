@@ -69,7 +69,7 @@ export default function Contact() {
       );
 
       // Open email client
-      window.location.href = `mailto:Blake@realitygamesfantasyleague.com?subject=${mailtoSubject}&body=${mailtoBody}`;
+      window.location.href = `mailto:support@realitygamesfantasyleague.com?subject=${mailtoSubject}&body=${mailtoBody}`;
 
       // Show success after a short delay (email client opens)
       setTimeout(() => {
@@ -77,7 +77,7 @@ export default function Contact() {
         setLoading(false);
       }, 500);
     } catch (err) {
-      setError('Failed to open email client. Please email us directly at Blake@realitygamesfantasyleague.com');
+      setError('Failed to open email client. Please try again.');
       setLoading(false);
     }
   };
@@ -102,13 +102,7 @@ export default function Contact() {
             </h1>
             <p className="text-neutral-500 mb-6">
               Thank you for reaching out. Your email client should have opened with your message.
-              If not, you can email us directly at{' '}
-              <a
-                href="mailto:Blake@realitygamesfantasyleague.com"
-                className="text-burgundy-500 hover:text-burgundy-600 font-medium"
-              >
-                Blake@realitygamesfantasyleague.com
-              </a>
+              We typically respond within 24-48 hours.
             </p>
             <button
               onClick={() => {
@@ -276,19 +270,6 @@ export default function Contact() {
               )}
             </button>
           </form>
-        </div>
-
-        {/* Alternative Contact */}
-        <div className="mt-8 text-center">
-          <p className="text-neutral-500 text-sm">
-            Prefer to email us directly?
-          </p>
-          <a
-            href="mailto:Blake@realitygamesfantasyleague.com"
-            className="text-burgundy-500 hover:text-burgundy-600 font-medium text-lg"
-          >
-            Blake@realitygamesfantasyleague.com
-          </a>
         </div>
 
         {/* Response Time */}

@@ -156,6 +156,7 @@ export function AdminSeasons() {
     <>
       <Navigation />
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+        <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -175,9 +176,10 @@ export function AdminSeasons() {
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="p-2 bg-orange-500 hover:bg-orange-600 rounded-xl transition-colors shadow-card"
+            className="btn btn-primary flex items-center gap-2"
           >
-            <Plus className="h-5 w-5 text-white" />
+            <Plus className="h-5 w-5" />
+            New Season
           </button>
         </div>
 
@@ -394,6 +396,7 @@ export function AdminSeasons() {
             <p className="text-neutral-500">No seasons yet. Create your first season!</p>
           </div>
         )}
+        </div>
         </div>
       </div>
     </>

@@ -1,18 +1,21 @@
-import { Trophy, Users, Calendar, Star, Zap, Award } from 'lucide-react';
+import { Trophy, Users, Calendar, Star, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
 
 export default function HowToPlay() {
+  const { user } = useAuth();
+
   const steps = [
     {
       icon: Users,
       title: 'Join or Create a League',
-      description: 'Create a private league with friends or join an existing one using an invite code. Leagues can have up to 12 players.',
+      description: 'Create a private league with friends or join an existing one using an invite code. Leagues can have up to 12 players. Optional charity donations make competition meaningful — the winner recommends where the pool goes!',
     },
     {
       icon: Trophy,
       title: 'Draft Your Team',
-      description: 'Snake draft format: pick 2 castaways for your roster. Strategy matters — consider edit visibility, challenge prowess, and social game.',
+      description: 'Before the season premiere, you\'ll rank all 18 castaways based on who you think will go far. Your rankings are used across all your leagues in a snake draft format — if you\'re pick 5, you get whoever is highest on YOUR list that hasn\'t been taken. Study the cast bios, watch pre-season interviews, and trust your Survivor instincts. Consider edit visibility (who gets confessionals?), challenge prowess (physical and puzzle skills), and social game (who can build alliances?). Your 2 best available castaways become your roster for the season.',
     },
     {
       icon: Calendar,
@@ -25,11 +28,6 @@ export default function HowToPlay() {
       description: 'Your picked castaway earns points based on 100+ scoring rules. Every idol play, challenge win, and strategic move counts.',
     },
     {
-      icon: Zap,
-      title: 'Waiver Wire',
-      description: 'When your castaway gets eliminated, submit waiver rankings to claim a replacement. Last place gets first pick (inverse standings).',
-    },
-    {
       icon: Award,
       title: 'Win Your League',
       description: 'Accumulate the most points over the season to win your league and claim bragging rights until next season!',
@@ -40,8 +38,8 @@ export default function HowToPlay() {
     { day: 'Wednesday 3pm', event: 'Picks lock for the week' },
     { day: 'Wednesday 8pm', event: 'Episode airs (live scoring!)' },
     { day: 'Friday 12pm', event: 'Official results posted' },
-    { day: 'Saturday 12pm', event: 'Waiver window opens' },
-    { day: 'Wednesday 3pm', event: 'Waiver window closes, next picks due' },
+    { day: 'Saturday 12pm', event: 'Next week\'s picks open' },
+    { day: 'Wednesday 3pm', event: 'Picks lock, cycle repeats' },
   ];
 
   return (
@@ -108,45 +106,31 @@ export default function HowToPlay() {
         </div>
       </div>
 
-      {/* Key Rules */}
-      <div className="max-w-4xl mx-auto px-6 pb-12">
-        <h2 className="text-2xl font-display font-bold text-neutral-800 mb-6 text-center">
-          Key Rules
-        </h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl shadow-card p-4 border border-cream-200">
-            <h3 className="text-burgundy-500 font-bold mb-2">Roster Size</h3>
-            <p className="text-neutral-500 text-sm">2 castaways per player, drafted via snake format</p>
-          </div>
-          <div className="bg-white rounded-2xl shadow-card p-4 border border-cream-200">
-            <h3 className="text-burgundy-500 font-bold mb-2">Weekly Pick</h3>
-            <p className="text-neutral-500 text-sm">Choose 1 castaway to play each week</p>
-          </div>
-          <div className="bg-white rounded-2xl shadow-card p-4 border border-cream-200">
-            <h3 className="text-burgundy-500 font-bold mb-2">Waiver Priority</h3>
-            <p className="text-neutral-500 text-sm">Inverse standings — last place picks first</p>
-          </div>
-          <div className="bg-white rounded-2xl shadow-card p-4 border border-cream-200">
-            <h3 className="text-burgundy-500 font-bold mb-2">Auto-Pick</h3>
-            <p className="text-neutral-500 text-sm">Miss the deadline? System picks your highest-ranked active</p>
-          </div>
-        </div>
-      </div>
-
       {/* CTA */}
       <div className="max-w-4xl mx-auto px-6 pb-16 text-center">
-        <Link
-          to="/signup"
-          className="btn btn-primary text-lg px-8 py-3"
-        >
-          Join Season 50
-        </Link>
-        <p className="mt-4 text-neutral-400 text-sm">
-          Already have an account?{' '}
-          <Link to="/login" className="text-burgundy-500 hover:text-burgundy-600 font-medium">
-            Log in
+        {user ? (
+          <Link
+            to="/dashboard"
+            className="btn btn-primary text-lg px-8 py-3"
+          >
+            Go to Dashboard
           </Link>
-        </p>
+        ) : (
+          <>
+            <Link
+              to="/signup"
+              className="btn btn-primary text-lg px-8 py-3"
+            >
+              Join Survivor Season 50
+            </Link>
+            <p className="mt-4 text-neutral-400 text-sm">
+              Already have an account?{' '}
+              <Link to="/login" className="text-burgundy-500 hover:text-burgundy-600 font-medium">
+                Log in
+              </Link>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
