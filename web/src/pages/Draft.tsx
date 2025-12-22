@@ -16,7 +16,6 @@ import {
   ChevronUp,
   ChevronDown,
   Save,
-  Flame,
   Info,
 } from 'lucide-react';
 
@@ -34,7 +33,7 @@ interface Castaway {
 interface DraftRanking {
   id: string;
   user_id: string;
-  league_id: string;
+  season_id: string;
   rankings: string[]; // Array of castaway IDs in ranked order
   submitted_at: string;
 }
@@ -100,24 +99,21 @@ export function Draft() {
     enabled: !!league?.season_id,
   });
 
-  // Fetch user's existing rankings (using waiver_rankings table with episode_id = null for draft)
+  // Fetch user's existing global rankings for this season
   const { data: existingRankings, isLoading: rankingsLoading } = useQuery({
-    queryKey: ['draft-rankings', leagueId, user?.id],
+    queryKey: ['draft-rankings', league?.season_id, user?.id],
     queryFn: async () => {
-      if (!leagueId || !user?.id) return null;
-      // Use waiver_rankings table - for draft, we use a placeholder approach
-      // Check league_members for draft_position which indicates rankings submitted
-      const { data, error } = await (supabase as any)
-        .from('waiver_rankings')
+      if (!league?.season_id || !user?.id) return null;
+      const { data, error } = await supabase
+        .from('draft_rankings')
         .select('*')
-        .eq('league_id', leagueId)
+        .eq('season_id', league.season_id)
         .eq('user_id', user.id)
-        .is('episode_id', null)
         .single();
       if (error && error.code !== 'PGRST116') return null; // PGRST116 = no rows
       return data as DraftRanking | null;
     },
-    enabled: !!leagueId && !!user?.id,
+    enabled: !!league?.season_id && !!user?.id,
   });
 
   // Fetch user's roster (if draft already processed)
@@ -147,28 +143,26 @@ export function Draft() {
     }
   }, [existingRankings, castaways]);
 
-  // Save rankings mutation (using waiver_rankings with null episode_id for draft)
+  // Save rankings mutation - global rankings for the season
   const saveRankings = useMutation({
     mutationFn: async () => {
-      if (!leagueId || !user?.id) throw new Error('Missing required data');
+      if (!league?.season_id || !user?.id) throw new Error('Missing required data');
 
-      // Use waiver_rankings table with null episode_id to store draft rankings
-      const { error } = await (supabase as any)
-        .from('waiver_rankings')
+      const { error } = await supabase
+        .from('draft_rankings')
         .upsert({
-          league_id: leagueId,
+          season_id: league.season_id,
           user_id: user.id,
-          episode_id: null, // null indicates these are draft rankings, not waiver rankings
           rankings: rankings,
           submitted_at: new Date().toISOString(),
         }, {
-          onConflict: 'league_id,user_id,episode_id',
+          onConflict: 'user_id,season_id',
         });
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['draft-rankings', leagueId, user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['draft-rankings', league?.season_id, user?.id] });
       setHasChanges(false);
     },
   });
@@ -304,8 +298,13 @@ export function Draft() {
                   <div className="flex-1">
                     <p className="font-semibold text-neutral-800">{roster.castaways?.name}</p>
                     <div className="flex items-center gap-2 text-sm text-neutral-500">
-                      <Flame className="h-3 w-3 text-orange-500" />
-                      <span>{roster.castaways?.tribe_original}</span>
+                      {roster.castaways?.age && <span>{roster.castaways.age} yrs</span>}
+                      {roster.castaways?.hometown && (
+                        <>
+                          {roster.castaways?.age && <span>·</span>}
+                          <span>{roster.castaways.hometown}</span>
+                        </>
+                      )}
                       {roster.castaways?.occupation && (
                         <>
                           <span>·</span>
@@ -379,9 +378,10 @@ export function Draft() {
             <div>
               <h2 className="font-display font-bold text-lg mb-1">How the Draft Works</h2>
               <p className="text-burgundy-100 text-sm">
-                Rank all {castaways?.length || 24} castaways from your most wanted (#1) to least wanted.
+                Rank all {castaways?.length || 18} castaways from your most wanted (#1) to least wanted.
+                <strong className="text-white"> Your rankings apply to ALL your leagues this season.</strong>{' '}
                 At the deadline, the system runs a snake draft using everyone's rankings.
-                You'll get 2 castaways based on your draft position and preferences.
+                You'll get 2 castaways based on your draft position and preferences in each league.
               </p>
             </div>
           </div>
@@ -495,8 +495,19 @@ export function Draft() {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-neutral-800 truncate">{castaway.name}</p>
                     <div className="flex items-center gap-2 text-xs text-neutral-500">
-                      <span className="px-2 py-0.5 bg-cream-100 rounded-full">{castaway.tribe_original}</span>
                       {castaway.age && <span>{castaway.age} yrs</span>}
+                      {castaway.hometown && (
+                        <>
+                          {castaway.age && <span>·</span>}
+                          <span>{castaway.hometown}</span>
+                        </>
+                      )}
+                      {castaway.occupation && (
+                        <>
+                          <span>·</span>
+                          <span className="truncate">{castaway.occupation}</span>
+                        </>
+                      )}
                     </div>
                   </div>
 
