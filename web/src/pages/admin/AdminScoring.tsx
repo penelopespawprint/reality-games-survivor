@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
+import { Loader2, Save } from 'lucide-react';
 
 interface Episode {
   id: string;
@@ -59,7 +60,9 @@ export function AdminScoring() {
   const [showSummary, setShowSummary] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const previousCastawayRef = useRef<string | null>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -237,6 +240,32 @@ export function AdminScoring() {
     previousCastawayRef.current = selectedCastawayId;
   }, [selectedCastawayId, isDirty, scores, saveScoresForCastaway]);
 
+  // Debounced auto-save (2 seconds after last change)
+  useEffect(() => {
+    if (!isDirty || !selectedCastawayId) return;
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        await saveScoresForCastaway(selectedCastawayId, scores);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 2000);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [scores, isDirty, selectedCastawayId, saveScoresForCastaway]);
+
   const updateScore = (ruleId: string, value: number) => {
     setScores(prev => ({
       ...prev,
@@ -400,15 +429,24 @@ export function AdminScoring() {
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         <div className="flex items-center gap-2">
-                          {isDirty && (
+                          {isSaving && (
+                            <span className="text-xs text-burgundy-200 flex items-center gap-1">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Saving...
+                            </span>
+                          )}
+                          {isDirty && !isSaving && (
                             <span className="text-xs text-burgundy-200">Unsaved changes</span>
                           )}
-                          {lastSavedAt && !isDirty && (
-                            <span className="text-xs text-green-200">Saved</span>
+                          {lastSavedAt && !isDirty && !isSaving && (
+                            <span className="text-xs text-green-200 flex items-center gap-1">
+                              <Save className="h-3 w-3" />
+                              Saved
+                            </span>
                           )}
                         </div>
                         <p className="text-xs text-burgundy-200">
-                          Auto-saves when switching castaways
+                          Auto-saves after 2 seconds
                         </p>
                       </div>
                     </div>

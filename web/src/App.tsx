@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './lib/auth';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -53,6 +54,7 @@ import { AdminScoringRules } from './pages/admin/AdminScoringRules';
 export default function App() {
   return (
     <AuthProvider>
+      <Analytics />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />

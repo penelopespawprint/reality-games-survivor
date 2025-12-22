@@ -642,31 +642,61 @@ export default function LeagueHome() {
           </div>
         )}
 
-        {/* Invite Code Card */}
-        <div className="mt-6 bg-white rounded-2xl shadow-card p-5 border border-cream-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-neutral-500 text-sm">League Invite Code</p>
-              <p className="font-mono text-2xl font-bold text-burgundy-600 tracking-wider">{league.code}</p>
+        {/* Invite Card - Commissioners see full code, others just get share link */}
+        {canManageLeague ? (
+          <div className="mt-6 bg-white rounded-2xl shadow-card p-5 border border-cream-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-neutral-500 text-sm">League Invite Code</p>
+                <p className="font-mono text-2xl font-bold text-burgundy-600 tracking-wider">{league.code}</p>
+              </div>
+              <button
+                onClick={copyInviteCode}
+                className="btn btn-secondary flex items-center gap-2"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-5 w-5 text-green-500" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-5 w-5" />
+                    Copy Invite Link
+                  </>
+                )}
+              </button>
             </div>
-            <button
-              onClick={copyInviteCode}
-              className="btn btn-secondary flex items-center gap-2"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-5 w-5 text-green-500" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-5 w-5" />
-                  Copy Link
-                </>
-              )}
-            </button>
+            <p className="text-neutral-400 text-xs mt-2">
+              Share this link: {window.location.origin}/join/{league.code}
+            </p>
           </div>
-        </div>
+        ) : (
+          <div className="mt-6 bg-white rounded-2xl shadow-card p-5 border border-cream-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-neutral-500 text-sm">Invite Friends</p>
+                <p className="text-neutral-700 font-medium">Share the invite link to grow your league!</p>
+              </div>
+              <button
+                onClick={copyInviteCode}
+                className="btn btn-primary flex items-center gap-2"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-5 w-5" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="h-5 w-5" />
+                    Share Link
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
