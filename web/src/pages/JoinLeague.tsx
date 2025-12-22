@@ -105,8 +105,22 @@ export default function JoinLeague() {
       if (!response.ok) {
         const data = await response.json();
         if (response.status === 402) {
-          // Payment required - redirect to checkout
-          window.location.href = data.checkout_url;
+          // Payment required - create checkout session and redirect to Stripe
+          const checkoutResponse = await fetch(`/api/leagues/${league.id}/join/checkout`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+          });
+
+          if (!checkoutResponse.ok) {
+            const checkoutData = await checkoutResponse.json();
+            throw new Error(checkoutData.error || 'Failed to create checkout session');
+          }
+
+          const { checkout_url } = await checkoutResponse.json();
+          window.location.href = checkout_url;
           return null;
         }
         throw new Error(data.error || 'Failed to join league');
