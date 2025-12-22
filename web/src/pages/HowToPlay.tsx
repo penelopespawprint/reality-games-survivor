@@ -121,7 +121,7 @@ export default function HowToPlay() {
               to="/signup"
               className="btn btn-primary text-lg px-8 py-3"
             >
-              Join Survivor Season 50
+              Join Season 50: In the Hands of the Fans
             </Link>
             <p className="mt-4 text-neutral-400 text-sm">
               Already have an account?{' '}

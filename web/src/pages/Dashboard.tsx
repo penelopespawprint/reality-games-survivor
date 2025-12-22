@@ -144,7 +144,7 @@ export function Dashboard() {
   const announcements = [
     {
       id: 1,
-      title: 'Season 50 Registration Opening Soon!',
+      title: 'Season 50: In the Hands of the Fans — Coming Soon!',
       message: 'Get ready for the biggest season yet. Registration opens December 19th.',
       type: 'info',
       date: '2025-12-21'
@@ -356,7 +356,7 @@ export function Dashboard() {
                   <Calendar className="h-5 w-5 text-burgundy-500" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-neutral-800">Season 50</h3>
+                  <h3 className="font-semibold text-neutral-800">Season 50: In the Hands of the Fans</h3>
                   <p className="text-sm text-neutral-400">{activeSeason?.name || 'Coming Soon'}</p>
                 </div>
               </div>

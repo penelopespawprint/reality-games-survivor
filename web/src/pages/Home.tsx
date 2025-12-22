@@ -97,7 +97,7 @@ export function Home() {
           </div>
 
           <p className="mt-8 text-sm text-neutral-500 tracking-wide">
-            Season 50 registration opens December 19, 2025
+            <span className="font-medium">Survivor Season 50: In the Hands of the Fans</span> — Registration opens December 19, 2025
           </p>
         </div>
       </div>
