@@ -50,6 +50,7 @@ import { AdminPayments } from './pages/admin/AdminPayments';
 import { AdminJobs } from './pages/admin/AdminJobs';
 import { AdminGlobal } from './pages/admin/AdminGlobal';
 import { AdminScoringRules } from './pages/admin/AdminScoringRules';
+import { AdminScoringGrid } from './pages/admin/AdminScoringGrid';
 
 export default function App() {
   return (
@@ -111,6 +112,7 @@ export default function App() {
           <Route path="/admin/jobs" element={<AdminJobs />} />
           <Route path="/admin/global" element={<AdminGlobal />} />
           <Route path="/admin/scoring-rules" element={<AdminScoringRules />} />
+          <Route path="/admin/scoring/grid" element={<AdminScoringGrid />} />
         </Route>
 
         {/* 404 */}

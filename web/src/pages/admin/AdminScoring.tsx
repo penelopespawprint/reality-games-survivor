@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, Save, Grid3X3 } from 'lucide-react';
 
 interface Episode {
   id: string;
@@ -332,6 +332,13 @@ export function AdminScoring() {
             </div>
             <p className="text-neutral-500">Enter scores for each castaway</p>
           </div>
+          <Link
+            to={`/admin/scoring/grid${selectedEpisodeId ? `?episode=${selectedEpisodeId}` : ''}`}
+            className="btn btn-secondary flex items-center gap-2"
+          >
+            <Grid3X3 className="h-4 w-4" />
+            Grid View
+          </Link>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-8">
