@@ -750,4 +750,133 @@ router.post('/:id/transfer', authenticate, async (req: AuthenticatedRequest, res
   }
 });
 
+// GET /api/global-leaderboard - Global leaderboard with Bayesian weighted average
+router.get('/global-leaderboard', async (req, res: Response) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    // Confidence factor for Bayesian weighted average
+    // With C=1, players at 1 league get 50% weight, 2 leagues get 67%, 3 leagues get 75%
+    const CONFIDENCE_FACTOR = 1;
+
+    // Get all league members with user info
+    const { data: members, error } = await supabaseAdmin
+      .from('league_members')
+      .select(`
+        user_id,
+        total_points,
+        league_id,
+        users (id, display_name, avatar_url)
+      `);
+
+    if (error) throw error;
+
+    // Get rosters to check for eliminated castaways
+    const { data: rosters } = await supabaseAdmin
+      .from('rosters')
+      .select(`
+        user_id,
+        castaway:castaways (id, status)
+      `)
+      .is('dropped_at', null);
+
+    // Get active season
+    const { data: activeSeason } = await supabaseAdmin
+      .from('seasons')
+      .select('id, number, name')
+      .eq('is_active', true)
+      .single();
+
+    // Build player stats map
+    const playerMap = new Map<string, {
+      displayName: string;
+      avatarUrl: string | null;
+      totalPoints: number;
+      leagueCount: number;
+      hasEliminatedCastaway: boolean;
+    }>();
+
+    // Aggregate member data
+    members?.forEach((member: any) => {
+      const userId = member.user_id;
+      const existing = playerMap.get(userId);
+
+      if (existing) {
+        existing.totalPoints += member.total_points || 0;
+        existing.leagueCount += 1;
+      } else {
+        playerMap.set(userId, {
+          displayName: member.users?.display_name || 'Unknown',
+          avatarUrl: member.users?.avatar_url || null,
+          totalPoints: member.total_points || 0,
+          leagueCount: 1,
+          hasEliminatedCastaway: false,
+        });
+      }
+    });
+
+    // Check for eliminated castaways per user
+    rosters?.forEach((roster: any) => {
+      const userId = roster.user_id;
+      const player = playerMap.get(userId);
+      if (player && roster.castaway?.status === 'eliminated') {
+        player.hasEliminatedCastaway = true;
+      }
+    });
+
+    // Convert to array and calculate averages
+    const statsRaw = Array.from(playerMap.entries()).map(([userId, data]) => ({
+      userId,
+      displayName: data.displayName,
+      avatarUrl: data.avatarUrl,
+      totalPoints: data.totalPoints,
+      leagueCount: data.leagueCount,
+      averagePoints: data.leagueCount > 0 ? Math.round(data.totalPoints / data.leagueCount) : 0,
+      hasEliminatedCastaway: data.hasEliminatedCastaway,
+    }));
+
+    // Calculate global average for Bayesian weighting
+    const totalAllPoints = statsRaw.reduce((sum, p) => sum + p.totalPoints, 0);
+    const totalAllLeagues = statsRaw.reduce((sum, p) => sum + p.leagueCount, 0);
+    const globalAverage = totalAllLeagues > 0 ? totalAllPoints / totalAllLeagues : 0;
+
+    // Apply Bayesian weighted average and sort
+    const allStats = statsRaw.map(p => ({
+      ...p,
+      weightedScore: Math.round(
+        (p.averagePoints * p.leagueCount + globalAverage * CONFIDENCE_FACTOR) /
+        (p.leagueCount + CONFIDENCE_FACTOR)
+      ),
+    })).sort((a, b) => b.weightedScore - a.weightedScore);
+
+    // Apply pagination
+    const paginatedStats = allStats.slice(offset, offset + limit);
+
+    // Summary stats
+    const totalPlayers = allStats.length;
+    const topScore = allStats.length > 0 ? allStats[0].weightedScore : 0;
+    const activeTorches = allStats.filter(p => !p.hasEliminatedCastaway).length;
+
+    res.json({
+      leaderboard: paginatedStats,
+      pagination: {
+        total: totalPlayers,
+        limit,
+        offset,
+        hasMore: offset + limit < totalPlayers,
+      },
+      summary: {
+        totalPlayers,
+        topScore,
+        activeTorches,
+      },
+      activeSeason: activeSeason || null,
+    });
+  } catch (err) {
+    console.error('GET /api/global-leaderboard error:', err);
+    res.status(500).json({ error: 'Failed to fetch global leaderboard' });
+  }
+});
+
 export default router;
