@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Reality Games Fantasy League: Survivor",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -16,9 +17,32 @@
     "dev:all": "concurrently \"npm run dev:server\" \"npm run dev\"",
     "build": "npm run build --workspace=web",
     "build:server": "cd server && npm run build",
-    "dev:mobile": "npm run start --workspace=mobile"
+    "dev:mobile": "npm run start --workspace=mobile",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\"",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@eslint/js": "^9.17.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
+    "prettier": "^3.4.2",
+    "typescript-eslint": "^8.18.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,json,md}": [
+      "prettier --write"
+    ]
   }
 }
