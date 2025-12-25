@@ -35,55 +35,42 @@ export default function JoinLeague() {
     },
   });
 
-  // Fetch league by code
-  const { data: league, isLoading: leagueLoading, error: leagueError } = useQuery({
-    queryKey: ['league', code],
+  // Fetch league by code via API (bypasses RLS)
+  const { data: leagueData, isLoading: leagueLoading, error: leagueError } = useQuery({
+    queryKey: ['league-by-code', code],
     queryFn: async () => {
       if (!code) throw new Error('No code provided');
 
-      const { data, error } = await supabase
-        .from('leagues')
-        .select('*, seasons(number, name)')
-        .eq('code', code.toUpperCase())
-        .single();
-
-      if (error) throw error;
-      return data as League;
+      const response = await fetch(`/api/leagues/code/${code.toUpperCase()}`);
+      if (!response.ok) {
+        throw new Error('League not found');
+      }
+      const data = await response.json();
+      return data.league as League & { has_password: boolean; member_count: number };
     },
     enabled: !!code,
   });
 
-  // Get member count
-  const { data: memberCount } = useQuery({
-    queryKey: ['league-members', league?.id],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from('league_members')
-        .select('*', { count: 'exact', head: true })
-        .eq('league_id', league!.id);
+  const league = leagueData;
+  const memberCount = leagueData?.member_count;
 
-      if (error) throw error;
-      return count || 0;
-    },
-    enabled: !!league?.id,
-  });
-
-  // Check if already a member
+  // Check if already a member via API
   const { data: isMember } = useQuery({
     queryKey: ['is-member', league?.id, session?.user?.id],
     queryFn: async () => {
-      if (!session?.user?.id || !league?.id) return false;
+      if (!session?.access_token || !league?.id) return false;
 
-      const { data, error } = await supabase
-        .from('league_members')
-        .select('id')
-        .eq('league_id', league.id)
-        .eq('user_id', session.user.id)
-        .single();
+      const response = await fetch(`/api/leagues/${league.id}/join/status`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
 
-      return !!data && !error;
+      if (!response.ok) return false;
+      const data = await response.json();
+      return data.paid;
     },
-    enabled: !!session?.user?.id && !!league?.id,
+    enabled: !!session?.access_token && !!league?.id,
   });
 
   // Join league mutation
@@ -270,20 +257,23 @@ export default function JoinLeague() {
               joinMutation.mutate();
             }}
           >
-            {/* Password field if league has one */}
-            <div className="mb-6">
-              <label className="block text-neutral-700 text-sm font-medium mb-2">
-                <Lock className="h-4 w-4 inline mr-1" />
-                League Password (if required)
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                className="input"
-              />
-            </div>
+            {/* Password field only if league requires one */}
+            {leagueData?.has_password && (
+              <div className="mb-6">
+                <label className="block text-neutral-700 text-sm font-medium mb-2">
+                  <Lock className="h-4 w-4 inline mr-1" />
+                  League Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  className="input"
+                  required
+                />
+              </div>
+            )}
 
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-6">

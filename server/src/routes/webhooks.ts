@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 import { stripe, STRIPE_WEBHOOK_SECRET } from '../config/stripe.js';
+import { validateTwilioWebhook } from '../config/twilio.js';
 import Stripe from 'stripe';
 import { EmailService } from '../emails/index.js';
 
@@ -158,6 +159,15 @@ router.post('/stripe', async (req: Request, res: Response) => {
 // POST /webhooks/sms - Handle Twilio inbound SMS
 router.post('/sms', async (req: Request, res: Response) => {
   try {
+    // Validate Twilio webhook signature to prevent spoofing
+    const twilioSignature = req.headers['x-twilio-signature'] as string;
+    const webhookUrl = `${process.env.BASE_URL || 'https://api.rgfl.app'}/webhooks/sms`;
+
+    if (!validateTwilioWebhook(twilioSignature, webhookUrl, req.body)) {
+      console.warn('Invalid Twilio webhook signature - possible spoofing attempt');
+      return res.status(403).send('Forbidden: Invalid signature');
+    }
+
     // Twilio webhook payload (form-urlencoded)
     // From = sender phone, Body = message text
     const from = req.body.From;

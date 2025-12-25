@@ -60,7 +60,7 @@ export default function CreateLeague() {
     },
   });
 
-  // Create league mutation
+  // Create league mutation - uses Express API for proper password hashing
   const createLeague = useMutation({
     mutationFn: async () => {
       if (!currentUser || !activeSeason) throw new Error('Missing data');
@@ -69,29 +69,33 @@ export default function CreateLeague() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
-        .from('leagues')
-        .insert({
+      // Use Express API which properly hashes passwords and adds creator as member
+      const response = await fetch('/api/leagues', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
           name,
           season_id: activeSeason.id,
-          commissioner_id: currentUser.id,
-          password_hash: isPrivate && joinCode ? joinCode : null,
-          require_donation: requireDonation,
+          password: isPrivate && joinCode ? joinCode : null,
           donation_amount: requireDonation ? parseFloat(donationAmount) : null,
-          donation_notes: requireDonation ? 'The winner of this league will recommend a charity for the full donation pool.' : null,
           max_players: maxPlayers,
           is_public: !isPrivate,
-          status: 'forming',
-          draft_status: 'pending',
-        })
-        .select()
-        .single();
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create league');
+      }
 
-      // If donation required, redirect to Stripe checkout (creator pays too)
+      const { league } = await response.json();
+
+      // If donation required, redirect creator to Stripe checkout
       if (requireDonation && parseFloat(donationAmount) > 0) {
-        const checkoutResponse = await fetch(`/api/leagues/${data.id}/join/checkout`, {
+        const checkoutResponse = await fetch(`/api/leagues/${league.id}/join/checkout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -99,29 +103,20 @@ export default function CreateLeague() {
           },
         });
 
-        if (!checkoutResponse.ok) {
-          const checkoutData = await checkoutResponse.json();
-          throw new Error(checkoutData.error || 'Failed to create checkout session');
+        if (checkoutResponse.ok) {
+          const { checkout_url } = await checkoutResponse.json();
+          // Redirect to Stripe - creator is already a member, payment tracked separately
+          window.location.href = checkout_url;
+          return { ...league, redirectingToPayment: true };
         }
-
-        const { checkout_url } = await checkoutResponse.json();
-        // Redirect to Stripe - webhook will add user as member
-        window.location.href = checkout_url;
-        return { ...data, redirectingToPayment: true } as typeof data & { redirectingToPayment: boolean };
+        // If checkout fails, still return league - creator can pay later
+        console.error('Failed to create checkout session');
       }
 
-      // No donation required - add creator as member immediately
-      await supabase
-        .from('league_members')
-        .insert({
-          league_id: data.id,
-          user_id: currentUser.id,
-        });
-
-      return data;
+      return league;
     },
     onSuccess: (data: any) => {
-      // Don't navigate if redirecting to payment
+      // Don't navigate if redirecting to Stripe
       if (data?.redirectingToPayment) return;
 
       setCreatedLeague(data);

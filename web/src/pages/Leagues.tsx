@@ -175,7 +175,7 @@ export default function Leagues() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search leagues by name or commissioner..."
+              placeholder="Search leagues by name or creator..."
               className="input pl-10 w-full"
             />
           </div>

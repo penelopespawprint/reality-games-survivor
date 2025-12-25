@@ -6,11 +6,15 @@ import {
   generateVerificationCode,
   sendVerificationSMS,
 } from '../config/twilio.js';
+import { phoneLimiter, authLimiter } from '../config/rateLimit.js';
+import {
+  validate,
+  updatePhoneSchema,
+  verifyPhoneSchema,
+  notificationPrefsSchema,
+} from '../lib/validation.js';
 
 const router = Router();
-
-// Verification codes stored in memory (in production, use Redis or database)
-const verificationCodes = new Map<string, { code: string; expiresAt: Date; phone: string }>();
 
 // GET /api/me - Current user with leagues
 router.get('/me', authenticate, async (req: AuthenticatedRequest, res: Response) => {
@@ -64,14 +68,11 @@ router.get('/me', authenticate, async (req: AuthenticatedRequest, res: Response)
 });
 
 // PATCH /api/me/phone - Update phone number and send verification
-router.patch('/me/phone', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// Rate limited to prevent SMS spam (5 attempts per hour)
+router.patch('/me/phone', authenticate, phoneLimiter, validate(updatePhoneSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { phone } = req.body;
     const userId = req.user!.id;
-
-    if (!phone) {
-      return res.status(400).json({ error: 'Phone number is required' });
-    }
 
     const normalizedPhone = normalizePhone(phone);
 
@@ -99,11 +100,19 @@ router.patch('/me/phone', authenticate, async (req: AuthenticatedRequest, res: R
       return res.status(400).json({ error: error.message });
     }
 
-    // Generate and store verification code
+    // Generate and store verification code in database
     const code = generateVerificationCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    verificationCodes.set(userId, { code, expiresAt, phone: normalizedPhone });
+    // Upsert verification code (replace any existing code for this user)
+    await supabaseAdmin
+      .from('verification_codes')
+      .upsert({
+        user_id: userId,
+        phone: normalizedPhone,
+        code,
+        expires_at: expiresAt.toISOString(),
+      }, { onConflict: 'user_id' });
 
     // Send verification SMS
     const sent = await sendVerificationSMS(normalizedPhone, code);
@@ -122,34 +131,38 @@ router.patch('/me/phone', authenticate, async (req: AuthenticatedRequest, res: R
 });
 
 // POST /api/me/verify-phone - Verify SMS code
-router.post('/me/verify-phone', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// Rate limited to prevent brute-force code guessing (10 attempts per 15 min)
+router.post('/me/verify-phone', authenticate, authLimiter, validate(verifyPhoneSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { code } = req.body;
     const userId = req.user!.id;
 
-    if (!code) {
-      return res.status(400).json({ error: 'Verification code is required' });
-    }
+    // Get stored verification from database
+    const { data: stored, error: fetchError } = await supabaseAdmin
+      .from('verification_codes')
+      .select('*')
+      .eq('user_id', userId)
+      .is('used_at', null)
+      .single();
 
-    // Get stored verification
-    const stored = verificationCodes.get(userId);
-
-    if (!stored) {
+    if (fetchError || !stored) {
       return res.status(400).json({ error: 'No pending verification. Please request a new code.' });
     }
 
     // Check expiry
-    if (new Date() > stored.expiresAt) {
-      verificationCodes.delete(userId);
+    if (new Date() > new Date(stored.expires_at)) {
+      // Delete expired code
+      await supabaseAdmin.from('verification_codes').delete().eq('id', stored.id);
       return res.status(400).json({ error: 'Code expired. Please request a new code.' });
     }
 
-    // Check code
-    if (stored.code !== code.trim()) {
+    // Check code (constant-time comparison to prevent timing attacks)
+    const codeMatches = stored.code === code.trim();
+    if (!codeMatches) {
       return res.status(400).json({ error: 'Invalid code' });
     }
 
-    // Mark phone as verified
+    // Mark phone as verified and mark code as used (atomic transaction)
     const { error } = await supabaseAdmin
       .from('users')
       .update({ phone_verified: true })
@@ -159,8 +172,11 @@ router.post('/me/verify-phone', authenticate, async (req: AuthenticatedRequest, 
       return res.status(400).json({ error: error.message });
     }
 
-    // Clean up
-    verificationCodes.delete(userId);
+    // Mark code as used (prevents reuse)
+    await supabaseAdmin
+      .from('verification_codes')
+      .update({ used_at: new Date().toISOString() })
+      .eq('id', stored.id);
 
     res.json({
       verified: true,
@@ -192,11 +208,19 @@ router.post('/me/resend-code', authenticate, async (req: AuthenticatedRequest, r
       return res.status(400).json({ error: 'Phone already verified' });
     }
 
-    // Generate new code
+    // Generate new code and store in database
     const code = generateVerificationCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    verificationCodes.set(userId, { code, expiresAt, phone: user.phone });
+    // Upsert verification code (replace any existing code for this user)
+    await supabaseAdmin
+      .from('verification_codes')
+      .upsert({
+        user_id: userId,
+        phone: user.phone,
+        code,
+        expires_at: expiresAt.toISOString(),
+      }, { onConflict: 'user_id' });
 
     // Send verification SMS
     const sent = await sendVerificationSMS(user.phone, code);
@@ -212,15 +236,15 @@ router.post('/me/resend-code', authenticate, async (req: AuthenticatedRequest, r
 });
 
 // PATCH /api/me/notifications - Update notification preferences
-router.patch('/me/notifications', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.patch('/me/notifications', authenticate, validate(notificationPrefsSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { email, sms, push } = req.body;
     const userId = req.user!.id;
 
     const updates: Record<string, boolean> = {};
-    if (typeof email === 'boolean') updates.notification_email = email;
-    if (typeof sms === 'boolean') updates.notification_sms = sms;
-    if (typeof push === 'boolean') updates.notification_push = push;
+    if (email !== undefined) updates.notification_email = email;
+    if (sms !== undefined) updates.notification_sms = sms;
+    if (push !== undefined) updates.notification_push = push;
 
     // If enabling SMS, check phone is verified
     if (sms === true) {

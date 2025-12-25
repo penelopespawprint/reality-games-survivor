@@ -4,20 +4,25 @@ import { authenticate, AuthenticatedRequest } from '../middleware/authenticate.j
 import { supabase, supabaseAdmin } from '../config/supabase.js';
 import { stripe } from '../config/stripe.js';
 import { EmailService } from '../emails/index.js';
+import { joinLimiter, checkoutLimiter } from '../config/rateLimit.js';
+import {
+  validate,
+  createLeagueSchema,
+  joinLeagueSchema,
+  updateLeagueSettingsSchema,
+  uuidSchema,
+} from '../lib/validation.js';
 
 const SALT_ROUNDS = 10;
 
 const router = Router();
 
 // POST /api/leagues - Create a new league
-router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', authenticate, validate(createLeagueSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const { name, season_id, password, donation_amount } = req.body;
-
-    if (!name || !season_id) {
-      return res.status(400).json({ error: 'Name and season_id are required' });
-    }
+    const { max_players, is_public } = req.body; // Optional fields not in schema
 
     // Hash password if provided
     let hashedPassword: string | null = null;
@@ -35,6 +40,8 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) 
         password_hash: hashedPassword,
         require_donation: !!donation_amount,
         donation_amount: donation_amount || null,
+        max_players: max_players || 12,
+        is_public: is_public !== false,
       })
       .select()
       .single();
@@ -91,14 +98,22 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) 
 });
 
 // POST /api/leagues/:id/join - Join a league (free)
-router.post('/:id/join', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// Rate limited to prevent password brute-forcing (10 attempts per 15 min)
+router.post('/:id/join', authenticate, joinLimiter, validate(joinLeagueSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const leagueId = req.params.id;
+
+    // Validate UUID format
+    const uuidResult = uuidSchema.safeParse(leagueId);
+    if (!uuidResult.success) {
+      return res.status(400).json({ error: 'Invalid league ID format' });
+    }
+
     const { password } = req.body;
 
-    // Get league
-    const { data: league, error: leagueError } = await supabase
+    // Get league - use admin client to bypass RLS (user isn't a member yet)
+    const { data: league, error: leagueError } = await supabaseAdmin
       .from('leagues')
       .select('*')
       .eq('id', leagueId)
@@ -113,8 +128,8 @@ router.post('/:id/join', authenticate, async (req: AuthenticatedRequest, res: Re
       return res.status(403).json({ error: 'This league is closed to new members' });
     }
 
-    // Check if already a member
-    const { data: existing } = await supabase
+    // Check if already a member - use admin client
+    const { data: existing } = await supabaseAdmin
       .from('league_members')
       .select('id')
       .eq('league_id', leagueId)
@@ -220,13 +235,14 @@ router.post('/:id/join', authenticate, async (req: AuthenticatedRequest, res: Re
 });
 
 // POST /api/leagues/:id/join/checkout - Create Stripe checkout session
-router.post('/:id/join/checkout', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// Rate limited to prevent checkout session abuse (10 per hour)
+router.post('/:id/join/checkout', authenticate, checkoutLimiter, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const leagueId = req.params.id;
 
-    // Get league
-    const { data: league, error: leagueError } = await supabase
+    // Get league - use admin client to bypass RLS (user might not be a member yet)
+    const { data: league, error: leagueError } = await supabaseAdmin
       .from('leagues')
       .select('*')
       .eq('id', leagueId)
@@ -278,8 +294,8 @@ router.get('/:id/join/status', authenticate, async (req: AuthenticatedRequest, r
     const userId = req.user!.id;
     const leagueId = req.params.id;
 
-    // Check if member
-    const { data: membership } = await supabase
+    // Check if member - use admin to bypass RLS
+    const { data: membership } = await supabaseAdmin
       .from('league_members')
       .select('*')
       .eq('league_id', leagueId)
@@ -290,6 +306,56 @@ router.get('/:id/join/status', authenticate, async (req: AuthenticatedRequest, r
   } catch (err) {
     console.error('GET /api/leagues/:id/join/status error:', err);
     res.status(500).json({ error: 'Failed to check status' });
+  }
+});
+
+// GET /api/leagues/code/:code - Get league by invite code (public)
+router.get('/code/:code', async (req, res: Response) => {
+  try {
+    const code = req.params.code.toUpperCase();
+
+    // Get league - use admin to bypass RLS (anyone with code can view basic info)
+    const { data: league, error } = await supabaseAdmin
+      .from('leagues')
+      .select(`
+        id,
+        name,
+        code,
+        max_players,
+        require_donation,
+        donation_amount,
+        donation_notes,
+        status,
+        is_closed,
+        password_hash,
+        seasons (number, name)
+      `)
+      .eq('code', code)
+      .single();
+
+    if (error || !league) {
+      return res.status(404).json({ error: 'League not found' });
+    }
+
+    // Get member count
+    const { count } = await supabaseAdmin
+      .from('league_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('league_id', league.id);
+
+    // Don't expose password_hash, just indicate if password required
+    const { password_hash, ...leagueData } = league;
+
+    res.json({
+      league: {
+        ...leagueData,
+        has_password: !!password_hash,
+        member_count: count || 0,
+      },
+    });
+  } catch (err) {
+    console.error('GET /api/leagues/code/:code error:', err);
+    res.status(500).json({ error: 'Failed to fetch league' });
   }
 });
 
@@ -433,21 +499,26 @@ router.get('/:id/invite-link', authenticate, async (req: AuthenticatedRequest, r
 });
 
 // PATCH /api/leagues/:id/settings - Update settings (commissioner only)
-router.patch('/:id/settings', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.patch('/:id/settings', authenticate, validate(updateLeagueSettingsSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const leagueId = req.params.id;
     const userId = req.user!.id;
+
+    // Validate UUID format
+    const uuidResult = uuidSchema.safeParse(leagueId);
+    if (!uuidResult.success) {
+      return res.status(400).json({ error: 'Invalid league ID format' });
+    }
+
     const {
       name,
-      description,
       password,
       donation_amount,
       payout_method,
       is_public,
-      is_closed,
-      max_players,
       donation_notes,
     } = req.body;
+    const { description, is_closed, max_players } = req.body; // Fields not in schema
 
     // Check commissioner
     const { data: league } = await supabase
@@ -466,7 +537,10 @@ router.patch('/:id/settings', authenticate, async (req: AuthenticatedRequest, re
     const updates: Record<string, any> = {};
     if (name !== undefined) updates.name = name;
     if (description !== undefined) updates.description = description;
-    if (password !== undefined) updates.password_hash = password || null;
+    if (password !== undefined) {
+      // Hash password before storing (null to remove password)
+      updates.password_hash = password ? await bcrypt.hash(password, SALT_ROUNDS) : null;
+    }
     if (donation_amount !== undefined) {
       updates.donation_amount = donation_amount;
       updates.require_donation = !!donation_amount;
@@ -687,6 +761,135 @@ router.post('/:id/transfer', authenticate, async (req: AuthenticatedRequest, res
   } catch (err) {
     console.error('POST /api/leagues/:id/transfer error:', err);
     res.status(500).json({ error: 'Failed to transfer ownership' });
+  }
+});
+
+// GET /api/global-leaderboard - Global leaderboard with Bayesian weighted average
+router.get('/global-leaderboard', async (req, res: Response) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    // Confidence factor for Bayesian weighted average
+    // With C=1, players at 1 league get 50% weight, 2 leagues get 67%, 3 leagues get 75%
+    const CONFIDENCE_FACTOR = 1;
+
+    // Get all league members with user info
+    const { data: members, error } = await supabaseAdmin
+      .from('league_members')
+      .select(`
+        user_id,
+        total_points,
+        league_id,
+        users (id, display_name, avatar_url)
+      `);
+
+    if (error) throw error;
+
+    // Get rosters to check for eliminated castaways
+    const { data: rosters } = await supabaseAdmin
+      .from('rosters')
+      .select(`
+        user_id,
+        castaway:castaways (id, status)
+      `)
+      .is('dropped_at', null);
+
+    // Get active season
+    const { data: activeSeason } = await supabaseAdmin
+      .from('seasons')
+      .select('id, number, name')
+      .eq('is_active', true)
+      .single();
+
+    // Build player stats map
+    const playerMap = new Map<string, {
+      displayName: string;
+      avatarUrl: string | null;
+      totalPoints: number;
+      leagueCount: number;
+      hasEliminatedCastaway: boolean;
+    }>();
+
+    // Aggregate member data
+    members?.forEach((member: any) => {
+      const userId = member.user_id;
+      const existing = playerMap.get(userId);
+
+      if (existing) {
+        existing.totalPoints += member.total_points || 0;
+        existing.leagueCount += 1;
+      } else {
+        playerMap.set(userId, {
+          displayName: member.users?.display_name || 'Unknown',
+          avatarUrl: member.users?.avatar_url || null,
+          totalPoints: member.total_points || 0,
+          leagueCount: 1,
+          hasEliminatedCastaway: false,
+        });
+      }
+    });
+
+    // Check for eliminated castaways per user
+    rosters?.forEach((roster: any) => {
+      const userId = roster.user_id;
+      const player = playerMap.get(userId);
+      if (player && roster.castaway?.status === 'eliminated') {
+        player.hasEliminatedCastaway = true;
+      }
+    });
+
+    // Convert to array and calculate averages
+    const statsRaw = Array.from(playerMap.entries()).map(([userId, data]) => ({
+      userId,
+      displayName: data.displayName,
+      avatarUrl: data.avatarUrl,
+      totalPoints: data.totalPoints,
+      leagueCount: data.leagueCount,
+      averagePoints: data.leagueCount > 0 ? Math.round(data.totalPoints / data.leagueCount) : 0,
+      hasEliminatedCastaway: data.hasEliminatedCastaway,
+    }));
+
+    // Calculate global average for Bayesian weighting
+    const totalAllPoints = statsRaw.reduce((sum, p) => sum + p.totalPoints, 0);
+    const totalAllLeagues = statsRaw.reduce((sum, p) => sum + p.leagueCount, 0);
+    const globalAverage = totalAllLeagues > 0 ? totalAllPoints / totalAllLeagues : 0;
+
+    // Apply Bayesian weighted average and sort
+    const allStats = statsRaw.map(p => ({
+      ...p,
+      weightedScore: Math.round(
+        (p.averagePoints * p.leagueCount + globalAverage * CONFIDENCE_FACTOR) /
+        (p.leagueCount + CONFIDENCE_FACTOR)
+      ),
+    })).sort((a, b) => b.weightedScore - a.weightedScore);
+
+    // Apply pagination
+    const paginatedStats = allStats.slice(offset, offset + limit);
+
+    // Summary stats
+    const totalPlayers = allStats.length;
+    const topScore = allStats.length > 0 ? allStats[0].weightedScore : 0;
+    const activeTorches = allStats.filter(p => !p.hasEliminatedCastaway).length;
+
+    res.json({
+      leaderboard: paginatedStats,
+      pagination: {
+        total: totalPlayers,
+        limit,
+        offset,
+        hasMore: offset + limit < totalPlayers,
+      },
+      summary: {
+        totalPlayers,
+        topScore,
+        activeTorches,
+      },
+      activeSeason: activeSeason || null,
+    });
+  } catch (err) {
+    console.error('GET /api/global-leaderboard error:', err);
+    res.status(500).json({ error: 'Failed to fetch global leaderboard' });
   }
 });
 

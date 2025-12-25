@@ -646,7 +646,7 @@ export default function LeagueHome() {
           </div>
         )}
 
-        {/* Invite Card - Commissioners see full code, others just get share link */}
+        {/* Invite Card - League creator sees full code, others just get share link */}
         {canManageLeague ? (
           <div className="mt-6 bg-white rounded-2xl shadow-card p-5 border border-cream-200">
             <div className="flex items-center justify-between">

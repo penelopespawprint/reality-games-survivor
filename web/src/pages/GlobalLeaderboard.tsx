@@ -1,8 +1,8 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { Flame, Trophy, Users, TrendingUp, Medal } from 'lucide-react';
+import { Flame, Trophy, Users, TrendingUp, Medal, ChevronDown } from 'lucide-react';
 
 interface PlayerStats {
   userId: string;
@@ -11,123 +11,53 @@ interface PlayerStats {
   totalPoints: number;
   leagueCount: number;
   averagePoints: number;
-  weightedScore: number; // Bayesian weighted average
+  weightedScore: number;
   hasEliminatedCastaway: boolean;
 }
 
-// Confidence factor for Bayesian weighted average
-// Players need ~3 leagues to have their score weighted at full value
-const CONFIDENCE_FACTOR = 3;
+interface LeaderboardResponse {
+  leaderboard: PlayerStats[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+  summary: {
+    totalPlayers: number;
+    topScore: number;
+    activeTorches: number;
+  };
+  activeSeason: {
+    id: string;
+    number: number;
+    name: string;
+  } | null;
+}
+
+const PAGE_SIZE = 50;
 
 export default function GlobalLeaderboard() {
   const { user } = useAuth();
+  const [offset, setOffset] = useState(0);
 
-  // Fetch all league members with their user info and calculate averages
-  const { data: leaderboard, isLoading } = useQuery({
-    queryKey: ['global-leaderboard'],
+  // Fetch leaderboard from API with pagination
+  const { data, isLoading, isFetching } = useQuery<LeaderboardResponse>({
+    queryKey: ['global-leaderboard', offset],
     queryFn: async () => {
-      // Get all league members with user info
-      const { data: members, error } = await supabase
-        .from('league_members')
-        .select(`
-          user_id,
-          total_points,
-          league_id,
-          users (id, display_name, avatar_url)
-        `);
-
-      if (error) throw error;
-
-      // Get rosters to check for eliminated castaways
-      const { data: rosters } = await supabase
-        .from('rosters')
-        .select(`
-          user_id,
-          castaway:castaways (id, status)
-        `)
-        .is('dropped_at', null);
-
-      // Build player stats map
-      const playerMap = new Map<string, {
-        displayName: string;
-        avatarUrl: string | null;
-        totalPoints: number;
-        leagueCount: number;
-        hasEliminatedCastaway: boolean;
-      }>();
-
-      // Aggregate member data
-      members?.forEach((member: any) => {
-        const userId = member.user_id;
-        const existing = playerMap.get(userId);
-
-        if (existing) {
-          existing.totalPoints += member.total_points || 0;
-          existing.leagueCount += 1;
-        } else {
-          playerMap.set(userId, {
-            displayName: member.users?.display_name || 'Unknown',
-            avatarUrl: member.users?.avatar_url || null,
-            totalPoints: member.total_points || 0,
-            leagueCount: 1,
-            hasEliminatedCastaway: false,
-          });
-        }
-      });
-
-      // Check for eliminated castaways per user
-      rosters?.forEach((roster: any) => {
-        const userId = roster.user_id;
-        const player = playerMap.get(userId);
-        if (player && roster.castaway?.status === 'eliminated') {
-          player.hasEliminatedCastaway = true;
-        }
-      });
-
-      // Convert to array and calculate averages
-      const statsRaw = Array.from(playerMap.entries()).map(([userId, data]) => ({
-        userId,
-        displayName: data.displayName,
-        avatarUrl: data.avatarUrl,
-        totalPoints: data.totalPoints,
-        leagueCount: data.leagueCount,
-        averagePoints: data.leagueCount > 0 ? Math.round(data.totalPoints / data.leagueCount) : 0,
-        hasEliminatedCastaway: data.hasEliminatedCastaway,
-      }));
-
-      // Calculate global average for Bayesian weighting
-      const totalAllPoints = statsRaw.reduce((sum, p) => sum + p.totalPoints, 0);
-      const totalAllLeagues = statsRaw.reduce((sum, p) => sum + p.leagueCount, 0);
-      const globalAverage = totalAllLeagues > 0 ? totalAllPoints / totalAllLeagues : 0;
-
-      // Apply Bayesian weighted average
-      // Formula: (avg * leagueCount + globalAvg * C) / (leagueCount + C)
-      // This pulls players with few leagues toward the global average
-      const stats: PlayerStats[] = statsRaw.map(p => ({
-        ...p,
-        weightedScore: Math.round(
-          (p.averagePoints * p.leagueCount + globalAverage * CONFIDENCE_FACTOR) /
-          (p.leagueCount + CONFIDENCE_FACTOR)
-        ),
-      }));
-
-      // Sort by weighted score descending
-      return stats.sort((a, b) => b.weightedScore - a.weightedScore);
+      const response = await fetch(`/api/leagues/global-leaderboard?limit=${PAGE_SIZE}&offset=${offset}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch leaderboard');
+      }
+      return response.json();
     },
+    placeholderData: (previousData) => previousData,
   });
 
-  const { data: activeSeason } = useQuery({
-    queryKey: ['active-season'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('seasons')
-        .select('*')
-        .eq('is_active', true)
-        .single();
-      if (error) throw error;
-      return data;
-    },
-  });
+  const leaderboard = data?.leaderboard;
+  const activeSeason = data?.activeSeason;
+  const summary = data?.summary;
+  const pagination = data?.pagination;
 
   // Torch icon component with lit/unlit states
   const TorchIcon = ({ lit, size = 'normal' }: { lit: boolean; size?: 'normal' | 'large' }) => {
@@ -201,27 +131,27 @@ export default function GlobalLeaderboard() {
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-2xl shadow-card p-4 border border-cream-200 text-center">
             <Users className="h-6 w-6 text-burgundy-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-neutral-800">{leaderboard?.length || 0}</p>
+            <p className="text-2xl font-bold text-neutral-800">{summary?.totalPlayers || 0}</p>
             <p className="text-neutral-500 text-sm">Total Players</p>
           </div>
           <div className="bg-white rounded-2xl shadow-card p-4 border border-cream-200 text-center">
             <TrendingUp className="h-6 w-6 text-green-500 mx-auto mb-2" />
             <p className="text-2xl font-bold text-neutral-800">
-              {leaderboard && leaderboard.length > 0 ? leaderboard[0].weightedScore : 0}
+              {summary?.topScore || 0}
             </p>
             <p className="text-neutral-500 text-sm">Top Score</p>
           </div>
           <div className="bg-white rounded-2xl shadow-card p-4 border border-cream-200 text-center">
             <Flame className="h-6 w-6 text-orange-500 mx-auto mb-2" />
             <p className="text-2xl font-bold text-neutral-800">
-              {leaderboard?.filter(p => !p.hasEliminatedCastaway).length || 0}
+              {summary?.activeTorches || 0}
             </p>
             <p className="text-neutral-500 text-sm">Torches Lit</p>
           </div>
         </div>
 
-        {/* Top 3 Podium */}
-        {leaderboard && leaderboard.length >= 3 && (
+        {/* Top 3 Podium - Only show on first page */}
+        {offset === 0 && leaderboard && leaderboard.length >= 3 && (
           <div className="mb-8">
             <h2 className="text-lg font-semibold text-neutral-700 mb-4">Top Players</h2>
             <div className="grid grid-cols-3 gap-4">
@@ -297,7 +227,7 @@ export default function GlobalLeaderboard() {
           ) : (
             <div className="divide-y divide-cream-100">
               {leaderboard?.map((player, index) => {
-                const rank = index + 1;
+                const rank = offset + index + 1;
                 const rankStyle = getRankStyle(rank);
                 const isCurrentUser = player.userId === user?.id;
 
@@ -349,34 +279,73 @@ export default function GlobalLeaderboard() {
           )}
         </div>
 
-        {/* Your Position Card (if not in top 10) */}
-        {user && leaderboard && leaderboard.length > 0 && (
-          (() => {
-            const userIndex = leaderboard.findIndex(p => p.userId === user.id);
-            if (userIndex === -1 || userIndex < 10) return null;
+        {/* Pagination Controls */}
+        {pagination && (
+          <div className="mt-6 flex flex-col items-center gap-4">
+            <p className="text-sm text-neutral-500">
+              Showing {offset + 1}-{Math.min(offset + PAGE_SIZE, pagination.total)} of {pagination.total} players
+            </p>
+            <div className="flex gap-3">
+              {offset > 0 && (
+                <button
+                  onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+                  disabled={isFetching}
+                  className="btn btn-secondary"
+                >
+                  Previous
+                </button>
+              )}
+              {pagination.hasMore && (
+                <button
+                  onClick={() => setOffset(offset + PAGE_SIZE)}
+                  disabled={isFetching}
+                  className="btn btn-primary flex items-center gap-2"
+                >
+                  {isFetching ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      Load More
+                      <ChevronDown className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
-            const userStats = leaderboard[userIndex];
-            return (
-              <div className="mt-6 bg-gradient-to-r from-burgundy-500 to-burgundy-600 rounded-2xl p-6 text-white shadow-elevated">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                      <span className="font-bold text-xl">#{userIndex + 1}</span>
-                    </div>
-                    <div>
-                      <p className="text-burgundy-100 text-sm">Your Position</p>
-                      <p className="text-xl font-semibold">{userStats.displayName}</p>
-                    </div>
+        {/* Your Position Card - show if user is on current page but not in visible top 10 */}
+        {user && leaderboard && leaderboard.length > 0 && (() => {
+          const userIndex = leaderboard.findIndex(p => p.userId === user.id);
+          if (userIndex === -1) return null;
+          const globalRank = offset + userIndex + 1;
+          if (globalRank <= 10) return null;
+
+          const userStats = leaderboard[userIndex];
+          return (
+            <div className="mt-6 bg-gradient-to-r from-burgundy-500 to-burgundy-600 rounded-2xl p-6 text-white shadow-elevated">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="font-bold text-xl">#{globalRank}</span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-display">{userStats.weightedScore}</p>
-                    <p className="text-burgundy-100 text-sm">score</p>
+                  <div>
+                    <p className="text-burgundy-100 text-sm">Your Position</p>
+                    <p className="text-xl font-semibold">{userStats.displayName}</p>
                   </div>
                 </div>
+                <div className="text-right">
+                  <p className="text-3xl font-display">{userStats.weightedScore}</p>
+                  <p className="text-burgundy-100 text-sm">score</p>
+                </div>
               </div>
-            );
-          })()
-        )}
+            </div>
+          );
+        })()}
     </div>
   );
 }

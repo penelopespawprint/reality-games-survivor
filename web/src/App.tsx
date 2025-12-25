@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './lib/auth';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminRoute } from './components/AdminRoute';
 
 // Pages
 import { Home } from './pages/Home';
@@ -98,8 +99,10 @@ export default function App() {
           <Route path="/profile/notifications" element={<Notifications />} />
           <Route path="/seasons/:seasonId/schedule" element={<SeasonSchedule />} />
           <Route path="/seasons/:seasonId/castaways" element={<SeasonCastaways />} />
+        </Route>
 
-          {/* Admin routes */}
+        {/* Admin routes - require admin role */}
+        <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/scoring" element={<AdminScoring />} />
           <Route path="/admin/castaways" element={<AdminCastaways />} />
