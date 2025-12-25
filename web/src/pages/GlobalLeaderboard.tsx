@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { Flame, Trophy, Users, TrendingUp, Medal } from 'lucide-react';
+import { Flame, Trophy, Users, TrendingUp, Medal, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { TribalCouncil } from '@/components/tribal-chat';
 
 interface PlayerStats {
   userId: string;
@@ -21,6 +23,7 @@ const CONFIDENCE_FACTOR = 3;
 
 export default function GlobalLeaderboard() {
   const { user } = useAuth();
+  const [showChat, setShowChat] = useState(false);
 
   // Fetch all league members with their user info and calculate averages
   const { data: leaderboard, isLoading } = useQuery({
@@ -377,6 +380,39 @@ export default function GlobalLeaderboard() {
             );
           })()
         )}
+
+        {/* Global Tribal Council Chat */}
+        <div className="mt-8">
+          <button
+            onClick={() => setShowChat(!showChat)}
+            className="w-full bg-white rounded-2xl shadow-card p-4 border border-cream-200 hover:border-burgundy-200 transition-all flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
+                <MessageCircle className="h-5 w-5 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-neutral-800">Global Tribal Council</p>
+                <p className="text-sm text-neutral-500">Chat with all survivors</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-burgundy-500">
+              <span className="text-sm font-medium">{showChat ? 'Hide' : 'Open'} Chat</span>
+              {showChat ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+            </div>
+          </button>
+
+          {showChat && (
+            <div className="mt-4 bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
+              <TribalCouncil
+                leagueId={null}
+                leagueName="ALL SURVIVORS"
+                isCommissioner={false}
+                isGlobal={true}
+              />
+            </div>
+          )}
+        </div>
     </div>
   );
 }

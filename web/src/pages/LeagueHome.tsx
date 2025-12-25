@@ -20,12 +20,14 @@ import {
   ChevronRight,
   Copy,
   Check,
+  MessageCircle,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Navigation } from '@/components/Navigation';
+import { TribalCouncil } from '@/components/tribal-chat';
 import { useAuth } from '@/lib/auth';
 
-type Tab = 'overview' | 'players' | 'standings';
+type Tab = 'overview' | 'players' | 'standings' | 'chat';
 
 export default function LeagueHome() {
   const { id } = useParams<{ id: string }>();
@@ -302,6 +304,17 @@ export default function LeagueHome() {
           >
             <Trophy className="h-4 w-4" />
             Standings
+          </button>
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${
+              activeTab === 'chat'
+                ? 'bg-burgundy-500 text-white shadow-md'
+                : 'bg-white text-neutral-600 border border-cream-200 hover:border-burgundy-200'
+            }`}
+          >
+            <MessageCircle className="h-4 w-4" />
+            Tribal Council
           </button>
         </div>
 
@@ -639,6 +652,17 @@ export default function LeagueHome() {
                 })}
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'chat' && (
+          <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
+            <TribalCouncil
+              leagueId={id}
+              leagueName={league.name}
+              isCommissioner={isCommissioner}
+              isGlobal={false}
+            />
           </div>
         )}
 
