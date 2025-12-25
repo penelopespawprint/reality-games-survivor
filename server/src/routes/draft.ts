@@ -16,16 +16,14 @@ interface RosterAssignment {
 }
 
 /**
- * Assigns castaways to participants based on their rankings.
+ * Assigns castaways to participants using a snake draft with unique picks.
  *
- * Normal case (participants * 2 <= castaways):
- * - Each participant gets their top 2 ranked castaways
- * - Duplicates are allowed across participants
+ * Snake draft order (example with 4 players):
+ * - Round 1: Player 1, Player 2, Player 3, Player 4
+ * - Round 2: Player 4, Player 3, Player 2, Player 1
  *
- * Overflow case (participants * 2 > castaways):
- * - Regular participants (1 to floor(castaways/2)) get their #1 pick first, removing from pool
- * - Extra participants get their top 2 from remaining pool (non-exclusive, no removal)
- * - Regular participants then get their #2 from remaining pool
+ * Each castaway can only be drafted by ONE player per league.
+ * Players get their highest-ranked AVAILABLE castaway when it's their turn.
  */
 export function assignCastaways(
   leagueId: string,
@@ -34,123 +32,70 @@ export function assignCastaways(
   allCastawayIds: string[]
 ): RosterAssignment[] {
   const assignments: RosterAssignment[] = [];
-  const numParticipants = memberUserIds.length;
-  const numCastaways = allCastawayIds.length;
 
   // Shuffle members for random draft order
-  const shuffledMembers = [...memberUserIds].sort(() => Math.random() - 0.5);
+  const draftOrder = [...memberUserIds].sort(() => Math.random() - 0.5);
+
+  // Track available castaways (each can only be drafted once)
+  const availablePool = new Set(allCastawayIds);
 
   let pickNumber = 0;
 
   // Helper to get user's top available pick from their rankings
-  const getTopRankedFromPool = (userId: string, pool: Set<string>, skip: number = 0): string => {
+  const getTopAvailable = (userId: string): string | null => {
     const userRankings = rankingsMap.get(userId) || [];
-    let skipped = 0;
+
+    // Find highest-ranked castaway that's still available
     for (const castawayId of userRankings) {
-      if (pool.has(castawayId)) {
-        if (skipped >= skip) {
-          return castawayId;
-        }
-        skipped++;
+      if (availablePool.has(castawayId)) {
+        return castawayId;
       }
     }
-    // Fallback: random from pool
-    const poolArray = Array.from(pool);
-    return poolArray[Math.floor(Math.random() * poolArray.length)];
+
+    // Fallback: random from remaining pool (if user didn't rank enough)
+    if (availablePool.size > 0) {
+      const poolArray = Array.from(availablePool);
+      return poolArray[Math.floor(Math.random() * poolArray.length)];
+    }
+
+    return null;
   };
 
-  // Helper to get user's #N ranked castaway (0-indexed)
-  const getRankedCastaway = (userId: string, index: number): string => {
-    const userRankings = rankingsMap.get(userId) || [];
-    if (index < userRankings.length) {
-      return userRankings[index];
-    }
-    // Fallback: random from all castaways
-    return allCastawayIds[Math.floor(Math.random() * allCastawayIds.length)];
-  };
+  // Round 1: Pick in draft order (1, 2, 3... N)
+  for (const userId of draftOrder) {
+    const castawayId = getTopAvailable(userId);
+    if (!castawayId) continue; // No castaways left
 
-  // Check if we have overflow (more participants than castaways can support)
-  if (numParticipants * 2 <= numCastaways) {
-    // Normal case: everyone gets their top 2, duplicates allowed
-    for (const userId of shuffledMembers) {
-      for (let round = 1; round <= 2; round++) {
-        pickNumber++;
-        assignments.push({
-          league_id: leagueId,
-          user_id: userId,
-          castaway_id: getRankedCastaway(userId, round - 1),
-          draft_round: round,
-          draft_pick: pickNumber,
-          acquired_via: 'draft',
-        });
-      }
-    }
-  } else {
-    // Overflow case: special handling needed
-    const numRegular = Math.floor(numCastaways / 2);
-    const regularMembers = shuffledMembers.slice(0, numRegular);
-    const extraMembers = shuffledMembers.slice(numRegular);
+    pickNumber++;
+    availablePool.delete(castawayId); // Remove from pool
 
-    // Track available pool (castaways not claimed as #1 picks)
-    const availablePool = new Set(allCastawayIds);
+    assignments.push({
+      league_id: leagueId,
+      user_id: userId,
+      castaway_id: castawayId,
+      draft_round: 1,
+      draft_pick: pickNumber,
+      acquired_via: 'draft',
+    });
+  }
 
-    // Round 1: Regular participants claim their #1 picks (removes from pool)
-    for (const userId of regularMembers) {
-      pickNumber++;
-      const castawayId = getTopRankedFromPool(userId, availablePool);
-      availablePool.delete(castawayId); // Remove from pool
+  // Round 2: Pick in reverse order (N, N-1... 1) - snake draft
+  const reversedOrder = [...draftOrder].reverse();
+  for (const userId of reversedOrder) {
+    const castawayId = getTopAvailable(userId);
+    if (!castawayId) continue; // No castaways left
 
-      assignments.push({
-        league_id: leagueId,
-        user_id: userId,
-        castaway_id: castawayId,
-        draft_round: 1,
-        draft_pick: pickNumber,
-        acquired_via: 'draft',
-      });
-    }
+    pickNumber++;
+    availablePool.delete(castawayId); // Remove from pool
 
-    // Extra participants get their top 2 from remaining pool (no removal)
-    for (const userId of extraMembers) {
-      // First pick from remaining pool
-      pickNumber++;
-      const firstPick = getTopRankedFromPool(userId, availablePool, 0);
-      assignments.push({
-        league_id: leagueId,
-        user_id: userId,
-        castaway_id: firstPick,
-        draft_round: 1,
-        draft_pick: pickNumber,
-        acquired_via: 'draft',
-      });
-
-      // Second pick from remaining pool (skip the first if same)
-      pickNumber++;
-      const secondPick = getTopRankedFromPool(userId, availablePool, 1);
-      assignments.push({
-        league_id: leagueId,
-        user_id: userId,
-        castaway_id: secondPick,
-        draft_round: 2,
-        draft_pick: pickNumber,
-        acquired_via: 'draft',
-      });
-    }
-
-    // Round 2: Regular participants get their #2 from remaining pool
-    for (const userId of regularMembers) {
-      pickNumber++;
-      const castawayId = getTopRankedFromPool(userId, availablePool);
-
-      assignments.push({
-        league_id: leagueId,
-        user_id: userId,
-        castaway_id: castawayId,
-        draft_round: 2,
-        draft_pick: pickNumber,
-        acquired_via: 'draft',
-      });
-    }
+    assignments.push({
+      league_id: leagueId,
+      user_id: userId,
+      castaway_id: castawayId,
+      draft_round: 2,
+      draft_pick: pickNumber,
+      acquired_via: 'draft',
+    });
   }
 
   return assignments;

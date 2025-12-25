@@ -498,175 +498,115 @@ describe('Category 3: Draft Actions', () => {
     });
   });
 
-  describe('3.2.1 Draft Finalization - Assign Top 2 Castaways', () => {
-    it('should assign each player their top 2 ranked castaways', () => {
-      const members = ['u1', 'u2', 'u3'];
-      const rankings = new Map([
-        ['u1', ['c1', 'c2', 'c3']],
-        ['u2', ['c1', 'c3', 'c2']], // Same c1 as u1 is OK
-        ['u3', ['c4', 'c5', 'c6']],
-      ]);
+  describe('3.2.1 Snake Draft with Unique Picks', () => {
+    it('should use snake order: Round 1 forward, Round 2 reverse', () => {
+      // Snake draft order example:
+      // Round 1: Player 1, Player 2, Player 3, Player 4
+      // Round 2: Player 4, Player 3, Player 2, Player 1
+      const draftOrder = ['u1', 'u2', 'u3', 'u4'];
+      const round1Order = [...draftOrder];
+      const round2Order = [...draftOrder].reverse();
 
-      const assignments: Array<{ user: string; castaway: string; round: number }> = [];
+      expect(round1Order).toEqual(['u1', 'u2', 'u3', 'u4']);
+      expect(round2Order).toEqual(['u4', 'u3', 'u2', 'u1']);
+    });
 
-      for (const userId of members) {
-        const userRankings = rankings.get(userId) || [];
-        for (let round = 1; round <= 2; round++) {
-          const castawayId = userRankings[round - 1];
-          assignments.push({ user: userId, castaway: castawayId, round });
+    it('should not allow duplicate castaways in same league', () => {
+      const availablePool = new Set(['c1', 'c2', 'c3', 'c4', 'c5', 'c6']);
+
+      // Player 1 drafts c1
+      const pick1 = 'c1';
+      availablePool.delete(pick1);
+
+      // c1 is no longer available
+      expect(availablePool.has('c1')).toBe(false);
+      expect(availablePool.size).toBe(5);
+
+      // Player 2 wants c1 but it's taken, so they get their next choice
+      const player2Rankings = ['c1', 'c2', 'c3'];
+      let player2Pick = null;
+      for (const castaway of player2Rankings) {
+        if (availablePool.has(castaway)) {
+          player2Pick = castaway;
+          break;
         }
       }
-
-      // Each player gets exactly 2 castaways
-      expect(assignments.length).toBe(6);
-
-      // u1 gets their top 2: c1, c2
-      expect(assignments[0]).toEqual({ user: 'u1', castaway: 'c1', round: 1 });
-      expect(assignments[1]).toEqual({ user: 'u1', castaway: 'c2', round: 2 });
-
-      // u2 also gets c1 (duplicates allowed)
-      expect(assignments[2]).toEqual({ user: 'u2', castaway: 'c1', round: 1 });
-      expect(assignments[3]).toEqual({ user: 'u2', castaway: 'c3', round: 2 });
-
-      // u3 gets their preferences
-      expect(assignments[4]).toEqual({ user: 'u3', castaway: 'c4', round: 1 });
-      expect(assignments[5]).toEqual({ user: 'u3', castaway: 'c5', round: 2 });
+      expect(player2Pick).toBe('c2'); // Gets c2 since c1 is taken
     });
 
-    it('should allow multiple players to have the same castaway', () => {
-      const assignments = [
-        { user: 'u1', castaway: 'c1' },
-        { user: 'u2', castaway: 'c1' },
-        { user: 'u3', castaway: 'c1' },
-      ];
-
-      // All three players can have c1
-      const c1Count = assignments.filter(a => a.castaway === 'c1').length;
-      expect(c1Count).toBe(3);
-    });
-  });
-
-  describe('3.2.2 Draft Finalization - Overflow Participants', () => {
-    it('should handle overflow when participants > castaways/2', () => {
-      // 16 castaways, 9 participants = overflow (9*2=18 > 16)
-      const castaways = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12', 'c13', 'c14', 'c15', 'c16'];
-      const members = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9'];
-
-      const numRegular = Math.floor(castaways.length / 2); // 8
-      const numExtra = members.length - numRegular; // 1
-
-      expect(numRegular).toBe(8);
-      expect(numExtra).toBe(1);
-      expect(members.length * 2).toBeGreaterThan(castaways.length);
-    });
-
-    it('should give regular participants exclusive #1 picks', () => {
-      // Simulate: 8 castaways, 5 participants (overflow: 5*2=10 > 8)
-      const castaways = new Set(['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8']);
-      const numRegular = Math.floor(8 / 2); // 4
-
-      // Regular participants claim their #1 exclusively
-      const regularPicks = ['c1', 'c2', 'c3', 'c4']; // First 4 participants' #1 picks
-
-      // Remove from pool
-      const remainingPool = new Set(castaways);
-      regularPicks.forEach(c => remainingPool.delete(c));
-
-      // Extra participant picks from remaining pool (4 castaways left)
-      expect(remainingPool.size).toBe(4);
-      expect(remainingPool.has('c5')).toBe(true);
-      expect(remainingPool.has('c1')).toBe(false);
-    });
-
-    it('should give extra participants top 2 from remaining pool without removal', () => {
-      // Extra participant's picks don't remove from pool
-      const remainingPool = new Set(['c5', 'c6', 'c7', 'c8']);
-      const poolSizeBefore = remainingPool.size;
-
-      // Extra participant picks c5 and c6 (no removal)
-      const extraPick1 = 'c5';
-      const extraPick2 = 'c6';
-      // NOT removing from pool
-
-      // Pool size unchanged
-      expect(remainingPool.size).toBe(poolSizeBefore);
-      expect(remainingPool.has(extraPick1)).toBe(true);
-      expect(remainingPool.has(extraPick2)).toBe(true);
-    });
-
-    it('should give regular participants #2 from remaining pool after extra picks', () => {
-      // After extra participants pick, regular get their #2
-      const remainingPool = new Set(['c5', 'c6', 'c7', 'c8']);
-      const regularMembers = ['u1', 'u2', 'u3', 'u4'];
-
-      // Each regular member should be able to get their #2 from remaining
-      // (Extra participants' picks didn't deplete the pool)
-      expect(remainingPool.size).toBeGreaterThanOrEqual(regularMembers.length);
-    });
-
-    it('should handle multiple extra participants', () => {
-      // 6 castaways, 5 participants = overflow (5*2=10 > 6)
-      const castaways = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
-      const numRegular = Math.floor(6 / 2); // 3
-      const numExtra = 5 - numRegular; // 2 extra participants
-
-      expect(numRegular).toBe(3);
-      expect(numExtra).toBe(2);
-
-      // Regular: u1, u2, u3 each claim #1 (c1, c2, c3 removed)
-      // Extra: u4, u5 both pick from remaining {c4, c5, c6} without removal
-      // Then regular get their #2 from {c4, c5, c6}
-
-      const remainingAfterRegularRound1 = 6 - 3; // 3 castaways
-      expect(remainingAfterRegularRound1).toBe(3);
-    });
-  });
-
-  describe('3.2.3 assignCastaways Function - Direct Tests', () => {
-    it('should assign top 2 in normal case (no overflow)', () => {
+    it('should give each player exactly 2 unique castaways', () => {
       const leagueId = 'league-1';
       const members = ['u1', 'u2', 'u3'];
       const rankings = new Map([
-        ['u1', ['c1', 'c2', 'c3']],
-        ['u2', ['c4', 'c5', 'c6']],
-        ['u3', ['c7', 'c8', 'c9']],
+        ['u1', ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']],
+        ['u2', ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']], // Same preferences
+        ['u3', ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']], // Same preferences
       ]);
-      const castaways = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10'];
+      const castaways = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'];
 
       const assignments = assignCastaways(leagueId, members, rankings, castaways);
 
-      // Each member gets 2 castaways
+      // Each member gets exactly 2 castaways
       expect(assignments.length).toBe(6);
 
-      // Each member should have exactly 2 assignments
       for (const userId of members) {
         const userAssignments = assignments.filter(a => a.user_id === userId);
         expect(userAssignments.length).toBe(2);
       }
+
+      // All castaways assigned should be unique
+      const assignedCastaways = assignments.map(a => a.castaway_id);
+      const uniqueCastaways = new Set(assignedCastaways);
+      expect(uniqueCastaways.size).toBe(6); // 3 players × 2 picks = 6 unique
     });
+  });
 
-    it('should handle overflow case correctly', () => {
+  describe('3.2.2 assignCastaways Function - Snake Draft', () => {
+    it('should implement snake draft correctly', () => {
       const leagueId = 'league-1';
-      const members = ['u1', 'u2', 'u3', 'u4', 'u5']; // 5 members
+      const members = ['u1', 'u2', 'u3', 'u4'];
       const rankings = new Map([
-        ['u1', ['c1', 'c2', 'c3', 'c4']],
-        ['u2', ['c2', 'c3', 'c4', 'c5']],
-        ['u3', ['c3', 'c4', 'c5', 'c6']],
-        ['u4', ['c4', 'c5', 'c6', 'c7']],
-        ['u5', ['c5', 'c6', 'c7', 'c8']], // Extra participant
+        ['u1', ['c1', 'c5', 'c9']],
+        ['u2', ['c2', 'c6', 'c10']],
+        ['u3', ['c3', 'c7', 'c11']],
+        ['u4', ['c4', 'c8', 'c12']],
       ]);
-      const castaways = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8']; // 8 castaways
+      const castaways = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12'];
 
-      // 5*2=10 > 8, so overflow
       const assignments = assignCastaways(leagueId, members, rankings, castaways);
 
-      // All 5 members get 2 castaways each = 10 assignments
-      expect(assignments.length).toBe(10);
+      // 4 players × 2 picks = 8 assignments
+      expect(assignments.length).toBe(8);
 
-      // Extra participant (position 5) should get picks from remaining pool
-      // The 4 regular participants claim their #1 picks first
-      const numRegular = Math.floor(8 / 2); // 4
-      expect(numRegular).toBe(4);
+      // Verify all castaways are unique
+      const assignedCastaways = assignments.map(a => a.castaway_id);
+      const uniqueCastaways = new Set(assignedCastaways);
+      expect(uniqueCastaways.size).toBe(8);
+    });
+
+    it('should fall back to next available when top choice is taken', () => {
+      const leagueId = 'league-1';
+      // All players want the same castaways
+      const members = ['u1', 'u2', 'u3'];
+      const rankings = new Map([
+        ['u1', ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']],
+        ['u2', ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']],
+        ['u3', ['c1', 'c2', 'c3', 'c4', 'c5', 'c6']],
+      ]);
+      const castaways = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
+
+      const assignments = assignCastaways(leagueId, members, rankings, castaways);
+
+      // All assignments should be unique
+      const assignedCastaways = assignments.map(a => a.castaway_id);
+      const uniqueCastaways = new Set(assignedCastaways);
+      expect(uniqueCastaways.size).toBe(6);
+
+      // Each player gets 2
+      for (const userId of members) {
+        const userAssignments = assignments.filter(a => a.user_id === userId);
+        expect(userAssignments.length).toBe(2);
+      }
     });
 
     it('should use random fallback when user has no rankings', () => {
@@ -674,7 +614,7 @@ describe('Category 3: Draft Actions', () => {
       const members = ['u1', 'u2'];
       const rankings = new Map([
         ['u1', ['c1', 'c2']],
-        // u2 has no rankings
+        // u2 has no rankings - will get random from available
       ]);
       const castaways = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
 
@@ -683,11 +623,45 @@ describe('Category 3: Draft Actions', () => {
       // Both members should get 2 castaways
       expect(assignments.length).toBe(4);
 
-      // u2's picks should be from the available castaways (random fallback)
+      // u2's picks should be from the available castaways
       const u2Assignments = assignments.filter(a => a.user_id === 'u2');
       expect(u2Assignments.length).toBe(2);
       expect(castaways).toContain(u2Assignments[0].castaway_id);
       expect(castaways).toContain(u2Assignments[1].castaway_id);
+
+      // All picks should be unique
+      const allPicks = assignments.map(a => a.castaway_id);
+      expect(new Set(allPicks).size).toBe(4);
+    });
+
+    it('should handle 12 players with 24 castaways (Season 50 max)', () => {
+      const leagueId = 'league-1';
+      const members = Array.from({ length: 12 }, (_, i) => `u${i + 1}`);
+      const castaways = Array.from({ length: 24 }, (_, i) => `c${i + 1}`);
+
+      // Each player ranks all castaways in their own order
+      const rankings = new Map<string, string[]>();
+      members.forEach((userId, idx) => {
+        // Rotate preferences so each player has different top choices
+        const rotatedCastaways = [...castaways.slice(idx), ...castaways.slice(0, idx)];
+        rankings.set(userId, rotatedCastaways);
+      });
+
+      const assignments = assignCastaways(leagueId, members, rankings, castaways);
+
+      // 12 players × 2 picks = 24 assignments
+      expect(assignments.length).toBe(24);
+
+      // All 24 castaways should be drafted (unique)
+      const assignedCastaways = assignments.map(a => a.castaway_id);
+      const uniqueCastaways = new Set(assignedCastaways);
+      expect(uniqueCastaways.size).toBe(24);
+
+      // Each player should have exactly 2 picks
+      for (const userId of members) {
+        const userAssignments = assignments.filter(a => a.user_id === userId);
+        expect(userAssignments.length).toBe(2);
+      }
     });
   });
 });
