@@ -2,9 +2,159 @@ import { Router, Response } from 'express';
 import { authenticate, AuthenticatedRequest, requireAdmin } from '../middleware/authenticate.js';
 import { supabase, supabaseAdmin } from '../config/supabase.js';
 import { EmailService } from '../emails/index.js';
-import { secureShuffle } from '../utils/crypto.js';
 
 const router = Router();
+
+// Types for draft assignment
+interface RosterAssignment {
+  league_id: string;
+  user_id: string;
+  castaway_id: string;
+  draft_round: number;
+  draft_pick: number;
+  acquired_via: string;
+}
+
+/**
+ * Assigns castaways to participants based on their rankings.
+ *
+ * Normal case (participants * 2 <= castaways):
+ * - Each participant gets their top 2 ranked castaways
+ * - Duplicates are allowed across participants
+ *
+ * Overflow case (participants * 2 > castaways):
+ * - Regular participants (1 to floor(castaways/2)) get their #1 pick first, removing from pool
+ * - Extra participants get their top 2 from remaining pool (non-exclusive, no removal)
+ * - Regular participants then get their #2 from remaining pool
+ */
+export function assignCastaways(
+  leagueId: string,
+  memberUserIds: string[],
+  rankingsMap: Map<string, string[]>,
+  allCastawayIds: string[]
+): RosterAssignment[] {
+  const assignments: RosterAssignment[] = [];
+  const numParticipants = memberUserIds.length;
+  const numCastaways = allCastawayIds.length;
+
+  // Shuffle members for random draft order
+  const shuffledMembers = [...memberUserIds].sort(() => Math.random() - 0.5);
+
+  let pickNumber = 0;
+
+  // Helper to get user's top available pick from their rankings
+  const getTopRankedFromPool = (userId: string, pool: Set<string>, skip: number = 0): string => {
+    const userRankings = rankingsMap.get(userId) || [];
+    let skipped = 0;
+    for (const castawayId of userRankings) {
+      if (pool.has(castawayId)) {
+        if (skipped >= skip) {
+          return castawayId;
+        }
+        skipped++;
+      }
+    }
+    // Fallback: random from pool
+    const poolArray = Array.from(pool);
+    return poolArray[Math.floor(Math.random() * poolArray.length)];
+  };
+
+  // Helper to get user's #N ranked castaway (0-indexed)
+  const getRankedCastaway = (userId: string, index: number): string => {
+    const userRankings = rankingsMap.get(userId) || [];
+    if (index < userRankings.length) {
+      return userRankings[index];
+    }
+    // Fallback: random from all castaways
+    return allCastawayIds[Math.floor(Math.random() * allCastawayIds.length)];
+  };
+
+  // Check if we have overflow (more participants than castaways can support)
+  if (numParticipants * 2 <= numCastaways) {
+    // Normal case: everyone gets their top 2, duplicates allowed
+    for (const userId of shuffledMembers) {
+      for (let round = 1; round <= 2; round++) {
+        pickNumber++;
+        assignments.push({
+          league_id: leagueId,
+          user_id: userId,
+          castaway_id: getRankedCastaway(userId, round - 1),
+          draft_round: round,
+          draft_pick: pickNumber,
+          acquired_via: 'draft',
+        });
+      }
+    }
+  } else {
+    // Overflow case: special handling needed
+    const numRegular = Math.floor(numCastaways / 2);
+    const regularMembers = shuffledMembers.slice(0, numRegular);
+    const extraMembers = shuffledMembers.slice(numRegular);
+
+    // Track available pool (castaways not claimed as #1 picks)
+    const availablePool = new Set(allCastawayIds);
+
+    // Round 1: Regular participants claim their #1 picks (removes from pool)
+    for (const userId of regularMembers) {
+      pickNumber++;
+      const castawayId = getTopRankedFromPool(userId, availablePool);
+      availablePool.delete(castawayId); // Remove from pool
+
+      assignments.push({
+        league_id: leagueId,
+        user_id: userId,
+        castaway_id: castawayId,
+        draft_round: 1,
+        draft_pick: pickNumber,
+        acquired_via: 'draft',
+      });
+    }
+
+    // Extra participants get their top 2 from remaining pool (no removal)
+    for (const userId of extraMembers) {
+      // First pick from remaining pool
+      pickNumber++;
+      const firstPick = getTopRankedFromPool(userId, availablePool, 0);
+      assignments.push({
+        league_id: leagueId,
+        user_id: userId,
+        castaway_id: firstPick,
+        draft_round: 1,
+        draft_pick: pickNumber,
+        acquired_via: 'draft',
+      });
+
+      // Second pick from remaining pool (skip the first if same)
+      pickNumber++;
+      const secondPick = getTopRankedFromPool(userId, availablePool, 1);
+      assignments.push({
+        league_id: leagueId,
+        user_id: userId,
+        castaway_id: secondPick,
+        draft_round: 2,
+        draft_pick: pickNumber,
+        acquired_via: 'draft',
+      });
+    }
+
+    // Round 2: Regular participants get their #2 from remaining pool
+    for (const userId of regularMembers) {
+      pickNumber++;
+      const castawayId = getTopRankedFromPool(userId, availablePool);
+
+      assignments.push({
+        league_id: leagueId,
+        user_id: userId,
+        castaway_id: castawayId,
+        draft_round: 2,
+        draft_pick: pickNumber,
+        acquired_via: 'draft',
+      });
+    }
+  }
+
+  return assignments;
+}
 
 // GET /api/leagues/:id/draft/state - Get draft state for a league
 router.get('/:id/draft/state', authenticate, async (req: AuthenticatedRequest, res: Response) => {
@@ -23,12 +173,11 @@ router.get('/:id/draft/state', authenticate, async (req: AuthenticatedRequest, r
       return res.status(404).json({ error: 'League not found' });
     }
 
-    // Get members with draft positions
+    // Get members
     const { data: members } = await supabase
       .from('league_members')
-      .select('user_id, draft_position, users(id, display_name)')
-      .eq('league_id', leagueId)
-      .order('draft_position', { ascending: true });
+      .select('user_id, users(id, display_name)')
+      .eq('league_id', leagueId);
 
     // Get user's draft rankings for this season
     const { data: rankings } = await supabase
@@ -42,8 +191,7 @@ router.get('/:id/draft/state', authenticate, async (req: AuthenticatedRequest, r
     const { data: rosters } = await supabase
       .from('rosters')
       .select('user_id, castaway_id, draft_round, draft_pick, castaways(id, name, tribe_original)')
-      .eq('league_id', leagueId)
-      .order('draft_pick', { ascending: true });
+      .eq('league_id', leagueId);
 
     // Get all castaways for this season
     const { data: castaways } = await supabase
@@ -71,15 +219,11 @@ router.get('/:id/draft/state', authenticate, async (req: AuthenticatedRequest, r
       isBeforeDeadline,
       myRankings: rankings?.rankings || null,
       myRankingsSubmittedAt: rankings?.submitted_at || null,
-      order: (league.draft_order || []).map((uid: string, idx: number) => {
-        const member = members?.find((m: any) => m.user_id === uid);
-        return {
-          user_id: uid,
-          position: idx + 1,
-          display_name: (member as any)?.users?.display_name || 'Unknown',
-          hasSubmittedRankings: submittedUserIds.has(uid),
-        };
-      }),
+      members: (members || []).map((m: any) => ({
+        user_id: m.user_id,
+        display_name: m.users?.display_name || 'Unknown',
+        hasSubmittedRankings: submittedUserIds.has(m.user_id),
+      })),
       castaways: castaways || [],
       rosters: rosters?.map((r: any) => ({
         user_id: r.user_id,
@@ -221,108 +365,9 @@ router.put('/rankings', authenticate, async (req: AuthenticatedRequest, res: Res
   }
 });
 
-// POST /api/leagues/:id/draft/set-order - Set or randomize draft order (commissioner only)
-router.post('/:id/draft/set-order', authenticate, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const leagueId = req.params.id;
-    const userId = req.user!.id;
-    const { order, randomize } = req.body;
-
-    // Check commissioner
-    const { data: league } = await supabase
-      .from('leagues')
-      .select('commissioner_id, draft_status')
-      .eq('id', leagueId)
-      .single();
-
-    if (!league || (league.commissioner_id !== userId && req.user!.role !== 'admin')) {
-      return res.status(403).json({ error: 'Only commissioner can set draft order' });
-    }
-
-    if (league.draft_status !== 'pending') {
-      return res.status(400).json({ error: 'Cannot change order after draft starts' });
-    }
-
-    // Get members
-    const { data: members } = await supabase
-      .from('league_members')
-      .select('user_id')
-      .eq('league_id', leagueId);
-
-    const memberIds = members?.map((m) => m.user_id) || [];
-    let draftOrder: string[];
-
-    if (randomize) {
-      // Shuffle members using cryptographically secure random
-      draftOrder = secureShuffle(memberIds);
-    } else if (order && Array.isArray(order)) {
-      // Validate custom order matches league members exactly
-      if (order.length !== memberIds.length) {
-        return res.status(400).json({
-          error: `Order must contain exactly ${memberIds.length} members`,
-        });
-      }
-
-      // Check for duplicates
-      const orderSet = new Set(order);
-      if (orderSet.size !== order.length) {
-        return res.status(400).json({ error: 'Order contains duplicate user IDs' });
-      }
-
-      // Validate all IDs are strings (basic type check)
-      if (!order.every((id) => typeof id === 'string' && id.length > 0)) {
-        return res.status(400).json({ error: 'Order must contain valid user ID strings' });
-      }
-
-      // Validate all provided user_ids are league members
-      const memberIdSet = new Set(memberIds);
-      const invalidIds = order.filter((id: string) => !memberIdSet.has(id));
-      if (invalidIds.length > 0) {
-        return res.status(400).json({
-          error: 'Order contains users who are not league members',
-        });
-      }
-
-      // Validate all league members are in the order
-      const missingMembers = memberIds.filter((id) => !orderSet.has(id));
-      if (missingMembers.length > 0) {
-        return res.status(400).json({
-          error: 'Order is missing some league members',
-        });
-      }
-
-      draftOrder = order;
-    } else {
-      return res.status(400).json({ error: 'Must provide order array or randomize=true' });
-    }
-
-    // Update league
-    const { error } = await supabaseAdmin
-      .from('leagues')
-      .update({ draft_order: draftOrder })
-      .eq('id', leagueId);
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    // Update member draft positions
-    for (let i = 0; i < draftOrder.length; i++) {
-      await supabaseAdmin
-        .from('league_members')
-        .update({ draft_position: i + 1 })
-        .eq('league_id', leagueId)
-        .eq('user_id', draftOrder[i]);
-    }
-
-    res.json({ order: draftOrder });
-  } catch (err) {
-    console.error('POST /api/leagues/:id/draft/set-order error:', err);
-    res.status(500).json({ error: 'Failed to set draft order' });
-  }
-});
-
 // POST /api/draft/finalize-all - Process rankings and assign castaways (system/cron)
+// Each player gets their top 2 ranked castaways (duplicates allowed across players)
+// Special handling when participants > castaways/2
 router.post('/finalize-all', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     // Get all leagues with pending drafts past deadline
@@ -344,11 +389,13 @@ router.post('/finalize-all', requireAdmin, async (req: AuthenticatedRequest, res
 
       if (new Date() < deadline) continue;
 
-      // Get members in draft order
-      const draftOrder = league.draft_order || [];
-      if (draftOrder.length === 0) continue;
+      // Get all members
+      const { data: members } = await supabaseAdmin
+        .from('league_members')
+        .select('user_id')
+        .eq('league_id', league.id);
 
-      const totalMembers = draftOrder.length;
+      if (!members || members.length === 0) continue;
 
       // Get all rankings for this season
       const { data: allRankings } = await supabaseAdmin
@@ -361,7 +408,7 @@ router.post('/finalize-all', requireAdmin, async (req: AuthenticatedRequest, res
         rankingsMap.set(r.user_id, r.rankings || []);
       }
 
-      // Get all castaways
+      // Get all castaways (for fallback if no rankings)
       const { data: castaways } = await supabaseAdmin
         .from('castaways')
         .select('id')
@@ -369,74 +416,18 @@ router.post('/finalize-all', requireAdmin, async (req: AuthenticatedRequest, res
         .eq('status', 'active');
 
       const allCastawayIds = castaways?.map(c => c.id) || [];
-      const assignedCastaways = new Set<string>();
 
-      // Track assignments for this league
-      const assignments: Array<{
-        user_id: string;
-        castaway_id: string;
-        draft_round: number;
-        draft_pick: number;
-      }> = [];
-
-      // Process 2 rounds in snake order
-      for (let round = 1; round <= 2; round++) {
-        // Snake: round 1 goes 1→N, round 2 goes N→1
-        const orderForRound = round % 2 === 1
-          ? draftOrder
-          : [...draftOrder].reverse();
-
-        for (let i = 0; i < orderForRound.length; i++) {
-          const userId = orderForRound[i];
-          const userRankings = rankingsMap.get(userId) || [];
-
-          // Find first available castaway from user's rankings
-          let assignedCastawayId: string | null = null;
-
-          for (const castawayId of userRankings) {
-            if (!assignedCastaways.has(castawayId)) {
-              assignedCastawayId = castawayId;
-              break;
-            }
-          }
-
-          // If no ranked castaway available, pick first unassigned
-          if (!assignedCastawayId) {
-            for (const castawayId of allCastawayIds) {
-              if (!assignedCastaways.has(castawayId)) {
-                assignedCastawayId = castawayId;
-                break;
-              }
-            }
-          }
-
-          if (assignedCastawayId) {
-            assignedCastaways.add(assignedCastawayId);
-            const pickNumber = (round - 1) * totalMembers + i + 1;
-
-            assignments.push({
-              user_id: userId,
-              castaway_id: assignedCastawayId,
-              draft_round: round,
-              draft_pick: pickNumber,
-            });
-          }
-        }
-      }
+      // Assign castaways using the appropriate algorithm
+      const assignments = assignCastaways(
+        league.id,
+        members.map(m => m.user_id),
+        rankingsMap,
+        allCastawayIds
+      );
 
       // Insert all roster assignments
       if (assignments.length > 0) {
-        await supabaseAdmin.from('rosters').insert(
-          assignments.map(a => ({
-            league_id: league.id,
-            user_id: a.user_id,
-            castaway_id: a.castaway_id,
-            draft_round: a.draft_round,
-            draft_pick: a.draft_pick,
-            acquired_via: 'draft',
-          }))
-        );
-
+        await supabaseAdmin.from('rosters').insert(assignments);
         totalAssignments += assignments.length;
       }
 
@@ -455,11 +446,6 @@ router.post('/finalize-all', requireAdmin, async (req: AuthenticatedRequest, res
       // Send draft complete emails (fire and forget)
       (async () => {
         try {
-          const { data: members } = await supabaseAdmin
-            .from('league_members')
-            .select('user_id')
-            .eq('league_id', league.id);
-
           const { data: leagueDetails } = await supabaseAdmin
             .from('leagues')
             .select('name, seasons(premiere_at)')
@@ -482,7 +468,7 @@ router.post('/finalize-all', requireAdmin, async (req: AuthenticatedRequest, res
             ? new Date(episodes[1].picks_lock_at)
             : new Date();
 
-          for (const member of members || []) {
+          for (const member of members) {
             const { data: user } = await supabaseAdmin
               .from('users')
               .select('email, display_name')
