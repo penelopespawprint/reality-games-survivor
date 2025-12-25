@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
+import { Footer } from '@/components/Footer';
 import { useState, useEffect } from 'react';
 import {
   Flame,
@@ -90,6 +91,43 @@ function RGFLLogo({ className }: { className?: string }) {
         </linearGradient>
       </defs>
     </svg>
+  );
+}
+
+// Step card component for the three steps section
+function StepCard({
+  icon: Icon,
+  title,
+  desc,
+  color,
+  delay
+}: {
+  icon: React.ElementType;
+  title: string;
+  desc: string;
+  color: string;
+  delay: number;
+}) {
+  const { ref, isInView } = useInView();
+
+  return (
+    <div
+      ref={ref}
+      className={`group text-center p-8 rounded-2xl bg-cream-50 border-2 border-cream-200 hover:bg-white transition-all duration-500 cursor-default ${
+        isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ${
+        color === 'burgundy' ? 'bg-burgundy-100' : color === 'orange' ? 'bg-orange-100' : 'bg-amber-100'
+      }`}>
+        <Icon className={`h-10 w-10 ${
+          color === 'burgundy' ? 'text-burgundy-500' : color === 'orange' ? 'text-orange-500' : 'text-amber-500'
+        }`} />
+      </div>
+      <h3 className="font-display text-2xl font-bold text-neutral-800 mb-2">{title}</h3>
+      <p className="text-neutral-500">{desc}</p>
+    </div>
   );
 }
 
@@ -254,29 +292,9 @@ function SurvivorHome() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { icon: Users, title: 'Draft', desc: 'Pick 2 castaways', color: 'burgundy' },
-              { icon: Target, title: 'Pick', desc: 'Choose weekly', color: 'orange' },
-              { icon: Trophy, title: 'Win', desc: 'Climb the ranks', color: 'amber' },
-            ].map((step, i) => {
-              const { ref, isInView } = useInView();
-              return (
-                <div
-                  key={step.title}
-                  ref={ref}
-                  className={`group text-center p-8 rounded-2xl bg-cream-50 border-2 border-cream-200 hover:border-${step.color}-300 hover:bg-white transition-all duration-500 cursor-default ${
-                    isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                  }`}
-                  style={{ transitionDelay: `${i * 150}ms` }}
-                >
-                  <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl bg-${step.color}-100 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-                    <step.icon className={`h-10 w-10 text-${step.color}-500`} />
-                  </div>
-                  <h3 className="font-display text-2xl font-bold text-neutral-800 mb-2">{step.title}</h3>
-                  <p className="text-neutral-500">{step.desc}</p>
-                </div>
-              );
-            })}
+            <StepCard icon={Users} title="Draft" desc="Pick 2 castaways" color="burgundy" delay={0} />
+            <StepCard icon={Target} title="Pick" desc="Choose weekly" color="orange" delay={150} />
+            <StepCard icon={Trophy} title="Win" desc="Climb the ranks" color="amber" delay={300} />
           </div>
         </div>
       </section>
@@ -315,27 +333,7 @@ function SurvivorHome() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 bg-cream-100 border-t border-cream-200">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-neutral-400 text-sm">
-              © 2025 Reality Games Fantasy League. Not affiliated with CBS or Survivor.
-            </p>
-            <div className="flex items-center gap-6 text-sm">
-              <Link to="/how-to-play" className="text-neutral-500 hover:text-burgundy-600 transition-colors">
-                How to Play
-              </Link>
-              <Link to="/scoring" className="text-neutral-500 hover:text-burgundy-600 transition-colors">
-                Scoring Rules
-              </Link>
-              <Link to="/contact" className="text-neutral-500 hover:text-burgundy-600 transition-colors">
-                Contact
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
