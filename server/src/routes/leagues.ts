@@ -107,8 +107,8 @@ router.post('/:id/join', authenticate, async (req: AuthenticatedRequest, res: Re
     const leagueId = req.params.id;
     const { password } = req.body;
 
-    // Get league
-    const { data: league, error: leagueError } = await supabase
+    // Get league - use admin client to bypass RLS (user isn't a member yet)
+    const { data: league, error: leagueError } = await supabaseAdmin
       .from('leagues')
       .select('*')
       .eq('id', leagueId)
@@ -123,8 +123,8 @@ router.post('/:id/join', authenticate, async (req: AuthenticatedRequest, res: Re
       return res.status(403).json({ error: 'This league is closed to new members' });
     }
 
-    // Check if already a member
-    const { data: existing } = await supabase
+    // Check if already a member - use admin client
+    const { data: existing } = await supabaseAdmin
       .from('league_members')
       .select('id')
       .eq('league_id', leagueId)
@@ -235,8 +235,8 @@ router.post('/:id/join/checkout', authenticate, async (req: AuthenticatedRequest
     const userId = req.user!.id;
     const leagueId = req.params.id;
 
-    // Get league
-    const { data: league, error: leagueError } = await supabase
+    // Get league - use admin client to bypass RLS (user might not be a member yet)
+    const { data: league, error: leagueError } = await supabaseAdmin
       .from('leagues')
       .select('*')
       .eq('id', leagueId)
@@ -288,8 +288,8 @@ router.get('/:id/join/status', authenticate, async (req: AuthenticatedRequest, r
     const userId = req.user!.id;
     const leagueId = req.params.id;
 
-    // Check if member
-    const { data: membership } = await supabase
+    // Check if member - use admin to bypass RLS
+    const { data: membership } = await supabaseAdmin
       .from('league_members')
       .select('*')
       .eq('league_id', leagueId)
@@ -300,6 +300,56 @@ router.get('/:id/join/status', authenticate, async (req: AuthenticatedRequest, r
   } catch (err) {
     console.error('GET /api/leagues/:id/join/status error:', err);
     res.status(500).json({ error: 'Failed to check status' });
+  }
+});
+
+// GET /api/leagues/code/:code - Get league by invite code (public)
+router.get('/code/:code', async (req, res: Response) => {
+  try {
+    const code = req.params.code.toUpperCase();
+
+    // Get league - use admin to bypass RLS (anyone with code can view basic info)
+    const { data: league, error } = await supabaseAdmin
+      .from('leagues')
+      .select(`
+        id,
+        name,
+        code,
+        max_players,
+        require_donation,
+        donation_amount,
+        donation_notes,
+        status,
+        is_closed,
+        password_hash,
+        seasons (number, name)
+      `)
+      .eq('code', code)
+      .single();
+
+    if (error || !league) {
+      return res.status(404).json({ error: 'League not found' });
+    }
+
+    // Get member count
+    const { count } = await supabaseAdmin
+      .from('league_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('league_id', league.id);
+
+    // Don't expose password_hash, just indicate if password required
+    const { password_hash, ...leagueData } = league;
+
+    res.json({
+      league: {
+        ...leagueData,
+        has_password: !!password_hash,
+        member_count: count || 0,
+      },
+    });
+  } catch (err) {
+    console.error('GET /api/leagues/code/:code error:', err);
+    res.status(500).json({ error: 'Failed to fetch league' });
   }
 });
 
