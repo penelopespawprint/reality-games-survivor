@@ -6,9 +6,9 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 if (!process.env.STRIPE_WEBHOOK_SECRET) {
-  console.warn('Warning: STRIPE_WEBHOOK_SECRET not set - webhooks will fail');
+  throw new Error('STRIPE_WEBHOOK_SECRET environment variable is required');
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
+export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;

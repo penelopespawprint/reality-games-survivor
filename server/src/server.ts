@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import { generalLimiter } from './config/rateLimit.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -19,6 +21,11 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for API (frontend handles its own)
+  crossOriginEmbedderPolicy: false, // Allow embedding for development
+}));
+
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true,
@@ -27,12 +34,54 @@ app.use(cors({
 // Raw body for Stripe webhooks
 app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 
-// JSON parsing for all other routes
-app.use(express.json());
+// JSON parsing for all other routes with size limit to prevent DoS
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Apply general rate limit to all API routes
+app.use('/api', generalLimiter);
+
+// Health check with dependency verification
+app.get('/health', async (req, res) => {
+  const checks: Record<string, { status: 'ok' | 'error'; message?: string }> = {};
+  let overallStatus: 'ok' | 'degraded' | 'error' = 'ok';
+
+  // Check database connectivity
+  try {
+    const { supabaseAdmin } = await import('./config/supabase.js');
+    const { error } = await supabaseAdmin.from('seasons').select('id').limit(1);
+    if (error) throw error;
+    checks.database = { status: 'ok' };
+  } catch (err) {
+    checks.database = { status: 'error', message: 'Database connection failed' };
+    overallStatus = 'error';
+  }
+
+  // Check Stripe configuration
+  try {
+    const { stripe } = await import('./config/stripe.js');
+    checks.stripe = stripe ? { status: 'ok' } : { status: 'error', message: 'Stripe not configured' };
+  } catch (err) {
+    checks.stripe = { status: 'error', message: 'Stripe configuration error' };
+    overallStatus = overallStatus === 'error' ? 'error' : 'degraded';
+  }
+
+  // Check environment variables
+  const requiredEnvVars = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
+  const missingVars = requiredEnvVars.filter(v => !process.env[v]);
+  if (missingVars.length > 0) {
+    checks.environment = { status: 'error', message: `Missing: ${missingVars.join(', ')}` };
+    overallStatus = 'error';
+  } else {
+    checks.environment = { status: 'ok' };
+  }
+
+  const statusCode = overallStatus === 'ok' ? 200 : overallStatus === 'degraded' ? 200 : 503;
+  res.status(statusCode).json({
+    status: overallStatus,
+    timestamp: new Date().toISOString(),
+    checks,
+  });
 });
 
 // API Routes

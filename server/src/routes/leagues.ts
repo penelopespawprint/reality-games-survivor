@@ -4,6 +4,7 @@ import { authenticate, AuthenticatedRequest } from '../middleware/authenticate.j
 import { supabase, supabaseAdmin } from '../config/supabase.js';
 import { stripe } from '../config/stripe.js';
 import { EmailService } from '../emails/index.js';
+import { joinLimiter, checkoutLimiter } from '../config/rateLimit.js';
 
 const SALT_ROUNDS = 10;
 
@@ -101,7 +102,8 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) 
 });
 
 // POST /api/leagues/:id/join - Join a league (free)
-router.post('/:id/join', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// Rate limited to prevent password brute-forcing (10 attempts per 15 min)
+router.post('/:id/join', authenticate, joinLimiter, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const leagueId = req.params.id;
@@ -230,7 +232,8 @@ router.post('/:id/join', authenticate, async (req: AuthenticatedRequest, res: Re
 });
 
 // POST /api/leagues/:id/join/checkout - Create Stripe checkout session
-router.post('/:id/join/checkout', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// Rate limited to prevent checkout session abuse (10 per hour)
+router.post('/:id/join/checkout', authenticate, checkoutLimiter, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const leagueId = req.params.id;
@@ -526,7 +529,10 @@ router.patch('/:id/settings', authenticate, async (req: AuthenticatedRequest, re
     const updates: Record<string, any> = {};
     if (name !== undefined) updates.name = name;
     if (description !== undefined) updates.description = description;
-    if (password !== undefined) updates.password_hash = password || null;
+    if (password !== undefined) {
+      // Hash password before storing (null to remove password)
+      updates.password_hash = password ? await bcrypt.hash(password, SALT_ROUNDS) : null;
+    }
     if (donation_amount !== undefined) {
       updates.donation_amount = donation_amount;
       updates.require_donation = !!donation_amount;

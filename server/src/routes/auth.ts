@@ -6,6 +6,7 @@ import {
   generateVerificationCode,
   sendVerificationSMS,
 } from '../config/twilio.js';
+import { phoneLimiter, authLimiter } from '../config/rateLimit.js';
 
 const router = Router();
 
@@ -64,7 +65,8 @@ router.get('/me', authenticate, async (req: AuthenticatedRequest, res: Response)
 });
 
 // PATCH /api/me/phone - Update phone number and send verification
-router.patch('/me/phone', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// Rate limited to prevent SMS spam (5 attempts per hour)
+router.patch('/me/phone', authenticate, phoneLimiter, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { phone } = req.body;
     const userId = req.user!.id;
@@ -122,7 +124,8 @@ router.patch('/me/phone', authenticate, async (req: AuthenticatedRequest, res: R
 });
 
 // POST /api/me/verify-phone - Verify SMS code
-router.post('/me/verify-phone', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// Rate limited to prevent brute-force code guessing (10 attempts per 15 min)
+router.post('/me/verify-phone', authenticate, authLimiter, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { code } = req.body;
     const userId = req.user!.id;
