@@ -17,8 +17,6 @@ export function AdminEpisodes() {
     air_date: '',
     picks_lock_at: '',
     results_posted_at: '',
-    waiver_opens_at: '',
-    waiver_closes_at: '',
     is_finale: false,
   });
 
@@ -65,8 +63,6 @@ export function AdminEpisodes() {
         air_date: formData.air_date,
         picks_lock_at: formData.picks_lock_at,
         results_posted_at: formData.results_posted_at || null,
-        waiver_opens_at: formData.waiver_opens_at || null,
-        waiver_closes_at: formData.waiver_closes_at || null,
         is_finale: formData.is_finale,
       };
 
@@ -122,14 +118,6 @@ export function AdminEpisodes() {
         resultsPosted.setDate(resultsPosted.getDate() + 2);
         resultsPosted.setHours(12, 0, 0, 0); // Friday noon
 
-        const waiverOpens = new Date(airDate);
-        waiverOpens.setDate(waiverOpens.getDate() + 3);
-        waiverOpens.setHours(12, 0, 0, 0); // Saturday noon
-
-        const waiverCloses = new Date(airDate);
-        waiverCloses.setDate(waiverCloses.getDate() + 7);
-        waiverCloses.setHours(15, 0, 0, 0); // Next Wednesday 3pm
-
         episodesToCreate.push({
           season_id: seasonId as string,
           number: i,
@@ -137,8 +125,6 @@ export function AdminEpisodes() {
           air_date: airDate.toISOString(),
           picks_lock_at: picksLock.toISOString(),
           results_posted_at: resultsPosted.toISOString(),
-          waiver_opens_at: waiverOpens.toISOString(),
-          waiver_closes_at: waiverCloses.toISOString(),
           is_finale: i === 14,
         });
       }
@@ -162,8 +148,6 @@ export function AdminEpisodes() {
       air_date: '',
       picks_lock_at: '',
       results_posted_at: '',
-      waiver_opens_at: '',
-      waiver_closes_at: '',
       is_finale: false,
     });
   };
@@ -176,8 +160,6 @@ export function AdminEpisodes() {
       air_date: episode.air_date?.slice(0, 16) || '',
       picks_lock_at: episode.picks_lock_at?.slice(0, 16) || '',
       results_posted_at: episode.results_posted_at?.slice(0, 16) || '',
-      waiver_opens_at: episode.waiver_opens_at?.slice(0, 16) || '',
-      waiver_closes_at: episode.waiver_closes_at?.slice(0, 16) || '',
       is_finale: episode.is_finale || false,
     });
     setShowForm(true);
@@ -322,27 +304,6 @@ export function AdminEpisodes() {
                 type="datetime-local"
                 value={formData.results_posted_at}
                 onChange={(e) => setFormData({ ...formData, results_posted_at: e.target.value })}
-                className="input mt-1"
-              />
-            </label>
-            <label className="block">
-              <span className="text-neutral-500 text-sm">Waiver Opens At</span>
-              <input
-                type="datetime-local"
-                value={formData.waiver_opens_at}
-                onChange={(e) => setFormData({ ...formData, waiver_opens_at: e.target.value })}
-                className="input mt-1"
-              />
-            </label>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <label className="block">
-              <span className="text-neutral-500 text-sm">Waiver Closes At</span>
-              <input
-                type="datetime-local"
-                value={formData.waiver_closes_at}
-                onChange={(e) => setFormData({ ...formData, waiver_closes_at: e.target.value })}
                 className="input mt-1"
               />
             </label>
