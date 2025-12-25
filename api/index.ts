@@ -4,16 +4,16 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
-// Import server modules (using .js extension for NodeNext resolution)
-import authRoutes from '../server/src/routes/auth.js';
-import dashboardRoutes from '../server/src/routes/dashboard.js';
-import leagueRoutes from '../server/src/routes/leagues.js';
-import draftRoutes from '../server/src/routes/draft.js';
-import pickRoutes from '../server/src/routes/picks.js';
-import scoringRoutes from '../server/src/routes/scoring.js';
-import notificationRoutes from '../server/src/routes/notifications.js';
-import adminRoutes from '../server/src/routes/admin.js';
-import webhookRoutes from '../server/src/routes/webhooks.js';
+// Import compiled server modules from dist/
+import authRoutes from '../server/dist/routes/auth.js';
+import dashboardRoutes from '../server/dist/routes/dashboard.js';
+import leagueRoutes from '../server/dist/routes/leagues.js';
+import draftRoutes from '../server/dist/routes/draft.js';
+import pickRoutes from '../server/dist/routes/picks.js';
+import scoringRoutes from '../server/dist/routes/scoring.js';
+import notificationRoutes from '../server/dist/routes/notifications.js';
+import adminRoutes from '../server/dist/routes/admin.js';
+import webhookRoutes from '../server/dist/routes/webhooks.js';
 
 const app = express();
 
