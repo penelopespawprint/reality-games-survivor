@@ -18,12 +18,15 @@ interface RosterAssignment {
 /**
  * Assigns castaways to participants using a snake draft with unique picks.
  *
- * Snake draft order (example with 4 players):
- * - Round 1: Player 1, Player 2, Player 3, Player 4
- * - Round 2: Player 4, Player 3, Player 2, Player 1
+ * Normal case (players <= castaways/2):
+ * - Round 1: Players 1→N pick in order, castaways removed from pool
+ * - Round 2: Players N→1 pick in reverse, castaways removed from pool
+ * - Each castaway can only be on ONE roster
  *
- * Each castaway can only be drafted by ONE player per league.
- * Players get their highest-ranked AVAILABLE castaway when it's their turn.
+ * Overflow case (players > castaways/2, e.g. 13 players with 24 castaways):
+ * - Round 1: Players 1→12 pick, castaways removed from pool
+ * - Overflow: Player 13+ gets their top 2 from remaining pool (NOT removed, can overlap)
+ * - Round 2: Players 12→1 pick in reverse, castaways removed from pool
  */
 export function assignCastaways(
   leagueId: string,
@@ -32,39 +35,68 @@ export function assignCastaways(
   allCastawayIds: string[]
 ): RosterAssignment[] {
   const assignments: RosterAssignment[] = [];
+  const numCastaways = allCastawayIds.length;
+  const maxRegularPlayers = Math.floor(numCastaways / 2);
 
   // Shuffle members for random draft order
   const draftOrder = [...memberUserIds].sort(() => Math.random() - 0.5);
 
-  // Track available castaways (each can only be drafted once)
+  // Split into regular and overflow players
+  const regularPlayers = draftOrder.slice(0, maxRegularPlayers);
+  const overflowPlayers = draftOrder.slice(maxRegularPlayers);
+
+  // Track available castaways
   const availablePool = new Set(allCastawayIds);
 
   let pickNumber = 0;
 
   // Helper to get user's top available pick from their rankings
-  const getTopAvailable = (userId: string): string | null => {
+  const getTopAvailable = (userId: string, pool: Set<string>): string | null => {
     const userRankings = rankingsMap.get(userId) || [];
 
     // Find highest-ranked castaway that's still available
     for (const castawayId of userRankings) {
-      if (availablePool.has(castawayId)) {
+      if (pool.has(castawayId)) {
         return castawayId;
       }
     }
 
-    // Fallback: random from remaining pool (if user didn't rank enough)
-    if (availablePool.size > 0) {
-      const poolArray = Array.from(availablePool);
+    // Fallback: random from remaining pool
+    if (pool.size > 0) {
+      const poolArray = Array.from(pool);
       return poolArray[Math.floor(Math.random() * poolArray.length)];
     }
 
     return null;
   };
 
-  // Round 1: Pick in draft order (1, 2, 3... N)
-  for (const userId of draftOrder) {
-    const castawayId = getTopAvailable(userId);
-    if (!castawayId) continue; // No castaways left
+  // Helper to get user's top 2 from pool (for overflow, skipping already picked)
+  const getTop2FromPool = (userId: string, pool: Set<string>): [string | null, string | null] => {
+    const userRankings = rankingsMap.get(userId) || [];
+    const picks: string[] = [];
+
+    for (const castawayId of userRankings) {
+      if (pool.has(castawayId) && !picks.includes(castawayId)) {
+        picks.push(castawayId);
+        if (picks.length === 2) break;
+      }
+    }
+
+    // Fallback: random from pool if not enough rankings
+    const poolArray = Array.from(pool);
+    while (picks.length < 2 && poolArray.length > picks.length) {
+      const remaining = poolArray.filter(c => !picks.includes(c));
+      if (remaining.length === 0) break;
+      picks.push(remaining[Math.floor(Math.random() * remaining.length)]);
+    }
+
+    return [picks[0] || null, picks[1] || null];
+  };
+
+  // Round 1: Regular players pick in order, castaways removed
+  for (const userId of regularPlayers) {
+    const castawayId = getTopAvailable(userId, availablePool);
+    if (!castawayId) continue;
 
     pickNumber++;
     availablePool.delete(castawayId); // Remove from pool
@@ -79,11 +111,42 @@ export function assignCastaways(
     });
   }
 
-  // Round 2: Pick in reverse order (N, N-1... 1) - snake draft
-  const reversedOrder = [...draftOrder].reverse();
-  for (const userId of reversedOrder) {
-    const castawayId = getTopAvailable(userId);
-    if (!castawayId) continue; // No castaways left
+  // Overflow players: Get their top 2 from remaining pool (NOT removed)
+  for (const userId of overflowPlayers) {
+    const [pick1, pick2] = getTop2FromPool(userId, availablePool);
+
+    if (pick1) {
+      pickNumber++;
+      // Do NOT remove from pool - overflow picks can overlap
+      assignments.push({
+        league_id: leagueId,
+        user_id: userId,
+        castaway_id: pick1,
+        draft_round: 1,
+        draft_pick: pickNumber,
+        acquired_via: 'draft',
+      });
+    }
+
+    if (pick2) {
+      pickNumber++;
+      // Do NOT remove from pool
+      assignments.push({
+        league_id: leagueId,
+        user_id: userId,
+        castaway_id: pick2,
+        draft_round: 2,
+        draft_pick: pickNumber,
+        acquired_via: 'draft',
+      });
+    }
+  }
+
+  // Round 2: Regular players pick in reverse order, castaways removed
+  const reversedRegular = [...regularPlayers].reverse();
+  for (const userId of reversedRegular) {
+    const castawayId = getTopAvailable(userId, availablePool);
+    if (!castawayId) continue;
 
     pickNumber++;
     availablePool.delete(castawayId); // Remove from pool

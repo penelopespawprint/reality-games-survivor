@@ -663,6 +663,35 @@ describe('Category 3: Draft Actions', () => {
         expect(userAssignments.length).toBe(2);
       }
     });
+
+    it('should handle overflow: 13 players with 24 castaways', () => {
+      const leagueId = 'league-1';
+      const members = Array.from({ length: 13 }, (_, i) => `u${i + 1}`);
+      const castaways = Array.from({ length: 24 }, (_, i) => `c${i + 1}`);
+
+      const rankings = new Map<string, string[]>();
+      members.forEach((userId, idx) => {
+        const rotatedCastaways = [...castaways.slice(idx), ...castaways.slice(0, idx)];
+        rankings.set(userId, rotatedCastaways);
+      });
+
+      const assignments = assignCastaways(leagueId, members, rankings, castaways);
+
+      // 13 players × 2 picks = 26 assignments
+      expect(assignments.length).toBe(26);
+
+      // Each player should have exactly 2 picks
+      for (const userId of members) {
+        const userAssignments = assignments.filter(a => a.user_id === userId);
+        expect(userAssignments.length).toBe(2);
+      }
+
+      // Overflow player's castaways may overlap with regular players
+      // (24 unique castaways, but 26 assignments means some overlap)
+      const assignedCastaways = assignments.map(a => a.castaway_id);
+      const uniqueCastaways = new Set(assignedCastaways);
+      expect(uniqueCastaways.size).toBeLessThanOrEqual(24);
+    });
   });
 });
 
