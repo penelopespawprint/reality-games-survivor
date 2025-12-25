@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
+import { getAvatarUrl } from '@/lib/avatar';
 import {
   ArrowLeft,
   GripVertical,
@@ -306,17 +307,11 @@ export function Draft() {
                     </div>
 
                     {/* Photo */}
-                    {castaway.photo_url ? (
-                      <img
-                        src={castaway.photo_url}
-                        alt={castaway.name}
-                        className="w-10 h-10 rounded-full object-cover border border-cream-200"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-cream-100 rounded-full flex items-center justify-center">
-                        <Users className="h-5 w-5 text-neutral-400" />
-                      </div>
-                    )}
+                    <img
+                      src={getAvatarUrl(castaway.name, castaway.photo_url)}
+                      alt={castaway.name}
+                      className="w-10 h-10 rounded-full object-cover border border-cream-200"
+                    />
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
@@ -408,17 +403,11 @@ export function Draft() {
                   <div className="w-10 h-10 bg-burgundy-100 rounded-full flex items-center justify-center">
                     <span className="font-bold text-burgundy-600">#{index + 1}</span>
                   </div>
-                  {roster.castaways?.photo_url ? (
-                    <img
-                      src={roster.castaways.photo_url}
-                      alt={roster.castaways.name}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-cream-200"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 bg-cream-100 rounded-full flex items-center justify-center">
-                      <Users className="h-6 w-6 text-neutral-400" />
-                    </div>
-                  )}
+                  <img
+                    src={getAvatarUrl(roster.castaways?.name || 'Unknown', roster.castaways?.photo_url)}
+                    alt={roster.castaways?.name || 'Castaway'}
+                    className="w-14 h-14 rounded-full object-cover border-2 border-cream-200"
+                  />
                   <div className="flex-1">
                     <p className="font-semibold text-neutral-800">{roster.castaways?.name}</p>
                     <div className="flex items-center gap-2 text-sm text-neutral-500">
@@ -603,17 +592,11 @@ export function Draft() {
                   )}
 
                   {/* Photo */}
-                  {castaway.photo_url ? (
-                    <img
-                      src={castaway.photo_url}
-                      alt={castaway.name}
-                      className="w-10 h-10 rounded-full object-cover border border-cream-200"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-cream-100 rounded-full flex items-center justify-center">
-                      <Users className="h-5 w-5 text-neutral-400" />
-                    </div>
-                  )}
+                  <img
+                    src={getAvatarUrl(castaway.name, castaway.photo_url)}
+                    alt={castaway.name}
+                    className="w-10 h-10 rounded-full object-cover border border-cream-200"
+                  />
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">

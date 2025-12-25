@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Users, Trophy, Calendar, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Navigation } from '@/components/Navigation';
+import { getAvatarUrl } from '@/lib/avatar';
 
 export default function MyTeam() {
   const { leagueId } = useParams<{ leagueId: string }>();
@@ -138,17 +139,11 @@ export default function MyTeam() {
                     : 'bg-cream-50 border border-cream-200'
                 }`}
               >
-                {entry.castaways?.photo_url ? (
-                  <img
-                    src={entry.castaways.photo_url}
-                    alt={entry.castaways.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-cream-200 rounded-full flex items-center justify-center">
-                    <Users className="h-6 w-6 text-neutral-400" />
-                  </div>
-                )}
+                <img
+                  src={getAvatarUrl(entry.castaways?.name || 'Unknown', entry.castaways?.photo_url)}
+                  alt={entry.castaways?.name || 'Castaway'}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
                 <div className="flex-1">
                   <p className="text-neutral-800 font-medium">{entry.castaways?.name}</p>
                   <p className="text-neutral-500 text-sm">Round {entry.draft_round}</p>

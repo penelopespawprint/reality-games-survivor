@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Users, Loader2, ChevronDown, ChevronUp, Zap, Shield, Star, Target, Flame, XCircle, AlertTriangle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Navigation } from '@/components/Navigation';
+import { getAvatarUrl } from '@/lib/avatar';
 
 // Category colors and icons
 const categoryConfig: Record<string, { color: string; bgColor: string; icon: React.ReactNode }> = {
@@ -186,17 +187,11 @@ export default function EpisodeResults() {
                         : 'bg-white border border-orange-200'
                     }`}
                   >
-                    {castaway.photo_url ? (
-                      <img
-                        src={castaway.photo_url}
-                        alt={castaway.name}
-                        className="w-6 h-6 rounded-full object-cover grayscale"
-                      />
-                    ) : (
-                      <div className="w-6 h-6 bg-neutral-200 rounded-full flex items-center justify-center">
-                        <Users className="h-3 w-3 text-neutral-400" />
-                      </div>
-                    )}
+                    <img
+                      src={getAvatarUrl(castaway.name, castaway.photo_url)}
+                      alt={castaway.name}
+                      className="w-6 h-6 rounded-full object-cover grayscale"
+                    />
                     <span className={`text-sm font-medium ${
                       myPick?.castaway_id === castaway.id ? 'text-red-700' : 'text-neutral-700'
                     }`}>
@@ -341,17 +336,11 @@ export default function EpisodeResults() {
                       className="w-full p-4 flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
-                        {data.castaway.photo_url ? (
-                          <img
-                            src={data.castaway.photo_url}
-                            alt={data.castaway.name}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 bg-cream-200 rounded-full flex items-center justify-center">
-                            <Users className="h-5 w-5 text-neutral-400" />
-                          </div>
-                        )}
+                        <img
+                          src={getAvatarUrl(data.castaway.name, data.castaway.photo_url)}
+                          alt={data.castaway.name}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                        />
                         <div className="text-left">
                           <div className="flex items-center gap-2">
                             <p className="text-neutral-800 font-medium">{data.castaway.name}</p>

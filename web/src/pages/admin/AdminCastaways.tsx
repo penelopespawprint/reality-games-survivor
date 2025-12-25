@@ -192,10 +192,10 @@ export function AdminCastaways() {
 
   const hasWonBefore = (castaway: Castaway) => castaway.best_placement === 1;
 
-  // Generate storage URL from castaway name
+  // Generate a DiceBear avatar URL from castaway name
   const generatePhotoUrl = (name: string) => {
-    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    return `https://qxrgejdfxcvsfktgysop.supabase.co/storage/v1/object/public/castaways/${slug}.jpg`;
+    const encodedName = encodeURIComponent(name);
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${encodedName}&backgroundColor=8B0000&textColor=ffffff&fontSize=40`;
   };
 
   // Bulk update all castaways with auto-generated photo URLs

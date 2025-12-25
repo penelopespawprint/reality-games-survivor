@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { getAvatarUrl } from '@/lib/avatar';
 import {
   Flame,
   Users,
@@ -670,27 +671,13 @@ export function Dashboard() {
                                   : 'bg-cream-50'
                               }`}
                             >
-                              {roster.castaway?.photo_url ? (
-                                <img
-                                  src={roster.castaway.photo_url}
-                                  alt={roster.castaway?.name}
-                                  className={`w-10 h-10 rounded-full object-cover ${
-                                    roster.castaway?.status === 'eliminated' ? 'grayscale' : ''
-                                  }`}
-                                />
-                              ) : (
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                  roster.castaway?.status === 'eliminated'
-                                    ? 'bg-neutral-300'
-                                    : 'bg-burgundy-100'
-                                }`}>
-                                  <Flame className={`h-5 w-5 ${
-                                    roster.castaway?.status === 'eliminated'
-                                      ? 'text-neutral-500'
-                                      : 'text-burgundy-500'
-                                  }`} />
-                                </div>
-                              )}
+                              <img
+                                src={getAvatarUrl(roster.castaway?.name || 'Unknown', roster.castaway?.photo_url)}
+                                alt={roster.castaway?.name || 'Castaway'}
+                                className={`w-10 h-10 rounded-full object-cover ${
+                                  roster.castaway?.status === 'eliminated' ? 'grayscale' : ''
+                                }`}
+                              />
                               <div>
                                 <p className={`font-medium text-sm ${
                                   roster.castaway?.status === 'eliminated'

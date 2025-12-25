@@ -25,6 +25,7 @@ import { supabase } from '../lib/supabase';
 import { Navigation } from '@/components/Navigation';
 import { LeagueChat } from '@/components/LeagueChat';
 import { useAuth } from '@/lib/auth';
+import { getAvatarUrl } from '@/lib/avatar';
 
 type Tab = 'overview' | 'players' | 'standings';
 
@@ -339,25 +340,15 @@ export default function LeagueHome() {
                           : 'bg-gradient-to-br from-cream-50 to-cream-100 border border-cream-200'
                       }`}>
                         <div className="flex items-center gap-3">
-                          {roster.castaways?.photo_url ? (
-                            <img
-                              src={roster.castaways.photo_url}
-                              alt={roster.castaways.name}
-                              className={`w-12 h-12 rounded-full object-cover border-2 ${
-                                roster.castaways.status === 'eliminated'
-                                  ? 'border-neutral-300 grayscale'
-                                  : 'border-burgundy-200'
-                              }`}
-                            />
-                          ) : (
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                          <img
+                            src={getAvatarUrl(roster.castaways?.name || 'Unknown', roster.castaways?.photo_url)}
+                            alt={roster.castaways?.name || 'Castaway'}
+                            className={`w-12 h-12 rounded-full object-cover border-2 ${
                               roster.castaways?.status === 'eliminated'
-                                ? 'bg-neutral-200'
-                                : 'bg-burgundy-100'
-                            }`}>
-                              <Users className="h-6 w-6 text-neutral-400" />
-                            </div>
-                          )}
+                                ? 'border-neutral-300 grayscale'
+                                : 'border-burgundy-200'
+                            }`}
+                          />
                           <div>
                             <p className="font-semibold text-neutral-800">{roster.castaways?.name}</p>
                             <div className="flex items-center gap-1">

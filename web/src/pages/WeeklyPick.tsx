@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
+import { getAvatarUrl } from '@/lib/avatar';
 import { Loader2, CheckCircle, AlertCircle, Lock, Clock, ArrowLeft, Trophy, Target, Shield, TrendingUp } from 'lucide-react';
 
 interface Castaway {
@@ -539,23 +540,11 @@ export function WeeklyPick() {
                         }`}
                       >
                         {/* Photo */}
-                        {entry.castaways?.photo_url ? (
-                          <img
-                            src={entry.castaways.photo_url}
-                            alt={entry.castaways.name}
-                            className="w-16 h-16 rounded-xl object-cover"
-                          />
-                        ) : (
-                          <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${
-                            selectedCastaway === entry.castaway_id ? 'bg-burgundy-100' : 'bg-cream-200'
-                          }`}>
-                            <svg className={`w-8 h-8 ${
-                              selectedCastaway === entry.castaway_id ? 'text-burgundy-400' : 'text-neutral-300'
-                            }`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                          </div>
-                        )}
+                        <img
+                          src={getAvatarUrl(entry.castaways?.name || 'Unknown', entry.castaways?.photo_url)}
+                          alt={entry.castaways?.name || 'Castaway'}
+                          className="w-16 h-16 rounded-xl object-cover"
+                        />
 
                         {/* Info */}
                         <div className="flex-1">

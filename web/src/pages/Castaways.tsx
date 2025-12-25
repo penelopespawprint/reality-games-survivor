@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { getAvatarUrl } from '@/lib/avatar';
 import {
   Users,
   Trophy,
@@ -293,27 +294,17 @@ export default function Castaways() {
                   <div className="flex items-start gap-4">
                     {/* Photo */}
                     <div className="relative flex-shrink-0">
-                      {castaway.photo_url ? (
-                        <img
-                          src={castaway.photo_url}
-                          alt={castaway.name}
-                          className={`w-16 h-16 rounded-full object-cover border-2 ${
-                            castaway.status === 'eliminated'
-                              ? 'border-neutral-200 grayscale'
-                              : castaway.status === 'winner'
-                                ? 'border-yellow-400'
-                                : 'border-burgundy-200'
-                          }`}
-                        />
-                      ) : (
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 ${
+                      <img
+                        src={getAvatarUrl(castaway.name, castaway.photo_url)}
+                        alt={castaway.name}
+                        className={`w-16 h-16 rounded-full object-cover border-2 ${
                           castaway.status === 'eliminated'
-                            ? 'bg-neutral-100 border-neutral-200'
-                            : 'bg-cream-100 border-cream-200'
-                        }`}>
-                          <Users className="h-8 w-8 text-neutral-400" />
-                        </div>
-                      )}
+                            ? 'border-neutral-200 grayscale'
+                            : castaway.status === 'winner'
+                              ? 'border-yellow-400'
+                              : 'border-burgundy-200'
+                        }`}
+                      />
                       {/* Status Badge */}
                       <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center ${
                         castaway.status === 'winner'
