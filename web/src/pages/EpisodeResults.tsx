@@ -1,11 +1,23 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Users, Loader2 } from 'lucide-react';
+import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Users, Loader2, ChevronDown, ChevronUp, Zap, Shield, Star, Target, Flame } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Navigation } from '@/components/Navigation';
 
+// Category colors and icons
+const categoryConfig: Record<string, { color: string; bgColor: string; icon: React.ReactNode }> = {
+  'Challenges': { color: 'text-blue-600', bgColor: 'bg-blue-50', icon: <Target className="h-3 w-3" /> },
+  'Strategy': { color: 'text-purple-600', bgColor: 'bg-purple-50', icon: <Zap className="h-3 w-3" /> },
+  'Social': { color: 'text-pink-600', bgColor: 'bg-pink-50', icon: <Users className="h-3 w-3" /> },
+  'Survival': { color: 'text-green-600', bgColor: 'bg-green-50', icon: <Shield className="h-3 w-3" /> },
+  'Tribal': { color: 'text-orange-600', bgColor: 'bg-orange-50', icon: <Flame className="h-3 w-3" /> },
+  'Bonus': { color: 'text-amber-600', bgColor: 'bg-amber-50', icon: <Star className="h-3 w-3" /> },
+};
+
 export default function EpisodeResults() {
   const { leagueId, episodeId } = useParams<{ leagueId: string; episodeId: string }>();
+  const [expandedCastaway, setExpandedCastaway] = useState<string | null>(null);
 
   // Fetch episode details
   const { data: episode, isLoading: episodeLoading } = useQuery({
@@ -222,50 +234,122 @@ export default function EpisodeResults() {
         </h2>
 
         {Object.keys(scoresByCastaway).length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {Object.values(scoresByCastaway)
               .sort((a: any, b: any) => b.total - a.total)
-              .map((data: any) => (
-                <div key={data.castaway.id} className="bg-cream-50 rounded-xl p-4 border border-cream-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      {data.castaway.photo_url ? (
-                        <img
-                          src={data.castaway.photo_url}
-                          alt={data.castaway.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 bg-cream-200 rounded-full flex items-center justify-center">
-                          <Users className="h-5 w-5 text-neutral-400" />
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-neutral-800 font-medium">{data.castaway.name}</p>
-                      </div>
-                    </div>
-                    <span className={`text-xl font-bold ${
-                      data.total > 0 ? 'text-green-600' : data.total < 0 ? 'text-red-600' : 'text-neutral-800'
-                    }`}>
-                      {data.total > 0 ? '+' : ''}{data.total}
-                    </span>
-                  </div>
+              .map((data: any) => {
+                const isExpanded = expandedCastaway === data.castaway.id;
+                const isMyPick = myPick?.castaway_id === data.castaway.id;
 
-                  <div className="space-y-1">
-                    {data.scores.map((score: any) => (
-                      <div key={score.id} className="flex items-center justify-between text-sm">
-                        <span className="text-neutral-600">
-                          {score.scoring_rules?.name}
-                          {score.quantity > 1 && ` (x${score.quantity})`}
-                        </span>
-                        <span className={score.points >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {score.points >= 0 ? '+' : ''}{score.points}
-                        </span>
+                // Group scores by category
+                const scoresByCategory = data.scores.reduce((acc: Record<string, any[]>, score: any) => {
+                  const category = score.scoring_rules?.category || 'Other';
+                  if (!acc[category]) acc[category] = [];
+                  acc[category].push(score);
+                  return acc;
+                }, {});
+
+                return (
+                  <div
+                    key={data.castaway.id}
+                    className={`rounded-xl border transition-all ${
+                      isMyPick
+                        ? 'bg-burgundy-50 border-burgundy-200'
+                        : 'bg-cream-50 border-cream-200'
+                    }`}
+                  >
+                    <button
+                      onClick={() => setExpandedCastaway(isExpanded ? null : data.castaway.id)}
+                      className="w-full p-4 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        {data.castaway.photo_url ? (
+                          <img
+                            src={data.castaway.photo_url}
+                            alt={data.castaway.name}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-cream-200 rounded-full flex items-center justify-center">
+                            <Users className="h-5 w-5 text-neutral-400" />
+                          </div>
+                        )}
+                        <div className="text-left">
+                          <div className="flex items-center gap-2">
+                            <p className="text-neutral-800 font-medium">{data.castaway.name}</p>
+                            {isMyPick && (
+                              <span className="text-xs bg-burgundy-100 text-burgundy-700 px-2 py-0.5 rounded-full">
+                                Your Pick
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-neutral-500 text-sm">
+                            {data.scores.length} scoring event{data.scores.length !== 1 ? 's' : ''}
+                          </p>
+                        </div>
                       </div>
-                    ))}
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xl font-bold ${
+                          data.total > 0 ? 'text-green-600' : data.total < 0 ? 'text-red-600' : 'text-neutral-800'
+                        }`}>
+                          {data.total > 0 ? '+' : ''}{data.total}
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="h-5 w-5 text-neutral-400" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-neutral-400" />
+                        )}
+                      </div>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="px-4 pb-4 space-y-4">
+                        {Object.entries(scoresByCategory).map(([category, categoryScores]) => {
+                          const config = categoryConfig[category] || {
+                            color: 'text-neutral-600',
+                            bgColor: 'bg-neutral-50',
+                            icon: null
+                          };
+                          const categoryTotal = (categoryScores as any[]).reduce((sum, s) => sum + s.points, 0);
+
+                          return (
+                            <div key={category}>
+                              <div className={`flex items-center gap-2 mb-2 ${config.color}`}>
+                                {config.icon}
+                                <span className="text-sm font-medium">{category}</span>
+                                <span className={`text-xs px-1.5 py-0.5 rounded ${config.bgColor}`}>
+                                  {categoryTotal > 0 ? '+' : ''}{categoryTotal}
+                                </span>
+                              </div>
+                              <div className="space-y-1 pl-5">
+                                {(categoryScores as any[]).map((score) => (
+                                  <div key={score.id} className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-neutral-700">
+                                        {score.scoring_rules?.name}
+                                      </span>
+                                      {score.quantity > 1 && (
+                                        <span className="text-xs bg-cream-200 text-neutral-600 px-1.5 py-0.5 rounded">
+                                          ×{score.quantity}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className={`font-medium ${
+                                      score.points >= 0 ? 'text-green-600' : 'text-red-600'
+                                    }`}>
+                                      {score.points >= 0 ? '+' : ''}{score.points}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
           </div>
         ) : (
           <p className="text-neutral-500 text-center py-8">
