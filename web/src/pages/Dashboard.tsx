@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Play
 } from 'lucide-react';
+import { Footer } from '@/components/Footer';
 
 interface UserProfile {
   id: string;
@@ -581,6 +582,8 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }
