@@ -2,9 +2,9 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
-// Import server modules - built separately
-import { generalLimiter } from '../server/src/config/rateLimit.js';
+// Import server modules (using .js extension for NodeNext resolution)
 import authRoutes from '../server/src/routes/auth.js';
 import dashboardRoutes from '../server/src/routes/dashboard.js';
 import leagueRoutes from '../server/src/routes/leagues.js';
@@ -16,6 +16,15 @@ import adminRoutes from '../server/src/routes/admin.js';
 import webhookRoutes from '../server/src/routes/webhooks.js';
 
 const app = express();
+
+// Rate limiter
+const generalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Middleware
 app.use(helmet({
