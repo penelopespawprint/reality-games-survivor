@@ -192,6 +192,41 @@ export function AdminCastaways() {
 
   const hasWonBefore = (castaway: Castaway) => castaway.best_placement === 1;
 
+  // Generate storage URL from castaway name
+  const generatePhotoUrl = (name: string) => {
+    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    return `https://qxrgejdfxcvsfktgysop.supabase.co/storage/v1/object/public/castaways/${slug}.jpg`;
+  };
+
+  // Bulk update all castaways with auto-generated photo URLs
+  const autoPopulatePhotosMutation = useMutation({
+    mutationFn: async () => {
+      if (!castaways) return { updated: 0 };
+
+      const updates = castaways
+        .filter(c => !c.photo_url)
+        .map(c => ({
+          id: c.id,
+          photo_url: generatePhotoUrl(c.name),
+        }));
+
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('castaways')
+          .update({ photo_url: update.photo_url })
+          .eq('id', update.id);
+        if (error) throw error;
+      }
+
+      return { updated: updates.length };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['castaways'] });
+    },
+  });
+
+  const missingPhotosCount = castaways?.filter(c => !c.photo_url).length || 0;
+
   const activeCastaways = castaways?.filter(c => c.status === 'active') || [];
   const eliminatedCastaways = castaways?.filter(c => c.status === 'eliminated') || [];
 
@@ -229,6 +264,25 @@ export function AdminCastaways() {
               {activeCastaways.length} active, {eliminatedCastaways.length} eliminated
             </p>
           </div>
+          {missingPhotosCount > 0 && (
+            <button
+              onClick={() => autoPopulatePhotosMutation.mutate()}
+              disabled={autoPopulatePhotosMutation.isPending}
+              className="btn bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {autoPopulatePhotosMutation.isPending ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Populating...
+                </>
+              ) : (
+                <>
+                  <Star className="h-4 w-4" />
+                  Auto-Populate {missingPhotosCount} Photos
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Active Castaways */}
