@@ -3,8 +3,7 @@ import { lockPicks } from './lockPicks.js';
 import { autoPick } from './autoPick.js';
 import { finalizeDrafts } from './finalizeDrafts.js';
 import { autoRandomizeRankings } from './autoRandomizeRankings.js';
-import { processWaivers } from './processWaivers.js';
-import { sendPickReminders, sendDraftReminders, sendWaiverReminders } from './sendReminders.js';
+import { sendPickReminders, sendDraftReminders } from './sendReminders.js';
 import { sendEpisodeResults } from './sendResults.js';
 import { sendWeeklySummary } from './weeklySummary.js';
 
@@ -44,27 +43,11 @@ const jobs: ScheduledJob[] = [
     enabled: true,
   },
   {
-    name: 'process-waivers',
-    // Wed 2:55pm PST (22:55 UTC)
-    schedule: '55 22 * * 3',
-    description: 'Process waiver rankings',
-    handler: processWaivers,
-    enabled: true,
-  },
-  {
     name: 'results-notification',
     // Fri 12pm PST (20:00 UTC)
     schedule: '0 20 * * 5',
     description: 'Send episode results',
     handler: sendEpisodeResults,
-    enabled: true,
-  },
-  {
-    name: 'waiver-reminders',
-    // Tue 12pm PST (20:00 UTC)
-    schedule: '0 20 * * 2',
-    description: 'Send waiver ranking reminders',
-    handler: sendWaiverReminders,
     enabled: true,
   },
   {

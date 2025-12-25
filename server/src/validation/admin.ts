@@ -69,8 +69,6 @@ export const updateEpisodeSchema = z.object({
   air_date: z.string().datetime().optional(),
   picks_lock_at: z.string().datetime().optional(),
   results_posted_at: z.string().datetime().optional(),
-  waiver_opens_at: z.string().datetime().optional(),
-  waiver_closes_at: z.string().datetime().optional(),
   is_finale: z.boolean().optional(),
   is_scored: z.boolean().optional(),
 }).strict();

@@ -16,6 +16,10 @@ const envSchema = z.object({
 
   // CORS (required in production)
   CORS_ORIGIN: z.string().optional(),
+  FRONTEND_URL: z.string().url().optional(),
+
+  // Base URL for email links
+  BASE_URL: z.string().url().optional(),
 
   // Stripe (optional, payments disabled if not set)
   STRIPE_SECRET_KEY: z.string().optional(),
@@ -35,6 +39,37 @@ const envSchema = z.object({
 });
 
 export type Env = z.infer<typeof envSchema>;
+
+/**
+ * Feature flags based on environment configuration
+ */
+export const features = {
+  get payments(): boolean {
+    return !!process.env.STRIPE_SECRET_KEY;
+  },
+  get sms(): boolean {
+    return !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN);
+  },
+  get email(): boolean {
+    return !!process.env.RESEND_API_KEY;
+  },
+  get scheduler(): boolean {
+    return process.env.NODE_ENV === 'production' || process.env.ENABLE_SCHEDULER === 'true';
+  },
+};
+
+/**
+ * Get the base URL for email links and redirects
+ */
+export function getBaseUrl(): string {
+  return (
+    process.env.BASE_URL ||
+    process.env.FRONTEND_URL ||
+    (process.env.NODE_ENV === 'production'
+      ? 'https://survivor.realitygames.app'
+      : 'http://localhost:5173')
+  );
+}
 
 /**
  * Validate environment variables and return parsed values
@@ -65,6 +100,9 @@ export function validateEnv(): Env {
     }
     if (!result.data.RESEND_API_KEY) {
       console.warn('⚠️  WARNING: Resend not configured, email disabled');
+    }
+    if (!result.data.BASE_URL && !result.data.FRONTEND_URL) {
+      console.warn('⚠️  WARNING: BASE_URL not set, using default production URL');
     }
   }
 

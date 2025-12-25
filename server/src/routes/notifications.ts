@@ -10,8 +10,8 @@ router.post('/send-reminders', requireAdmin, async (req: AuthenticatedRequest, r
   try {
     const { type } = req.body;
 
-    if (!['pick', 'draft', 'waiver'].includes(type)) {
-      return res.status(400).json({ error: 'type must be pick, draft, or waiver' });
+    if (!['pick', 'draft'].includes(type)) {
+      return res.status(400).json({ error: 'type must be pick or draft' });
     }
 
     const now = new Date();
@@ -105,65 +105,6 @@ router.post('/send-reminders', requireAdmin, async (req: AuthenticatedRequest, r
           }
         }
       }
-    } else if (type === 'waiver') {
-      // Find users with eliminated castaways who haven't submitted rankings
-      const { data: episodes } = await supabaseAdmin
-        .from('episodes')
-        .select('id, number, season_id, waiver_closes_at')
-        .lte('waiver_opens_at', now.toISOString())
-        .gte('waiver_closes_at', now.toISOString())
-        .limit(1);
-
-      const episode = episodes?.[0];
-      if (!episode) {
-        return res.json({ sent: 0, message: 'No open waiver window' });
-      }
-
-      const { data: leagues } = await supabaseAdmin
-        .from('leagues')
-        .select('id')
-        .eq('season_id', episode.season_id)
-        .eq('status', 'active');
-
-      for (const league of leagues || []) {
-        const { data: members } = await supabaseAdmin
-          .from('league_members')
-          .select('user_id, users(id, display_name, notification_email)')
-          .eq('league_id', league.id);
-
-        const { data: existingRankings } = await supabaseAdmin
-          .from('waiver_rankings')
-          .select('user_id')
-          .eq('league_id', league.id)
-          .eq('episode_id', episode.id);
-
-        const rankedUserIds = new Set(existingRankings?.map((r) => r.user_id) || []);
-
-        for (const member of members || []) {
-          if (rankedUserIds.has(member.user_id)) continue;
-
-          // Check if user has eliminated castaway
-          const { data: rosters } = await supabaseAdmin
-            .from('rosters')
-            .select('castaways!inner(status)')
-            .eq('league_id', league.id)
-            .eq('user_id', member.user_id)
-            .is('dropped_at', null);
-
-          const hasEliminated = rosters?.some((r: any) => r.castaways?.status === 'eliminated');
-          if (!hasEliminated) continue;
-
-          const user = (member as any).users;
-          if (!user?.notification_email) continue;
-
-          notifications.push({
-            user_id: member.user_id,
-            type: 'email',
-            subject: '🔄 Submit your waiver rankings',
-            body: `Hey ${user.display_name}, you have an eliminated castaway. Submit your waiver rankings before the window closes!`,
-          });
-        }
-      }
     }
 
     // Insert notifications and send emails
@@ -251,7 +192,6 @@ router.post('/send-reminders', requireAdmin, async (req: AuthenticatedRequest, r
                 });
               }
             }
-            // Waiver reminders not implemented in EmailService yet
           } catch (emailErr) {
             console.error('Failed to send reminder email:', emailErr);
           }

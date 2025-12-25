@@ -1,130 +1,46 @@
 import { Request, Response, NextFunction } from 'express';
-import { randomBytes } from 'crypto';
-
-// CSRF token storage (in production, use Redis or similar)
-const csrfTokens = new Map<string, { token: string; expires: number }>();
-
-// Clean up expired tokens periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of csrfTokens.entries()) {
-    if (value.expires < now) {
-      csrfTokens.delete(key);
-    }
-  }
-}, 60 * 1000); // Every minute
 
 /**
- * Generate a CSRF token for a session
- */
-export function generateCsrfToken(sessionId: string): string {
-  const token = randomBytes(32).toString('hex');
-  csrfTokens.set(sessionId, {
-    token,
-    expires: Date.now() + 60 * 60 * 1000, // 1 hour
-  });
-  return token;
-}
-
-/**
- * Verify a CSRF token
- */
-function verifyCsrfToken(sessionId: string, token: string): boolean {
-  const stored = csrfTokens.get(sessionId);
-  if (!stored) return false;
-  if (stored.expires < Date.now()) {
-    csrfTokens.delete(sessionId);
-    return false;
-  }
-  return stored.token === token;
-}
-
-/**
- * CSRF protection middleware
+ * Origin-based CSRF protection middleware
  *
- * This middleware protects against Cross-Site Request Forgery attacks by:
- * 1. Checking for a valid CSRF token in the X-CSRF-Token header
- * 2. Only applying to state-changing methods (POST, PUT, PATCH, DELETE)
- * 3. Skipping protection for webhook endpoints (they use signature verification)
+ * SECURITY DESIGN NOTES:
+ * ----------------------
+ * This API uses JWT authentication with tokens stored in client-side storage
+ * (localStorage/sessionStorage), NOT cookies. This architecture provides
+ * inherent CSRF protection because:
  *
- * For SPA apps with JWT auth, we use the Synchronizer Token Pattern where:
- * - The token is provided via a GET /api/csrf-token endpoint
- * - The client includes it in the X-CSRF-Token header for state-changing requests
- */
-export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
-  // Skip for safe methods
-  const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
-  if (safeMethods.includes(req.method)) {
-    return next();
-  }
-
-  // Skip for webhook endpoints (they use signature verification)
-  if (req.path.startsWith('/webhooks/')) {
-    return next();
-  }
-
-  // Skip for API endpoints that use API keys or other auth mechanisms
-  if (req.path.startsWith('/api/public/')) {
-    return next();
-  }
-
-  // For state-changing requests, verify CSRF token
-  const csrfToken = req.headers['x-csrf-token'] as string | undefined;
-
-  // Get session ID from the authorization token or cookie
-  const authHeader = req.headers.authorization;
-  const sessionId = authHeader ? authHeader.replace('Bearer ', '').substring(0, 32) : undefined;
-
-  if (!sessionId) {
-    // No session means no CSRF token needed (unauthenticated request)
-    // The auth middleware will handle rejecting unauthorized requests
-    return next();
-  }
-
-  if (!csrfToken) {
-    res.status(403).json({ error: 'CSRF token missing' });
-    return;
-  }
-
-  if (!verifyCsrfToken(sessionId, csrfToken)) {
-    res.status(403).json({ error: 'Invalid CSRF token' });
-    return;
-  }
-
-  next();
-}
-
-/**
- * Route handler to get a CSRF token
- * Add this route: GET /api/csrf-token
- */
-export function csrfTokenHandler(req: Request, res: Response): void {
-  const authHeader = req.headers.authorization;
-  const sessionId = authHeader ? authHeader.replace('Bearer ', '').substring(0, 32) : undefined;
-
-  if (!sessionId) {
-    res.status(401).json({ error: 'Authentication required' });
-    return;
-  }
-
-  const token = generateCsrfToken(sessionId);
-  res.json({ csrfToken: token });
-}
-
-/**
- * Alternative: Origin-based CSRF protection
- * Simpler approach that validates the Origin/Referer header
- * Works well for APIs that only accept requests from known origins
+ * 1. JWTs are stored in localStorage, not cookies
+ * 2. Malicious sites cannot read localStorage from other origins (same-origin policy)
+ * 3. Without the token, attackers cannot make authenticated requests
+ * 4. The Authorization header must be explicitly set by JavaScript
+ *
+ * We add origin validation as defense-in-depth to:
+ * - Ensure requests come from our known frontends
+ * - Protect against misconfiguration (e.g., if cookies are ever added)
+ * - Add an extra layer of security for state-changing operations
+ *
+ * MOBILE/NATIVE APP SUPPORT:
+ * --------------------------
+ * Native mobile apps don't send Origin headers but also aren't vulnerable
+ * to traditional CSRF attacks (no browser cookie jar). We allow requests
+ * with Authorization headers but no Origin as a fallback for these clients.
+ *
+ * @param allowedOrigins - List of allowed origin URLs
  */
 export function originBasedCsrfProtection(allowedOrigins: string[]) {
+  // Log configuration on startup
+  if (allowedOrigins.length === 0) {
+    console.warn('WARNING: CSRF protection has no allowed origins configured');
+  }
+
   return (req: Request, res: Response, next: NextFunction): void => {
-    // Skip for safe methods
+    // Skip for safe methods (idempotent, no side effects)
     const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
     if (safeMethods.includes(req.method)) {
       return next();
     }
 
-    // Skip for webhooks
+    // Skip for webhook endpoints (they use cryptographic signature verification)
     if (req.path.startsWith('/webhooks/')) {
       return next();
     }
@@ -143,20 +59,32 @@ export function originBasedCsrfProtection(allowedOrigins: string[]) {
       }
     }
 
-    // If no origin info at all (same-origin requests sometimes don't include it)
+    // If no origin info at all
     if (!requestOrigin) {
-      // Accept requests without origin if they have authorization header
-      // This handles mobile apps and server-to-server requests
+      // For authenticated requests without Origin (mobile apps, server-to-server):
+      // The JWT in Authorization header provides authentication proof.
+      // Since JWT is not automatically attached like cookies, the client
+      // must have JavaScript access to the token, which means same-origin.
       if (req.headers.authorization) {
         return next();
       }
-      res.status(403).json({ error: 'Origin header required' });
+
+      // Unauthenticated requests without Origin are rejected
+      // (legitimate browsers always send Origin for cross-origin requests)
+      res.status(403).json({
+        error: 'Origin header required',
+        code: 'CSRF_ORIGIN_MISSING'
+      });
       return;
     }
 
-    // Validate origin
+    // Validate origin against allowlist
     if (!allowedOrigins.includes(requestOrigin)) {
-      res.status(403).json({ error: 'Invalid origin' });
+      console.warn(`CSRF: Rejected request from origin: ${requestOrigin}`);
+      res.status(403).json({
+        error: 'Invalid origin',
+        code: 'CSRF_ORIGIN_INVALID'
+      });
       return;
     }
 

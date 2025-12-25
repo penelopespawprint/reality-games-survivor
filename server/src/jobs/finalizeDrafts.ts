@@ -5,6 +5,8 @@ import { secureShuffle } from '../utils/crypto.js';
  * Auto-complete incomplete drafts after deadline
  * Assigns remaining castaways randomly to players with empty roster slots
  * Runs: One-time Mar 2 8pm PST (draft deadline)
+ *
+ * OPTIMIZATION: Bulk fetches all data upfront to avoid N+1 queries
  */
 export async function finalizeDrafts(): Promise<{
   finalizedLeagues: number;
@@ -34,38 +36,73 @@ export async function finalizeDrafts(): Promise<{
     return { finalizedLeagues: 0, autoPicks: 0 };
   }
 
-  let totalAutoPicks = 0;
+  const leagueIds = leagues.map((l) => l.id);
 
-  for (const league of leagues) {
-    // Get all members and their current roster counts
-    const { data: members } = await supabaseAdmin
+  // BULK FETCH: Get all data in 3 queries instead of 3 * N queries
+  const [membersResult, rostersResult, castawaysResult] = await Promise.all([
+    // All members for all incomplete leagues
+    supabaseAdmin
       .from('league_members')
-      .select('user_id, draft_position')
-      .eq('league_id', league.id)
-      .order('draft_position', { ascending: true });
+      .select('league_id, user_id, draft_position')
+      .in('league_id', leagueIds)
+      .order('draft_position', { ascending: true }),
 
-    if (!members) continue;
-
-    // Get current rosters
-    const { data: rosters } = await supabaseAdmin
+    // All rosters for all incomplete leagues
+    supabaseAdmin
       .from('rosters')
-      .select('user_id, castaway_id')
-      .eq('league_id', league.id)
-      .is('dropped_at', null);
+      .select('league_id, user_id, castaway_id')
+      .in('league_id', leagueIds)
+      .is('dropped_at', null),
 
-    // Get all available castaways
-    const { data: allCastaways } = await supabaseAdmin
+    // All castaways for the season (only need to fetch once)
+    supabaseAdmin
       .from('castaways')
       .select('id')
-      .eq('season_id', season.id);
+      .eq('season_id', season.id),
+  ]);
 
-    const draftedCastawayIds = new Set(rosters?.map((r) => r.castaway_id) || []);
-    const availableCastaways =
-      allCastaways?.filter((c) => !draftedCastawayIds.has(c.id)) || [];
+  const allMembers = membersResult.data || [];
+  const allRosters = rostersResult.data || [];
+  const allCastaways = castawaysResult.data || [];
+
+  // Group data by league for efficient processing
+  const membersByLeague = new Map<string, typeof allMembers>();
+  const rostersByLeague = new Map<string, typeof allRosters>();
+
+  for (const member of allMembers) {
+    const existing = membersByLeague.get(member.league_id) || [];
+    existing.push(member);
+    membersByLeague.set(member.league_id, existing);
+  }
+
+  for (const roster of allRosters) {
+    const existing = rostersByLeague.get(roster.league_id) || [];
+    existing.push(roster);
+    rostersByLeague.set(roster.league_id, existing);
+  }
+
+  let totalAutoPicks = 0;
+  const rosterInserts: Array<{
+    league_id: string;
+    user_id: string;
+    castaway_id: string;
+    draft_round: number;
+    draft_pick: number;
+    acquired_via: string;
+  }> = [];
+
+  for (const league of leagues) {
+    const members = membersByLeague.get(league.id) || [];
+    const rosters = rostersByLeague.get(league.id) || [];
+
+    if (members.length === 0) continue;
+
+    const draftedCastawayIds = new Set(rosters.map((r) => r.castaway_id));
+    const availableCastaways = allCastaways.filter((c) => !draftedCastawayIds.has(c.id));
 
     // Count picks per user
     const userPickCounts = new Map<string, number>();
-    for (const roster of rosters || []) {
+    for (const roster of rosters) {
       const count = userPickCounts.get(roster.user_id) || 0;
       userPickCounts.set(roster.user_id, count + 1);
     }
@@ -85,7 +122,7 @@ export async function finalizeDrafts(): Promise<{
     // Shuffle available castaways using cryptographically secure random
     const shuffled = secureShuffle([...availableCastaways]);
 
-    // Assign remaining castaways
+    // Prepare roster inserts
     let castawayIndex = 0;
     for (const need of usersNeedingPicks) {
       if (castawayIndex >= shuffled.length) break;
@@ -94,10 +131,9 @@ export async function finalizeDrafts(): Promise<{
       const pickNumber =
         need.round === 1
           ? members.findIndex((m) => m.user_id === need.userId) + 1
-          : members.length * 2 -
-            members.findIndex((m) => m.user_id === need.userId);
+          : members.length * 2 - members.findIndex((m) => m.user_id === need.userId);
 
-      await supabaseAdmin.from('rosters').insert({
+      rosterInserts.push({
         league_id: league.id,
         user_id: need.userId,
         castaway_id: castaway.id,
@@ -108,21 +144,33 @@ export async function finalizeDrafts(): Promise<{
 
       totalAutoPicks++;
     }
-
-    // Mark draft as completed
-    await supabaseAdmin
-      .from('leagues')
-      .update({
-        draft_status: 'completed',
-        draft_completed_at: now.toISOString(),
-        status: 'active',
-      })
-      .eq('id', league.id);
   }
 
-  console.log(
-    `Finalized ${leagues.length} leagues with ${totalAutoPicks} auto-picks`
-  );
+  // BULK INSERT: All roster entries at once
+  if (rosterInserts.length > 0) {
+    const { error: insertError } = await supabaseAdmin.from('rosters').insert(rosterInserts);
+    if (insertError) {
+      console.error('Failed to insert auto-draft rosters:', insertError);
+      throw insertError;
+    }
+  }
+
+  // BULK UPDATE: Mark all drafts as completed
+  const { error: updateError } = await supabaseAdmin
+    .from('leagues')
+    .update({
+      draft_status: 'completed',
+      draft_completed_at: now.toISOString(),
+      status: 'active',
+    })
+    .in('id', leagueIds);
+
+  if (updateError) {
+    console.error('Failed to update league statuses:', updateError);
+    throw updateError;
+  }
+
+  console.log(`Finalized ${leagues.length} leagues with ${totalAutoPicks} auto-picks`);
 
   return {
     finalizedLeagues: leagues.length,

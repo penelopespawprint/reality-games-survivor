@@ -8,7 +8,6 @@ import dashboardRoutes from './routes/dashboard.js';
 import leagueRoutes from './routes/leagues.js';
 import draftRoutes from './routes/draft.js';
 import pickRoutes from './routes/picks.js';
-import waiverRoutes from './routes/waivers.js';
 import scoringRoutes from './routes/scoring.js';
 import notificationRoutes from './routes/notifications.js';
 import adminRoutes from './routes/admin.js';
@@ -17,6 +16,10 @@ import webhookRoutes from './routes/webhooks.js';
 // Middleware
 import { generalLimiter, authLimiter, adminLimiter, webhookLimiter, smsLimiter } from './middleware/rateLimit.js';
 import { originBasedCsrfProtection } from './middleware/csrf.js';
+
+// Config
+import { supabaseAdmin } from './config/supabase.js';
+import { features } from './config/env.js';
 
 // Jobs scheduler
 import { startScheduler } from './jobs/index.js';
@@ -57,6 +60,17 @@ app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 // JSON parsing for all other routes
 app.use(express.json());
 
+// Request timeout protection (30 seconds default, 120 for webhooks)
+app.use((req, res, next) => {
+  const timeout = req.path.startsWith('/webhooks/') ? 120000 : 30000;
+  req.setTimeout(timeout, () => {
+    if (!res.headersSent) {
+      res.status(408).json({ error: 'Request timeout' });
+    }
+  });
+  next();
+});
+
 // CSRF protection - validate Origin/Referer for state-changing requests
 const allowedOrigins = [
   process.env.CORS_ORIGIN,
@@ -70,9 +84,45 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use(originBasedCsrfProtection(allowedOrigins));
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check with dependency verification
+app.get('/health', async (req, res) => {
+  const checks: Record<string, { status: 'ok' | 'error'; latency?: number; error?: string }> = {};
+  let overallStatus: 'ok' | 'degraded' | 'error' = 'ok';
+
+  // Check database connectivity
+  const dbStart = Date.now();
+  try {
+    const { error } = await supabaseAdmin.from('seasons').select('id').limit(1);
+    if (error) throw error;
+    checks.database = { status: 'ok', latency: Date.now() - dbStart };
+  } catch (err) {
+    checks.database = {
+      status: 'error',
+      latency: Date.now() - dbStart,
+      error: err instanceof Error ? err.message : 'Unknown error',
+    };
+    overallStatus = 'error';
+  }
+
+  // Check feature availability
+  checks.features = {
+    status: 'ok',
+    ...({
+      payments: features.payments,
+      sms: features.sms,
+      email: features.email,
+      scheduler: features.scheduler,
+    } as Record<string, boolean>),
+  };
+
+  // Return appropriate status code
+  const statusCode = overallStatus === 'error' ? 503 : 200;
+  res.status(statusCode).json({
+    status: overallStatus,
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0',
+    checks,
+  });
 });
 
 // API Routes with rate limiting
@@ -84,7 +134,6 @@ app.use('/api', dashboardRoutes);
 app.use('/api/leagues', leagueRoutes);
 app.use('/api/leagues', draftRoutes);
 app.use('/api/leagues', pickRoutes);
-app.use('/api/leagues', waiverRoutes);
 app.use('/api/episodes', scoringRoutes);
 app.use('/api', notificationRoutes);
 app.use('/api/admin', adminLimiter, adminRoutes);  // Admin routes - moderate

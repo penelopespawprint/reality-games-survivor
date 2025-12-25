@@ -154,10 +154,21 @@ router.post('/castaways', validate(createCastawaySchema), async (req: Authentica
 });
 
 // PATCH /api/admin/castaways/:id - Update castaway
-router.patch('/castaways/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.patch('/castaways/:id', validateParams(idParamSchema), validate(updateCastawaySchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const castawayId = req.params.id;
     const updates = req.body;
+
+    // Check if castaway exists first
+    const { data: existing, error: findError } = await supabaseAdmin
+      .from('castaways')
+      .select('id')
+      .eq('id', castawayId)
+      .single();
+
+    if (findError || !existing) {
+      return res.status(404).json({ error: 'Castaway not found' });
+    }
 
     const { data: castaway, error } = await supabaseAdmin
       .from('castaways')
@@ -178,13 +189,35 @@ router.patch('/castaways/:id', async (req: AuthenticatedRequest, res: Response) 
 });
 
 // POST /api/admin/castaways/:id/eliminate - Mark castaway eliminated
-router.post('/castaways/:id/eliminate', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/castaways/:id/eliminate', validateParams(idParamSchema), validate(eliminateCastawaySchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const castawayId = req.params.id;
     const { episode_id, placement } = req.body;
 
-    if (!episode_id) {
-      return res.status(400).json({ error: 'episode_id is required' });
+    // Verify castaway exists and is active
+    const { data: existing, error: findError } = await supabaseAdmin
+      .from('castaways')
+      .select('id, status')
+      .eq('id', castawayId)
+      .single();
+
+    if (findError || !existing) {
+      return res.status(404).json({ error: 'Castaway not found' });
+    }
+
+    if (existing.status === 'eliminated') {
+      return res.status(400).json({ error: 'Castaway is already eliminated' });
+    }
+
+    // Verify episode exists
+    const { data: episode, error: episodeError } = await supabase
+      .from('episodes')
+      .select('id')
+      .eq('id', episode_id)
+      .single();
+
+    if (episodeError || !episode) {
+      return res.status(400).json({ error: 'Episode not found' });
     }
 
     const { data: castaway, error } = await supabaseAdmin
@@ -202,17 +235,7 @@ router.post('/castaways/:id/eliminate', async (req: AuthenticatedRequest, res: R
       return res.status(400).json({ error: error.message });
     }
 
-    // Check if waiver window should open
-    const { data: episode } = await supabase
-      .from('episodes')
-      .select('waiver_opens_at')
-      .eq('id', episode_id)
-      .single();
-
-    res.json({
-      castaway,
-      waiver_opened: episode?.waiver_opens_at ? true : false,
-    });
+    res.json({ castaway });
   } catch (err) {
     console.error('POST /api/admin/castaways/:id/eliminate error:', err);
     res.status(500).json({ error: 'Failed to eliminate castaway' });
@@ -233,14 +256,6 @@ router.post('/episodes', validate(createEpisodeSchema), async (req: Authenticate
     resultsPostedAt.setDate(resultsPostedAt.getDate() + 2); // Friday
     resultsPostedAt.setHours(12, 0, 0, 0);
 
-    const waiverOpensAt = new Date(airDate);
-    waiverOpensAt.setDate(waiverOpensAt.getDate() + 3); // Saturday
-    waiverOpensAt.setHours(12, 0, 0, 0);
-
-    const waiverClosesAt = new Date(airDate);
-    waiverClosesAt.setDate(waiverClosesAt.getDate() + 7); // Next Wednesday
-    waiverClosesAt.setHours(15, 0, 0, 0);
-
     const { data: episode, error } = await supabaseAdmin
       .from('episodes')
       .insert({
@@ -250,8 +265,6 @@ router.post('/episodes', validate(createEpisodeSchema), async (req: Authenticate
         air_date,
         picks_lock_at: picksLockAt.toISOString(),
         results_posted_at: resultsPostedAt.toISOString(),
-        waiver_opens_at: waiverOpensAt.toISOString(),
-        waiver_closes_at: waiverClosesAt.toISOString(),
       })
       .select()
       .single();
@@ -268,10 +281,21 @@ router.post('/episodes', validate(createEpisodeSchema), async (req: Authenticate
 });
 
 // PATCH /api/admin/episodes/:id - Update episode
-router.patch('/episodes/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.patch('/episodes/:id', validateParams(idParamSchema), validate(updateEpisodeSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const episodeId = req.params.id;
     const updates = req.body;
+
+    // Check if episode exists first
+    const { data: existing, error: findError } = await supabaseAdmin
+      .from('episodes')
+      .select('id')
+      .eq('id', episodeId)
+      .single();
+
+    if (findError || !existing) {
+      return res.status(404).json({ error: 'Episode not found' });
+    }
 
     const { data: episode, error } = await supabaseAdmin
       .from('episodes')

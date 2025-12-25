@@ -5,7 +5,7 @@
 // - tribal: Burgundy background (#A52A2A), cream text - important game events (draft, picks)
 // - immunity: Gold border (#D4A574), cream background - achievements, wins, positive news
 // - tribal_council: Dark burgundy/fire theme - eliminations, urgent deadlines
-// - merge: Green accents - waivers, team changes, new acquisitions
+// - merge: Green accents - team changes, new acquisitions
 
 const LOGO_URL = 'https://survivor.realitygamesfantasyleague.com/logo.png';
 const BASE_URL = process.env.BASE_URL || 'https://survivor.realitygamesfantasyleague.com';

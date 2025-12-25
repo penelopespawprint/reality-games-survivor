@@ -13,7 +13,6 @@ export type AuditAction =
   | 'draft.completed'
   | 'pick.submitted'
   | 'pick.auto_filled'
-  | 'waiver.processed'
   | 'scoring.finalized'
   | 'admin.user_role_changed'
   | 'admin.season_created'

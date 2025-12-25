@@ -1,11 +1,33 @@
 import { Router, Response } from 'express';
 import bcrypt from 'bcrypt';
+import { z } from 'zod';
 import { authenticate, AuthenticatedRequest } from '../middleware/authenticate.js';
 import { supabase, supabaseAdmin } from '../config/supabase.js';
-import { stripe } from '../config/stripe.js';
+import { getStripe, isStripeEnabled } from '../config/stripe.js';
+import { getBaseUrl } from '../config/env.js';
 import { EmailService } from '../emails/index.js';
 
 const SALT_ROUNDS = 10;
+
+// Validation schemas
+const createLeagueSchema = z.object({
+  name: z.string().min(1).max(100),
+  season_id: z.string().uuid(),
+  password: z.string().max(100).optional(),
+  donation_amount: z.number().min(0).max(10000).optional(),
+});
+
+const updateSettingsSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().max(1000).optional(),
+  password: z.string().max(100).optional().nullable(),
+  donation_amount: z.number().min(0).max(10000).optional().nullable(),
+  donation_notes: z.string().max(500).optional(),
+  payout_method: z.string().max(200).optional(),
+  is_public: z.boolean().optional(),
+  is_closed: z.boolean().optional(),
+  max_players: z.number().int().min(2).max(24).optional(),
+});
 
 const router = Router();
 
@@ -13,11 +35,20 @@ const router = Router();
 router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { name, season_id, password, donation_amount } = req.body;
 
-    if (!name || !season_id) {
-      return res.status(400).json({ error: 'Name and season_id are required' });
+    // Validate input
+    const parseResult = createLeagueSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: parseResult.error.errors.map(e => ({
+          path: e.path.join('.'),
+          message: e.message,
+        })),
+      });
     }
+
+    const { name, season_id, password, donation_amount } = parseResult.data;
 
     // Hash password if provided
     let hashedPassword: string | null = null;
@@ -222,6 +253,11 @@ router.post('/:id/join', authenticate, async (req: AuthenticatedRequest, res: Re
 // POST /api/leagues/:id/join/checkout - Create Stripe checkout session
 router.post('/:id/join/checkout', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // Check if Stripe is enabled
+    if (!isStripeEnabled()) {
+      return res.status(503).json({ error: 'Payment processing is not available' });
+    }
+
     const userId = req.user!.id;
     const leagueId = req.params.id;
 
@@ -240,7 +276,8 @@ router.post('/:id/join/checkout', authenticate, async (req: AuthenticatedRequest
       return res.status(400).json({ error: 'This league does not require payment' });
     }
 
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+    const stripe = getStripe();
+    const baseUrl = getBaseUrl();
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -316,7 +353,7 @@ router.post('/:id/leave', authenticate, async (req: AuthenticatedRequest, res: R
 
     // Check if eligible for refund (before draft)
     let refund = null;
-    if (league.draft_status === 'pending') {
+    if (league.draft_status === 'pending' && isStripeEnabled()) {
       const { data: payment } = await supabase
         .from('payments')
         .select('*')
@@ -327,6 +364,7 @@ router.post('/:id/leave', authenticate, async (req: AuthenticatedRequest, res: R
 
       if (payment && payment.stripe_payment_intent_id) {
         // Issue refund
+        const stripe = getStripe();
         const stripeRefund = await stripe.refunds.create({
           payment_intent: payment.stripe_payment_intent_id,
         });
@@ -420,11 +458,9 @@ router.get('/:id/invite-link', authenticate, async (req: AuthenticatedRequest, r
       return res.status(403).json({ error: 'Only commissioner can access invite link' });
     }
 
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
-
     res.json({
       code: league.code,
-      url: `${baseUrl}/join/${league.code}`,
+      url: `${getBaseUrl()}/join/${league.code}`,
     });
   } catch (err) {
     console.error('GET /api/leagues/:id/invite-link error:', err);
@@ -437,6 +473,19 @@ router.patch('/:id/settings', authenticate, async (req: AuthenticatedRequest, re
   try {
     const leagueId = req.params.id;
     const userId = req.user!.id;
+
+    // Validate input
+    const parseResult = updateSettingsSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: parseResult.error.errors.map(e => ({
+          path: e.path.join('.'),
+          message: e.message,
+        })),
+      });
+    }
+
     const {
       name,
       description,
@@ -447,7 +496,7 @@ router.patch('/:id/settings', authenticate, async (req: AuthenticatedRequest, re
       is_closed,
       max_players,
       donation_notes,
-    } = req.body;
+    } = parseResult.data;
 
     // Check commissioner
     const { data: league } = await supabase
@@ -603,30 +652,33 @@ router.delete('/:id/members/:userId', authenticate, async (req: AuthenticatedReq
     }
 
     // Issue refund if applicable
-    const { data: payment } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('league_id', leagueId)
-      .eq('user_id', targetUserId)
-      .eq('status', 'completed')
-      .single();
-
     let refund = null;
-    if (payment && payment.stripe_payment_intent_id && league.draft_status === 'pending') {
-      const stripeRefund = await stripe.refunds.create({
-        payment_intent: payment.stripe_payment_intent_id,
-      });
-
-      await supabaseAdmin
+    if (league.draft_status === 'pending' && isStripeEnabled()) {
+      const { data: payment } = await supabase
         .from('payments')
-        .update({
-          status: 'refunded',
-          stripe_refund_id: stripeRefund.id,
-          refunded_at: new Date().toISOString(),
-        })
-        .eq('id', payment.id);
+        .select('*')
+        .eq('league_id', leagueId)
+        .eq('user_id', targetUserId)
+        .eq('status', 'completed')
+        .single();
 
-      refund = { amount: payment.amount };
+      if (payment && payment.stripe_payment_intent_id) {
+        const stripe = getStripe();
+        const stripeRefund = await stripe.refunds.create({
+          payment_intent: payment.stripe_payment_intent_id,
+        });
+
+        await supabaseAdmin
+          .from('payments')
+          .update({
+            status: 'refunded',
+            stripe_refund_id: stripeRefund.id,
+            refunded_at: new Date().toISOString(),
+          })
+          .eq('id', payment.id);
+
+        refund = { amount: payment.amount };
+      }
     }
 
     res.json({ success: true, refund });

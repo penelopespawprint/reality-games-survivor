@@ -43,8 +43,14 @@ router.post('/stripe', async (req: Request, res: Response) => {
             });
           }
 
-          // Record payment
-          const amount = (session.amount_total || 0) / 100;
+          // Record payment (ensure amount is valid)
+          const rawAmount = session.amount_total;
+          if (typeof rawAmount !== 'number' || rawAmount <= 0) {
+            console.error(`Invalid payment amount: ${rawAmount} for session ${session.id}`);
+            // Still record with 0 to have an audit trail
+          }
+          const amount = (rawAmount && rawAmount > 0) ? rawAmount / 100 : 0;
+
           await supabaseAdmin.from('payments').insert({
             user_id,
             league_id,
@@ -353,14 +359,27 @@ router.post('/sms', async (req: Request, res: Response) => {
   }
 });
 
-// Helper to escape XML special characters
+/**
+ * Escape XML special characters for TwiML responses
+ * Handles all XML special characters including CDATA section markers
+ */
 function escapeXml(text: string): string {
+  if (!text) return '';
+
   return text
+    // First handle ampersand (must be first)
     .replace(/&/g, '&amp;')
+    // Then handle other special characters
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+    .replace(/'/g, '&apos;')
+    // Handle CDATA section markers (]]>)
+    .replace(/\]\]>/g, ']]&gt;')
+    // Handle null bytes and other control characters
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    // Limit length to prevent abuse
+    .substring(0, 1000);
 }
 
 export default router;

@@ -143,7 +143,7 @@ export async function sendEliminationAlerts(
 ): Promise<{ sent: number }> {
   const { data: episode } = await supabaseAdmin
     .from('episodes')
-    .select('id, number, season_id, waiver_closes_at')
+    .select('id, number, season_id')
     .eq('id', episodeId)
     .single();
 

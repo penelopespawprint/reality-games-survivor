@@ -4,7 +4,7 @@ import { supabase } from '../config/supabase.js';
 
 const router = Router();
 
-type Phase = 'waiver_open' | 'picks_locked' | 'awaiting_results' | 'results_posted' | 'make_pick' | 'pre_season' | 'draft';
+type Phase = 'picks_locked' | 'awaiting_results' | 'results_posted' | 'make_pick' | 'pre_season' | 'draft';
 
 interface DashboardResponse {
   phase: Phase;
@@ -24,8 +24,6 @@ interface DashboardResponse {
   } | null;
   userStatus: {
     pickSubmitted: boolean;
-    waiverRankingsSubmitted: boolean;
-    needsWaiverAction: boolean;
     draftComplete: boolean;
   };
   standings: {
@@ -43,13 +41,10 @@ function getCurrentPhase(now: Date, episode: any): Phase {
   const picksLockAt = new Date(episode.picks_lock_at);
   const airDate = new Date(episode.air_date);
   const resultsPostedAt = episode.results_posted_at ? new Date(episode.results_posted_at) : null;
-  const waiverOpensAt = episode.waiver_opens_at ? new Date(episode.waiver_opens_at) : null;
-  const waiverClosesAt = episode.waiver_closes_at ? new Date(episode.waiver_closes_at) : null;
 
   if (now < picksLockAt) return 'make_pick';
   if (now < airDate) return 'picks_locked';
   if (!resultsPostedAt || now < resultsPostedAt) return 'awaiting_results';
-  if (waiverOpensAt && waiverClosesAt && now >= waiverOpensAt && now < waiverClosesAt) return 'waiver_open';
   return 'results_posted';
 }
 
@@ -72,7 +67,7 @@ router.get('/dashboard', authenticate, async (req: AuthenticatedRequest, res: Re
         primaryCta: { label: 'No Active Season', action: '/', urgent: false },
         countdown: null,
         currentEpisode: null,
-        userStatus: { pickSubmitted: false, waiverRankingsSubmitted: false, needsWaiverAction: false, draftComplete: false },
+        userStatus: { pickSubmitted: false, draftComplete: false },
         standings: null,
         alerts: [],
       } as DashboardResponse);
@@ -95,8 +90,6 @@ router.get('/dashboard', authenticate, async (req: AuthenticatedRequest, res: Re
     let standings = null;
     let userStatus = {
       pickSubmitted: false,
-      waiverRankingsSubmitted: false,
-      needsWaiverAction: false,
       draftComplete: false,
     };
 
@@ -144,29 +137,6 @@ router.get('/dashboard', authenticate, async (req: AuthenticatedRequest, res: Re
           .single();
 
         userStatus.pickSubmitted = !!pick;
-
-        // Check waiver rankings
-        const { data: waiverRanking } = await supabase
-          .from('waiver_rankings')
-          .select('id')
-          .eq('league_id', leagueId)
-          .eq('user_id', userId)
-          .eq('episode_id', currentEpisode.id)
-          .single();
-
-        userStatus.waiverRankingsSubmitted = !!waiverRanking;
-
-        // Check if user has eliminated castaway
-        const { data: rosters } = await supabase
-          .from('rosters')
-          .select('castaways!inner(status)')
-          .eq('league_id', leagueId)
-          .eq('user_id', userId)
-          .is('dropped_at', null);
-
-        userStatus.needsWaiverAction = rosters?.some(
-          (r: any) => r.castaways?.status === 'eliminated'
-        ) || false;
       }
     }
 
@@ -200,17 +170,9 @@ router.get('/dashboard', authenticate, async (req: AuthenticatedRequest, res: Re
       case 'results_posted':
         primaryCta = { label: 'View Your Scores', action: `/leagues/${leagueId}/episodes/${currentEpisode?.id}`, urgent: false };
         break;
-      case 'waiver_open':
-        if (userStatus.needsWaiverAction) {
-          primaryCta = { label: 'Submit Waiver Rankings', action: `/leagues/${leagueId}/waivers`, urgent: true };
-        }
-        break;
     }
 
     const alerts: Array<{ type: string; message: string }> = [];
-    if (userStatus.needsWaiverAction && phase === 'waiver_open') {
-      alerts.push({ type: 'warning', message: 'You have an eliminated castaway. Submit waiver rankings!' });
-    }
 
     res.json({
       phase,
