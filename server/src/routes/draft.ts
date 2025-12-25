@@ -6,7 +6,7 @@ import { secureShuffle } from '../utils/crypto.js';
 
 const router = Router();
 
-// GET /api/leagues/:id/draft/state - Get draft state
+// GET /api/leagues/:id/draft/state - Get draft state for a league
 router.get('/:id/draft/state', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const leagueId = req.params.id;
@@ -30,70 +30,68 @@ router.get('/:id/draft/state', authenticate, async (req: AuthenticatedRequest, r
       .eq('league_id', leagueId)
       .order('draft_position', { ascending: true });
 
-    // Get existing picks
-    const { data: picks } = await supabase
+    // Get user's draft rankings for this season
+    const { data: rankings } = await supabase
+      .from('draft_rankings')
+      .select('rankings, submitted_at')
+      .eq('user_id', userId)
+      .eq('season_id', league.season_id)
+      .single();
+
+    // Get existing roster assignments (if draft is complete)
+    const { data: rosters } = await supabase
       .from('rosters')
-      .select('user_id, castaway_id, draft_round, draft_pick')
+      .select('user_id, castaway_id, draft_round, draft_pick, castaways(id, name, tribe_original)')
       .eq('league_id', leagueId)
       .order('draft_pick', { ascending: true });
 
-    // Get available castaways
+    // Get all castaways for this season
     const { data: castaways } = await supabase
       .from('castaways')
       .select('*')
+      .eq('season_id', league.season_id)
+      .eq('status', 'active');
+
+    const season = (league as any).seasons;
+    const draftDeadline = season?.draft_deadline ? new Date(season.draft_deadline) : null;
+    const now = new Date();
+    const isBeforeDeadline = draftDeadline ? now < draftDeadline : false;
+
+    // Calculate who has submitted rankings
+    const { data: allRankings } = await supabase
+      .from('draft_rankings')
+      .select('user_id')
       .eq('season_id', league.season_id);
 
-    const pickedCastawayIds = new Set(picks?.map((p) => p.castaway_id) || []);
-    const available = castaways?.filter((c) => !pickedCastawayIds.has(c.id)) || [];
-
-    // Calculate current pick
-    const totalMembers = members?.length || 0;
-    const totalPicks = picks?.length || 0;
-    const currentRound = Math.floor(totalPicks / totalMembers) + 1;
-    const pickInRound = totalPicks % totalMembers;
-
-    // Snake draft logic
-    let currentPickerIndex: number;
-    if (currentRound % 2 === 1) {
-      // Odd rounds go forward
-      currentPickerIndex = pickInRound;
-    } else {
-      // Even rounds go backward
-      currentPickerIndex = totalMembers - 1 - pickInRound;
-    }
-
-    const draftOrder = league.draft_order || members?.map((m: any) => m.user_id) || [];
-    const currentPickUserId = draftOrder[currentPickerIndex];
-
-    // My picks
-    const myPicks = picks?.filter((p) => p.user_id === userId) || [];
+    const submittedUserIds = new Set(allRankings?.map(r => r.user_id) || []);
 
     res.json({
       status: league.draft_status,
-      current_pick: totalPicks + 1,
-      current_round: currentRound,
-      current_picker: currentPickUserId,
-      is_my_turn: currentPickUserId === userId,
-      order: draftOrder.map((uid: string, idx: number) => {
+      deadline: draftDeadline?.toISOString() || null,
+      isBeforeDeadline,
+      myRankings: rankings?.rankings || null,
+      myRankingsSubmittedAt: rankings?.submitted_at || null,
+      order: (league.draft_order || []).map((uid: string, idx: number) => {
         const member = members?.find((m: any) => m.user_id === uid);
         return {
           user_id: uid,
           position: idx + 1,
           display_name: (member as any)?.users?.display_name || 'Unknown',
+          hasSubmittedRankings: submittedUserIds.has(uid),
         };
       }),
-      available,
-      my_picks: myPicks.map((p) => ({
-        castaway: castaways?.find((c) => c.id === p.castaway_id),
-        round: p.draft_round,
-        pick: p.draft_pick,
-      })),
-      picks: picks?.map((p) => ({
-        user_id: p.user_id,
-        castaway_id: p.castaway_id,
-        round: p.draft_round,
-        pick: p.draft_pick,
-      })),
+      castaways: castaways || [],
+      rosters: rosters?.map((r: any) => ({
+        user_id: r.user_id,
+        castaway: r.castaways,
+        round: r.draft_round,
+        pick: r.draft_pick,
+      })) || [],
+      myRoster: rosters?.filter((r: any) => r.user_id === userId).map((r: any) => ({
+        castaway: r.castaways,
+        round: r.draft_round,
+        pick: r.draft_pick,
+      })) || [],
     });
   } catch (err) {
     console.error('GET /api/leagues/:id/draft/state error:', err);
@@ -101,120 +99,109 @@ router.get('/:id/draft/state', authenticate, async (req: AuthenticatedRequest, r
   }
 });
 
-// GET /api/leagues/:id/draft/order - Get draft order
-router.get('/:id/draft/order', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// GET /api/draft/rankings - Get user's draft rankings for active season
+router.get('/rankings', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const leagueId = req.params.id;
+    const userId = req.user!.id;
 
-    const { data: league } = await supabase
-      .from('leagues')
-      .select('draft_order')
-      .eq('id', leagueId)
+    // Get active season
+    const { data: season } = await supabase
+      .from('seasons')
+      .select('id, draft_deadline')
+      .eq('is_active', true)
       .single();
 
-    if (!league) {
-      return res.status(404).json({ error: 'League not found' });
+    if (!season) {
+      return res.status(404).json({ error: 'No active season' });
     }
 
-    const { data: members } = await supabase
-      .from('league_members')
-      .select('user_id, users(id, display_name)')
-      .eq('league_id', leagueId);
+    // Get user's rankings
+    const { data: rankings } = await supabase
+      .from('draft_rankings')
+      .select('rankings, submitted_at, updated_at')
+      .eq('user_id', userId)
+      .eq('season_id', season.id)
+      .single();
 
-    const order = (league.draft_order || []).map((uid: string, idx: number) => {
-      const member = members?.find((m) => m.user_id === uid);
-      return {
-        user_id: uid,
-        position: idx + 1,
-        display_name: (member as any)?.users?.display_name || 'Unknown',
-      };
+    // Get all castaways for ranking
+    const { data: castaways } = await supabase
+      .from('castaways')
+      .select('id, name, tribe_original, photo_url')
+      .eq('season_id', season.id)
+      .eq('status', 'active');
+
+    res.json({
+      rankings: rankings?.rankings || null,
+      submittedAt: rankings?.submitted_at || null,
+      updatedAt: rankings?.updated_at || null,
+      deadline: season.draft_deadline,
+      castaways: castaways || [],
     });
-
-    res.json({ order });
   } catch (err) {
-    console.error('GET /api/leagues/:id/draft/order error:', err);
-    res.status(500).json({ error: 'Failed to fetch draft order' });
+    console.error('GET /api/draft/rankings error:', err);
+    res.status(500).json({ error: 'Failed to fetch rankings' });
   }
 });
 
-// POST /api/leagues/:id/draft/pick - Make a draft pick
-router.post('/:id/draft/pick', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+// PUT /api/draft/rankings - Submit or update draft rankings
+router.put('/rankings', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const leagueId = req.params.id;
     const userId = req.user!.id;
-    const { castaway_id } = req.body;
+    const { rankings } = req.body;
 
-    if (!castaway_id) {
-      return res.status(400).json({ error: 'castaway_id is required' });
+    if (!rankings || !Array.isArray(rankings)) {
+      return res.status(400).json({ error: 'rankings must be an array of castaway IDs' });
     }
 
-    // Get league
-    const { data: league } = await supabase
-      .from('leagues')
-      .select('*')
-      .eq('id', leagueId)
+    // Get active season
+    const { data: season } = await supabase
+      .from('seasons')
+      .select('id, draft_deadline')
+      .eq('is_active', true)
       .single();
 
-    if (!league) {
-      return res.status(404).json({ error: 'League not found' });
+    if (!season) {
+      return res.status(404).json({ error: 'No active season' });
     }
 
-    if (league.draft_status !== 'in_progress') {
-      return res.status(400).json({ error: 'Draft is not in progress' });
+    // Check deadline hasn't passed
+    const now = new Date();
+    const deadline = new Date(season.draft_deadline);
+    if (now >= deadline) {
+      return res.status(400).json({ error: 'Draft deadline has passed' });
     }
 
-    // Get existing picks to determine current turn
-    const { data: picks } = await supabase
-      .from('rosters')
-      .select('*')
-      .eq('league_id', leagueId);
+    // Validate rankings are valid castaway IDs
+    const { data: castaways } = await supabase
+      .from('castaways')
+      .select('id')
+      .eq('season_id', season.id)
+      .eq('status', 'active');
 
-    const { data: members } = await supabase
-      .from('league_members')
-      .select('user_id')
-      .eq('league_id', leagueId);
+    const validIds = new Set(castaways?.map(c => c.id) || []);
 
-    const totalMembers = members?.length || 0;
-    const totalPicks = picks?.length || 0;
-    const currentRound = Math.floor(totalPicks / totalMembers) + 1;
-    const pickInRound = totalPicks % totalMembers;
-
-    // Snake draft logic
-    let currentPickerIndex: number;
-    if (currentRound % 2 === 1) {
-      currentPickerIndex = pickInRound;
-    } else {
-      currentPickerIndex = totalMembers - 1 - pickInRound;
+    // Check for duplicates
+    const rankingsSet = new Set(rankings);
+    if (rankingsSet.size !== rankings.length) {
+      return res.status(400).json({ error: 'Rankings contain duplicate castaway IDs' });
     }
 
-    const draftOrder = league.draft_order || [];
-    const currentPickUserId = draftOrder[currentPickerIndex];
-
-    if (currentPickUserId !== userId) {
-      return res.status(403).json({ error: 'Not your turn to pick' });
+    // Validate all IDs
+    const invalidIds = rankings.filter((id: string) => !validIds.has(id));
+    if (invalidIds.length > 0) {
+      return res.status(400).json({ error: 'Rankings contain invalid castaway IDs' });
     }
 
-    // Check castaway not already picked
-    const alreadyPicked = picks?.some((p) => p.castaway_id === castaway_id);
-    if (alreadyPicked) {
-      return res.status(400).json({ error: 'Castaway already drafted' });
-    }
-
-    // Check user doesn't already have 2 castaways
-    const userPicks = picks?.filter((p) => p.user_id === userId).length || 0;
-    if (userPicks >= 2) {
-      return res.status(400).json({ error: 'You already have 2 castaways' });
-    }
-
-    // Make the pick
-    const { data: roster, error } = await supabaseAdmin
-      .from('rosters')
-      .insert({
-        league_id: leagueId,
+    // Upsert rankings
+    const { data: result, error } = await supabaseAdmin
+      .from('draft_rankings')
+      .upsert({
         user_id: userId,
-        castaway_id,
-        draft_round: currentRound,
-        draft_pick: totalPicks + 1,
+        season_id: season.id,
+        rankings,
+        submitted_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id,season_id',
       })
       .select()
       .single();
@@ -223,155 +210,18 @@ router.post('/:id/draft/pick', authenticate, async (req: AuthenticatedRequest, r
       return res.status(400).json({ error: error.message });
     }
 
-    // Check if draft is complete (all members have 2 picks)
-    const newTotalPicks = totalPicks + 1;
-    const isDraftComplete = newTotalPicks >= totalMembers * 2;
-
-    if (isDraftComplete) {
-      await supabaseAdmin
-        .from('leagues')
-        .update({
-          draft_status: 'completed',
-          draft_completed_at: new Date().toISOString(),
-          status: 'active',
-        })
-        .eq('id', leagueId);
-
-      // Send draft complete emails to all members (fire and forget)
-      (async () => {
-        try {
-          const { data: allMembers } = await supabaseAdmin
-            .from('league_members')
-            .select('user_id')
-            .eq('league_id', leagueId);
-
-          const { data: leagueDetails } = await supabaseAdmin
-            .from('leagues')
-            .select('name, seasons(premiere_at, draft_deadline)')
-            .eq('id', leagueId)
-            .single();
-
-          const { data: allRosters } = await supabaseAdmin
-            .from('rosters')
-            .select('user_id, castaways(name, tribe_original)')
-            .eq('league_id', leagueId);
-
-          const { data: episodes } = await supabaseAdmin
-            .from('episodes')
-            .select('picks_lock_at')
-            .eq('season_id', league.season_id)
-            .order('number', { ascending: true })
-            .limit(2);
-
-          const firstPickDue = episodes?.[1]?.picks_lock_at
-            ? new Date(episodes[1].picks_lock_at)
-            : new Date();
-
-          for (const member of allMembers || []) {
-            const { data: user } = await supabaseAdmin
-              .from('users')
-              .select('email, display_name')
-              .eq('id', member.user_id)
-              .single();
-
-            const memberRoster = allRosters?.filter((r) => r.user_id === member.user_id) || [];
-
-            if (user && leagueDetails) {
-              await EmailService.sendDraftComplete({
-                displayName: user.display_name,
-                email: user.email,
-                leagueName: leagueDetails.name,
-                leagueId,
-                castaways: memberRoster.map((r: any) => ({
-                  name: r.castaways?.name || 'Unknown',
-                  tribe: r.castaways?.tribe_original || 'Unknown',
-                })),
-                premiereDate: new Date((leagueDetails as any).seasons?.premiere_at),
-                firstPickDue,
-              });
-            }
-          }
-        } catch (emailErr) {
-          console.error('Failed to send draft complete emails:', emailErr);
-        }
-      })();
-    } else {
-      // Send draft pick confirmation email (fire and forget)
-      (async () => {
-        try {
-          const { data: user } = await supabaseAdmin
-            .from('users')
-            .select('email, display_name')
-            .eq('id', userId)
-            .single();
-
-          const { data: castawayDetails } = await supabaseAdmin
-            .from('castaways')
-            .select('name')
-            .eq('id', castaway_id)
-            .single();
-
-          const { data: leagueDetails } = await supabaseAdmin
-            .from('leagues')
-            .select('name')
-            .eq('id', leagueId)
-            .single();
-
-          if (user && castawayDetails && leagueDetails) {
-            await EmailService.sendDraftPickConfirmed({
-              displayName: user.display_name,
-              email: user.email,
-              castawayName: castawayDetails.name,
-              leagueName: leagueDetails.name,
-              leagueId,
-              round: currentRound,
-              pickNumber: totalPicks + 1,
-              totalRounds: 2,
-            });
-
-            await EmailService.logNotification(
-              userId,
-              'email',
-              `Draft pick: ${castawayDetails.name}`,
-              `Round ${currentRound} pick confirmed.`
-            );
-          }
-        } catch (emailErr) {
-          console.error('Failed to send draft pick confirmation email:', emailErr);
-        }
-      })();
-    }
-
-    // Calculate next pick
-    const nextPickNumber = newTotalPicks + 1;
-    const nextRound = Math.floor(newTotalPicks / totalMembers) + 1;
-    const nextPickInRound = newTotalPicks % totalMembers;
-
-    let nextPickerIndex: number;
-    if (nextRound % 2 === 1) {
-      nextPickerIndex = nextPickInRound;
-    } else {
-      nextPickerIndex = totalMembers - 1 - nextPickInRound;
-    }
-
-    const nextPickUserId = draftOrder[nextPickerIndex];
-
     res.json({
-      roster_entry: roster,
-      draft_complete: isDraftComplete,
-      next_pick: isDraftComplete ? null : {
-        pick_number: nextPickNumber,
-        round: nextRound,
-        user_id: nextPickUserId,
-      },
+      rankings: result.rankings,
+      submittedAt: result.submitted_at,
+      deadline: season.draft_deadline,
     });
   } catch (err) {
-    console.error('POST /api/leagues/:id/draft/pick error:', err);
-    res.status(500).json({ error: 'Failed to make draft pick' });
+    console.error('PUT /api/draft/rankings error:', err);
+    res.status(500).json({ error: 'Failed to save rankings' });
   }
 });
 
-// POST /api/leagues/:id/draft/set-order - Set or randomize draft order
+// POST /api/leagues/:id/draft/set-order - Set or randomize draft order (commissioner only)
 router.post('/:id/draft/set-order', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const leagueId = req.params.id;
@@ -472,20 +322,20 @@ router.post('/:id/draft/set-order', authenticate, async (req: AuthenticatedReque
   }
 });
 
-// POST /api/draft/finalize-all - Auto-complete all incomplete drafts (system/cron)
+// POST /api/draft/finalize-all - Process rankings and assign castaways (system/cron)
 router.post('/finalize-all', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    // Get all leagues with incomplete drafts past deadline
+    // Get all leagues with pending drafts past deadline
     const { data: leagues } = await supabaseAdmin
       .from('leagues')
       .select('*, seasons(*)')
-      .eq('draft_status', 'in_progress');
+      .in('draft_status', ['pending', 'in_progress']);
 
     if (!leagues || leagues.length === 0) {
-      return res.json({ finalized_leagues: 0, auto_picks: 0 });
+      return res.json({ finalized_leagues: 0, assignments: 0 });
     }
 
-    let totalAutoPicks = 0;
+    let totalAssignments = 0;
     const finalizedLeagues: string[] = [];
 
     for (const league of leagues) {
@@ -494,57 +344,100 @@ router.post('/finalize-all', requireAdmin, async (req: AuthenticatedRequest, res
 
       if (new Date() < deadline) continue;
 
-      // Get existing picks and members
-      const { data: picks } = await supabaseAdmin
-        .from('rosters')
-        .select('*')
-        .eq('league_id', league.id);
+      // Get members in draft order
+      const draftOrder = league.draft_order || [];
+      if (draftOrder.length === 0) continue;
 
-      const { data: members } = await supabaseAdmin
-        .from('league_members')
-        .select('user_id')
-        .eq('league_id', league.id);
+      const totalMembers = draftOrder.length;
 
-      // Get available castaways
+      // Get all rankings for this season
+      const { data: allRankings } = await supabaseAdmin
+        .from('draft_rankings')
+        .select('user_id, rankings')
+        .eq('season_id', league.season_id);
+
+      const rankingsMap = new Map<string, string[]>();
+      for (const r of allRankings || []) {
+        rankingsMap.set(r.user_id, r.rankings || []);
+      }
+
+      // Get all castaways
       const { data: castaways } = await supabaseAdmin
         .from('castaways')
-        .select('*')
+        .select('id')
         .eq('season_id', league.season_id)
         .eq('status', 'active');
 
-      const pickedIds = new Set(picks?.map((p) => p.castaway_id) || []);
-      const available = castaways?.filter((c) => !pickedIds.has(c.id)) || [];
+      const allCastawayIds = castaways?.map(c => c.id) || [];
+      const assignedCastaways = new Set<string>();
 
-      const totalMembers = members?.length || 0;
-      let currentPicks = picks?.length || 0;
-      const draftOrder = league.draft_order || [];
+      // Track assignments for this league
+      const assignments: Array<{
+        user_id: string;
+        castaway_id: string;
+        draft_round: number;
+        draft_pick: number;
+      }> = [];
 
-      // Auto-pick remaining
-      while (currentPicks < totalMembers * 2 && available.length > 0) {
-        const currentRound = Math.floor(currentPicks / totalMembers) + 1;
-        const pickInRound = currentPicks % totalMembers;
+      // Process 2 rounds in snake order
+      for (let round = 1; round <= 2; round++) {
+        // Snake: round 1 goes 1→N, round 2 goes N→1
+        const orderForRound = round % 2 === 1
+          ? draftOrder
+          : [...draftOrder].reverse();
 
-        let currentPickerIndex: number;
-        if (currentRound % 2 === 1) {
-          currentPickerIndex = pickInRound;
-        } else {
-          currentPickerIndex = totalMembers - 1 - pickInRound;
+        for (let i = 0; i < orderForRound.length; i++) {
+          const userId = orderForRound[i];
+          const userRankings = rankingsMap.get(userId) || [];
+
+          // Find first available castaway from user's rankings
+          let assignedCastawayId: string | null = null;
+
+          for (const castawayId of userRankings) {
+            if (!assignedCastaways.has(castawayId)) {
+              assignedCastawayId = castawayId;
+              break;
+            }
+          }
+
+          // If no ranked castaway available, pick first unassigned
+          if (!assignedCastawayId) {
+            for (const castawayId of allCastawayIds) {
+              if (!assignedCastaways.has(castawayId)) {
+                assignedCastawayId = castawayId;
+                break;
+              }
+            }
+          }
+
+          if (assignedCastawayId) {
+            assignedCastaways.add(assignedCastawayId);
+            const pickNumber = (round - 1) * totalMembers + i + 1;
+
+            assignments.push({
+              user_id: userId,
+              castaway_id: assignedCastawayId,
+              draft_round: round,
+              draft_pick: pickNumber,
+            });
+          }
         }
+      }
 
-        const pickerId = draftOrder[currentPickerIndex];
-        const castaway = available.shift()!;
+      // Insert all roster assignments
+      if (assignments.length > 0) {
+        await supabaseAdmin.from('rosters').insert(
+          assignments.map(a => ({
+            league_id: league.id,
+            user_id: a.user_id,
+            castaway_id: a.castaway_id,
+            draft_round: a.draft_round,
+            draft_pick: a.draft_pick,
+            acquired_via: 'draft',
+          }))
+        );
 
-        await supabaseAdmin.from('rosters').insert({
-          league_id: league.id,
-          user_id: pickerId,
-          castaway_id: castaway.id,
-          draft_round: currentRound,
-          draft_pick: currentPicks + 1,
-          acquired_via: 'auto_draft',
-        });
-
-        currentPicks++;
-        totalAutoPicks++;
+        totalAssignments += assignments.length;
       }
 
       // Mark draft complete
@@ -558,11 +451,70 @@ router.post('/finalize-all', requireAdmin, async (req: AuthenticatedRequest, res
         .eq('id', league.id);
 
       finalizedLeagues.push(league.id);
+
+      // Send draft complete emails (fire and forget)
+      (async () => {
+        try {
+          const { data: members } = await supabaseAdmin
+            .from('league_members')
+            .select('user_id')
+            .eq('league_id', league.id);
+
+          const { data: leagueDetails } = await supabaseAdmin
+            .from('leagues')
+            .select('name, seasons(premiere_at)')
+            .eq('id', league.id)
+            .single();
+
+          const { data: allRosters } = await supabaseAdmin
+            .from('rosters')
+            .select('user_id, castaways(name, tribe_original)')
+            .eq('league_id', league.id);
+
+          const { data: episodes } = await supabaseAdmin
+            .from('episodes')
+            .select('picks_lock_at')
+            .eq('season_id', league.season_id)
+            .order('number', { ascending: true })
+            .limit(2);
+
+          const firstPickDue = episodes?.[1]?.picks_lock_at
+            ? new Date(episodes[1].picks_lock_at)
+            : new Date();
+
+          for (const member of members || []) {
+            const { data: user } = await supabaseAdmin
+              .from('users')
+              .select('email, display_name')
+              .eq('id', member.user_id)
+              .single();
+
+            const memberRoster = allRosters?.filter((r) => r.user_id === member.user_id) || [];
+
+            if (user && leagueDetails) {
+              await EmailService.sendDraftComplete({
+                displayName: user.display_name,
+                email: user.email,
+                leagueName: leagueDetails.name,
+                leagueId: league.id,
+                castaways: memberRoster.map((r: any) => ({
+                  name: r.castaways?.name || 'Unknown',
+                  tribe: r.castaways?.tribe_original || 'Unknown',
+                })),
+                premiereDate: new Date((leagueDetails as any).seasons?.premiere_at),
+                firstPickDue,
+              });
+            }
+          }
+        } catch (emailErr) {
+          console.error('Failed to send draft complete emails:', emailErr);
+        }
+      })();
     }
 
     res.json({
       finalized_leagues: finalizedLeagues.length,
-      auto_picks: totalAutoPicks,
+      assignments: totalAssignments,
     });
   } catch (err) {
     console.error('POST /api/draft/finalize-all error:', err);

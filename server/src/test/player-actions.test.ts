@@ -453,50 +453,98 @@ describe('Category 3: Draft Actions', () => {
     });
   });
 
-  describe('3.2 POST /api/leagues/:id/draft/pick - Make Draft Pick', () => {
-    it('should add castaway to user roster', async () => {
-      const rosterChain = mockSupabaseChain();
-      rosterChain.data = {
-        league_id: TEST_LEAGUE.id,
+  describe('3.2 PUT /api/draft/rankings - Submit Draft Rankings', () => {
+    it('should save user rankings', async () => {
+      const rankings = ['castaway-1', 'castaway-2', 'castaway-3'];
+      const rankingsChain = mockSupabaseChain();
+      rankingsChain.data = {
         user_id: TEST_USER.id,
-        castaway_id: TEST_CASTAWAY.id,
-        draft_round: 1,
-        draft_pick: 3,
+        season_id: TEST_SEASON.id,
+        rankings,
+        submitted_at: new Date().toISOString(),
       };
-      mockSupabaseAdmin.from.mockReturnValueOnce(rosterChain);
+      mockSupabaseAdmin.from.mockReturnValueOnce(rankingsChain);
 
-      expect(rosterChain.data.castaway_id).toBe('castaway-1');
-      expect(rosterChain.data.draft_round).toBe(1);
+      expect(rankingsChain.data.rankings).toEqual(rankings);
+      expect(rankingsChain.data.user_id).toBe(TEST_USER.id);
     });
 
-    it('should reject pick if not users turn', () => {
-      const currentTurn = 'user-456' as string;
-      const requestingUser = 'user-123' as string;
-      const isMyTurn = currentTurn === requestingUser;
-      expect(isMyTurn).toBe(false);
+    it('should reject duplicate castaway IDs in rankings', () => {
+      const rankings = ['castaway-1', 'castaway-2', 'castaway-1'];
+      const rankingsSet = new Set(rankings);
+      const hasDuplicates = rankingsSet.size !== rankings.length;
+      expect(hasDuplicates).toBe(true);
     });
 
-    it('should reject already-picked castaway', () => {
-      const pickedCastaways = ['castaway-1', 'castaway-2'];
-      const attemptedPick = 'castaway-1';
-      const isAvailable = !pickedCastaways.includes(attemptedPick);
-      expect(isAvailable).toBe(false);
+    it('should reject invalid castaway IDs', () => {
+      const validIds = new Set(['castaway-1', 'castaway-2', 'castaway-3']);
+      const rankings = ['castaway-1', 'invalid-id'];
+      const invalidIds = rankings.filter(id => !validIds.has(id));
+      expect(invalidIds.length).toBeGreaterThan(0);
     });
 
-    it('should reject if user already has 2 picks', () => {
-      const userPickCount = 2;
-      const maxPicks = 2;
-      const canPick = userPickCount < maxPicks;
-      expect(canPick).toBe(false);
+    it('should reject if deadline passed', () => {
+      const deadline = new Date('2024-01-01');
+      const now = new Date('2024-01-02');
+      const isPastDeadline = now >= deadline;
+      expect(isPastDeadline).toBe(true);
     });
+  });
 
-    it('should complete draft when all picks made', () => {
-      const totalPlayers = 4;
-      const picksPerPlayer = 2;
-      const totalPicks = totalPlayers * picksPerPlayer;
-      const currentPick = 8;
-      const draftComplete = currentPick >= totalPicks;
-      expect(draftComplete).toBe(true);
+  describe('3.2.1 Draft Finalization - Snake Order Assignment', () => {
+    it('should assign castaways in snake order from rankings', () => {
+      const draftOrder = ['u1', 'u2', 'u3', 'u4'];
+      // 8 castaways for 4 players × 2 picks each
+      const allCastaways = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'];
+      const rankings = new Map([
+        ['u1', ['c1', 'c5', 'c6', 'c7', 'c8']],
+        ['u2', ['c1', 'c2', 'c6', 'c7', 'c8']],
+        ['u3', ['c2', 'c3', 'c7', 'c8', 'c1']],
+        ['u4', ['c3', 'c4', 'c8', 'c1', 'c2']],
+      ]);
+
+      const assigned = new Set<string>();
+      const assignments: Array<{ user: string; castaway: string; round: number }> = [];
+
+      // Round 1: 1→4
+      for (const userId of draftOrder) {
+        const userRankings = rankings.get(userId) || [];
+        for (const castawayId of userRankings) {
+          if (!assigned.has(castawayId)) {
+            assigned.add(castawayId);
+            assignments.push({ user: userId, castaway: castawayId, round: 1 });
+            break;
+          }
+        }
+      }
+
+      // Round 2: 4→1 (snake)
+      for (const userId of [...draftOrder].reverse()) {
+        const userRankings = rankings.get(userId) || [];
+        for (const castawayId of userRankings) {
+          if (!assigned.has(castawayId)) {
+            assigned.add(castawayId);
+            assignments.push({ user: userId, castaway: castawayId, round: 2 });
+            break;
+          }
+        }
+      }
+
+      // Verify we have 8 assignments (4 players × 2 rounds)
+      expect(assignments.length).toBe(8);
+
+      // Verify round 1 assignments (forward order)
+      expect(assignments[0]).toEqual({ user: 'u1', castaway: 'c1', round: 1 });
+      expect(assignments[1]).toEqual({ user: 'u2', castaway: 'c2', round: 1 }); // c1 taken
+      expect(assignments[2]).toEqual({ user: 'u3', castaway: 'c3', round: 1 }); // c2 taken
+      expect(assignments[3]).toEqual({ user: 'u4', castaway: 'c4', round: 1 }); // c3 taken
+
+      // Verify round 2 is in snake (reversed) order: u4, u3, u2, u1
+      expect(assignments[4].user).toBe('u4');
+      expect(assignments[4].round).toBe(2);
+      expect(assignments[5].user).toBe('u3');
+      expect(assignments[6].user).toBe('u2');
+      expect(assignments[7].user).toBe('u1');
     });
   });
 
