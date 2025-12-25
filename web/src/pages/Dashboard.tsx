@@ -32,6 +32,7 @@ interface Season {
   is_active: boolean;
   premiere_at: string;
   registration_opens_at: string;
+  draft_deadline: string;
 }
 
 interface League {
@@ -100,6 +101,11 @@ function getCountdownText(targetDate: Date): string {
   if (days > 0) return `${days}d ${hours}h`;
   if (hours > 0) return `${hours}h ${minutes}m`;
   return `${minutes}m`;
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export function Dashboard() {
@@ -204,6 +210,20 @@ export function Dashboard() {
     enabled: !!activeSeason?.id,
   });
 
+  // Fetch castaway count for the active season
+  const { data: castawayCount } = useQuery({
+    queryKey: ['castaway-count', activeSeason?.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('castaways')
+        .select('*', { count: 'exact', head: true })
+        .eq('season_id', activeSeason!.id);
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!activeSeason?.id,
+  });
+
   // Group rosters by league
   const rostersByLeague = myRosters?.reduce((acc, roster) => {
     if (!acc[roster.league_id]) acc[roster.league_id] = [];
@@ -291,7 +311,9 @@ export function Dashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-xl">View Final Standings</h3>
-                <p className="text-burgundy-100 text-sm mt-1">Season 50 results are in!</p>
+                <p className="text-burgundy-100 text-sm mt-1">
+                  {activeSeason ? `Season ${activeSeason.number} results are in!` : 'Results are in!'}
+                </p>
               </div>
               <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -318,7 +340,7 @@ export function Dashboard() {
           <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-orange-500 transition-colors">
             <Flame className="h-6 w-6 text-orange-500 group-hover:text-white transition-colors" />
           </div>
-          <h3 className="font-bold text-neutral-800">24 Castaways</h3>
+          <h3 className="font-bold text-neutral-800">{castawayCount || 24} Castaways</h3>
           <p className="text-neutral-500 text-sm mt-1">Meet the players</p>
         </Link>
       </div>
@@ -492,32 +514,34 @@ export function Dashboard() {
         {/* Right Sidebar */}
         <div className="space-y-6">
           {/* Season Info */}
-          <div className="bg-white rounded-2xl p-6 border border-cream-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-burgundy-100 rounded-xl flex items-center justify-center">
-                <Play className="h-5 w-5 text-burgundy-500" />
+          {activeSeason && (
+            <div className="bg-white rounded-2xl p-6 border border-cream-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-burgundy-100 rounded-xl flex items-center justify-center">
+                  <Play className="h-5 w-5 text-burgundy-500" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-neutral-800">Season {activeSeason.number}</h3>
+                  <p className="text-sm text-neutral-400">{activeSeason.name}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-neutral-800">Season 50</h3>
-                <p className="text-sm text-neutral-400">In the Hands of the Fans</p>
-              </div>
-            </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-neutral-500">Registration Opens</span>
-                <span className="text-burgundy-500 font-semibold">Dec 19, 2025</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-neutral-500">Premiere</span>
-                <span className="text-neutral-800 font-semibold">Feb 25, 2026</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-neutral-500">Draft Deadline</span>
-                <span className="text-neutral-800 font-semibold">Mar 2, 2026</span>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-neutral-500">Registration Opens</span>
+                  <span className="text-burgundy-500 font-semibold">{formatDate(activeSeason.registration_opens_at)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-neutral-500">Premiere</span>
+                  <span className="text-neutral-800 font-semibold">{formatDate(activeSeason.premiere_at)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-neutral-500">Draft Deadline</span>
+                  <span className="text-neutral-800 font-semibold">{formatDate(activeSeason.draft_deadline)}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Weekly Timeline */}
           <div className="bg-white rounded-2xl p-6 border border-cream-200">
