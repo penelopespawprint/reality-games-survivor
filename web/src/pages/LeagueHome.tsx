@@ -26,6 +26,7 @@ import { supabase } from '../lib/supabase';
 import { Navigation } from '@/components/Navigation';
 import { TribalCouncil } from '@/components/tribal-chat';
 import { useAuth } from '@/lib/auth';
+import { QueryError } from '@/components/ErrorBoundary';
 
 type Tab = 'overview' | 'players' | 'standings' | 'chat';
 
@@ -36,7 +37,7 @@ export default function LeagueHome() {
   const [copied, setCopied] = useState(false);
 
   // Fetch league details
-  const { data: league, isLoading: leagueLoading } = useQuery({
+  const { data: league, isLoading: leagueLoading, error: leagueError, refetch: refetchLeague } = useQuery({
     queryKey: ['league', id],
     queryFn: async () => {
       if (!id) throw new Error('No league ID');
@@ -160,6 +161,20 @@ export default function LeagueHome() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
         <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (leagueError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4">
+        <Navigation />
+        <div className="max-w-lg mx-auto mt-8">
+          <QueryError
+            error={leagueError as Error}
+            resetErrorBoundary={() => refetchLeague()}
+          />
+        </div>
       </div>
     );
   }

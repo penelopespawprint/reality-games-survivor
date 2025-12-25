@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './lib/auth';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Pages
 import { Home } from './pages/Home';
@@ -54,9 +55,10 @@ import { AdminScoringGrid } from './pages/admin/AdminScoringGrid';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Analytics />
-      <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Analytics />
+        <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -120,6 +122,7 @@ export default function App() {
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </AuthProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

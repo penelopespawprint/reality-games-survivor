@@ -16,6 +16,7 @@ import webhookRoutes from './routes/webhooks.js';
 
 // Middleware
 import { generalLimiter, authLimiter, adminLimiter, webhookLimiter, smsLimiter } from './middleware/rateLimit.js';
+import { originBasedCsrfProtection } from './middleware/csrf.js';
 
 // Jobs scheduler
 import { startScheduler } from './jobs/index.js';
@@ -55,6 +56,19 @@ app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 
 // JSON parsing for all other routes
 app.use(express.json());
+
+// CSRF protection - validate Origin/Referer for state-changing requests
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,
+  process.env.FRONTEND_URL,
+  'https://survivor.realitygames.app', // Production domain
+].filter((origin): origin is string => Boolean(origin));
+
+if (process.env.NODE_ENV === 'development') {
+  allowedOrigins.push('http://localhost:5173', 'http://localhost:3000');
+}
+
+app.use(originBasedCsrfProtection(allowedOrigins));
 
 // Health check
 app.get('/health', (req, res) => {

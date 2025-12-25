@@ -1,4 +1,4 @@
-import { randomInt } from 'crypto';
+import { randomInt, randomBytes } from 'crypto';
 
 /**
  * Cryptographically secure Fisher-Yates shuffle
@@ -30,4 +30,22 @@ export function secureRandomElement<T>(array: T[]): T {
  */
 export function secureRandomInt(min: number, max: number): number {
   return randomInt(min, max);
+}
+
+/**
+ * Generate a cryptographically secure numeric code (for verification, etc.)
+ */
+export function generateSecureCode(length: number = 6): string {
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += randomInt(0, 10).toString();
+  }
+  return code;
+}
+
+/**
+ * Generate a cryptographically secure hex token
+ */
+export function generateSecureToken(bytes: number = 32): string {
+  return randomBytes(bytes).toString('hex');
 }

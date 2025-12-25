@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Flame, Users, Trophy, Calendar, ChevronRight, Megaphone, Clock, UserPlus } from 'lucide-react';
+import { QueryError, LoadingSkeleton } from '@/components/ErrorBoundary';
 
 interface UserProfile {
   id: string;
@@ -50,7 +51,7 @@ interface RosterEntry {
 export function Dashboard() {
   const { user } = useAuth();
 
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -78,7 +79,7 @@ export function Dashboard() {
   });
 
   // Fetch leagues with membership details
-  const { data: myLeagues } = useQuery({
+  const { data: myLeagues, isLoading: leaguesLoading, error: leaguesError, refetch: refetchLeagues } = useQuery({
     queryKey: ['my-leagues-detailed', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -130,6 +131,15 @@ export function Dashboard() {
     },
     enabled: !!user?.id,
   });
+
+  // Show loading skeleton while initial data loads
+  if (profileLoading || leaguesLoading) {
+    return (
+      <div className="pb-8">
+        <LoadingSkeleton type="page" count={3} />
+      </div>
+    );
+  }
 
   // Group rosters by league
   const rostersByLeague = myRosters?.reduce((acc, roster) => {
@@ -240,7 +250,12 @@ export function Dashboard() {
               </Link>
             </div>
 
-            {nonGlobalLeagues.length > 0 ? (
+            {leaguesError ? (
+              <QueryError
+                error={leaguesError as Error}
+                resetErrorBoundary={() => refetchLeagues()}
+              />
+            ) : nonGlobalLeagues.length > 0 ? (
               <div className="space-y-4">
                 {nonGlobalLeagues.map((membership) => {
                   const leagueRosters = rostersByLeague[membership.league_id] || [];
