@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
+import { Loader2, CheckCircle, AlertCircle, Lock, Clock, ArrowLeft } from 'lucide-react';
 
 interface Castaway {
   id: string;
@@ -45,32 +46,14 @@ interface League {
   season_id: string;
 }
 
-interface UserProfile {
-  id: string;
-  display_name: string;
-}
-
 export function WeeklyPick() {
   const { leagueId } = useParams<{ leagueId: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedCastaway, setSelectedCastaway] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
-
-  // Fetch user profile
-  const { data: profile } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, display_name')
-        .eq('id', user!.id)
-        .single();
-      if (error) throw error;
-      return data as UserProfile;
-    },
-    enabled: !!user?.id,
-  });
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   // Fetch league
   const { data: league } = useQuery({
@@ -198,10 +181,18 @@ export function WeeklyPick() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentPick', leagueId, currentEpisode?.id, user?.id] });
+      setShowSuccess(true);
+      setMutationError(null);
+      // Auto-dismiss success after 3 seconds
+      setTimeout(() => setShowSuccess(false), 3000);
+    },
+    onError: (error: Error) => {
+      setMutationError(error.message || 'Failed to save pick. Please try again.');
+      setShowSuccess(false);
     },
   });
 
-  // Calculate countdown
+  // Calculate countdown - update every second for urgency
   useEffect(() => {
     if (!currentEpisode?.picks_lock_at) return;
 
@@ -213,12 +204,13 @@ export function WeeklyPick() {
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-      setTimeLeft({ days, hours, minutes });
+      setTimeLeft({ days, hours, minutes, seconds });
     };
 
     calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 60000);
+    const interval = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(interval);
   }, [currentEpisode?.picks_lock_at]);
 
@@ -231,12 +223,28 @@ export function WeeklyPick() {
 
   const handleSubmitPick = () => {
     if (!selectedCastaway) return;
+    setMutationError(null);
     submitPickMutation.mutate(selectedCastaway);
   };
 
   const pickSubmitted = !!currentPick?.castaway_id;
-  const isLocked = currentPick?.status === 'locked';
+  // Check both status AND if time has expired
+  const timeExpired = currentEpisode?.picks_lock_at && new Date(currentEpisode.picks_lock_at) <= new Date();
+  const isLocked = currentPick?.status === 'locked' || timeExpired;
   const activeCastaways = roster?.filter(r => r.castaways?.status === 'active') || [];
+  const isLoading = !league;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
+        <Navigation />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
@@ -248,12 +256,10 @@ export function WeeklyPick() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Link
-                to="/dashboard"
+                to={`/leagues/${leagueId}`}
                 className="text-neutral-400 hover:text-neutral-600 transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+                <ArrowLeft className="w-5 h-5" />
               </Link>
               <h1 className="text-2xl font-display text-neutral-800">
                 Weekly Pick
@@ -268,74 +274,100 @@ export function WeeklyPick() {
         {!currentEpisode ? (
           <div className="bg-white rounded-2xl shadow-elevated p-12 text-center animate-slide-up">
             <div className="w-20 h-20 mx-auto mb-6 bg-cream-100 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <Clock className="w-10 h-10 text-neutral-400" />
             </div>
             <h2 className="text-2xl font-display text-neutral-800 mb-3">No Episode Scheduled</h2>
             <p className="text-neutral-500 mb-8">
               There are no upcoming episodes with open picks. Check back later!
             </p>
-            <Link to="/dashboard" className="btn btn-primary shadow-card">
-              Back to Dashboard
+            <Link to={`/leagues/${leagueId}`} className="btn btn-primary shadow-card">
+              Back to League
             </Link>
           </div>
         ) : isLocked ? (
           <div className="bg-white rounded-2xl shadow-elevated p-12 text-center animate-slide-up">
             <div className="w-20 h-20 mx-auto mb-6 bg-burgundy-100 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-burgundy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+              <Lock className="w-10 h-10 text-burgundy-600" />
             </div>
             <h2 className="text-2xl font-display text-neutral-800 mb-3">Picks Locked</h2>
             <p className="text-neutral-500 mb-2">
               Your pick for Episode {currentEpisode.number} is locked.
             </p>
-            <p className="text-lg font-semibold text-burgundy-600 mb-8">
-              {roster?.find(r => r.castaway_id === currentPick?.castaway_id)?.castaways?.name || 'Unknown'}
-            </p>
-            <Link to="/dashboard" className="btn btn-primary shadow-card">
-              Back to Dashboard
+            {currentPick?.castaway_id ? (
+              <p className="text-lg font-semibold text-burgundy-600 mb-8">
+                {roster?.find(r => r.castaway_id === currentPick?.castaway_id)?.castaways?.name || 'Unknown'}
+              </p>
+            ) : (
+              <p className="text-lg font-semibold text-orange-600 mb-8">
+                No pick submitted - auto-pick will be applied
+              </p>
+            )}
+            <Link to={`/leagues/${leagueId}`} className="btn btn-primary shadow-card">
+              Back to League
             </Link>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Countdown Banner */}
-            <div className="bg-gradient-to-r from-burgundy-500 to-burgundy-600 rounded-2xl p-6 text-white shadow-elevated animate-slide-up">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-burgundy-100 text-sm font-medium">Picks Lock In</p>
-                  <div className="flex items-baseline gap-3 mt-2">
-                    <div className="text-center">
-                      <span className="text-4xl font-display">{timeLeft.days}</span>
-                      <p className="text-xs text-burgundy-200 mt-1">days</p>
+            {(() => {
+              const isUrgent = timeLeft.days === 0 && timeLeft.hours < 2;
+              return (
+                <div className={`rounded-2xl p-6 text-white shadow-elevated animate-slide-up ${
+                  isUrgent
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500'
+                    : 'bg-gradient-to-r from-burgundy-500 to-burgundy-600'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-sm font-medium ${isUrgent ? 'text-orange-100' : 'text-burgundy-100'}`}>
+                        {isUrgent ? 'HURRY! Picks Lock In' : 'Picks Lock In'}
+                      </p>
+                      <div className="flex items-baseline gap-2 sm:gap-3 mt-2">
+                        {timeLeft.days > 0 && (
+                          <>
+                            <div className="text-center">
+                              <span className="text-3xl sm:text-4xl font-display">{timeLeft.days}</span>
+                              <p className="text-xs text-burgundy-200 mt-1">days</p>
+                            </div>
+                            <span className="text-xl sm:text-2xl text-burgundy-200">:</span>
+                          </>
+                        )}
+                        <div className="text-center">
+                          <span className="text-3xl sm:text-4xl font-display">{timeLeft.hours}</span>
+                          <p className="text-xs text-burgundy-200 mt-1">hours</p>
+                        </div>
+                        <span className="text-xl sm:text-2xl text-burgundy-200">:</span>
+                        <div className="text-center">
+                          <span className="text-3xl sm:text-4xl font-display">{timeLeft.minutes}</span>
+                          <p className="text-xs text-burgundy-200 mt-1">min</p>
+                        </div>
+                        {isUrgent && (
+                          <>
+                            <span className="text-xl sm:text-2xl text-burgundy-200">:</span>
+                            <div className="text-center">
+                              <span className="text-3xl sm:text-4xl font-display">{timeLeft.seconds}</span>
+                              <p className="text-xs text-burgundy-200 mt-1">sec</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-2xl text-burgundy-200">:</span>
-                    <div className="text-center">
-                      <span className="text-4xl font-display">{timeLeft.hours}</span>
-                      <p className="text-xs text-burgundy-200 mt-1">hours</p>
-                    </div>
-                    <span className="text-2xl text-burgundy-200">:</span>
-                    <div className="text-center">
-                      <span className="text-4xl font-display">{timeLeft.minutes}</span>
-                      <p className="text-xs text-burgundy-200 mt-1">min</p>
+                    <div className="text-right">
+                      <p className={`text-sm ${isUrgent ? 'text-orange-100' : 'text-burgundy-100'}`}>Episode airs</p>
+                      <p className="font-semibold text-lg">
+                        {new Date(currentEpisode.air_date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </p>
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-burgundy-100">Episode airs</p>
-                  <p className="font-semibold text-lg">
-                    {new Date(currentEpisode.air_date).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Pick Selection */}
             <div className="bg-white rounded-2xl shadow-elevated overflow-hidden animate-slide-up" style={{ animationDelay: '0.1s' }}>
@@ -416,6 +448,28 @@ export function WeeklyPick() {
 
               {/* Submit */}
               <div className="p-6 border-t border-cream-100 bg-cream-50/50">
+                {/* Success Message */}
+                {showSuccess && (
+                  <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-green-800">Pick Saved!</p>
+                      <p className="text-sm text-green-600">You can change it until picks lock.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error Message */}
+                {mutationError && (
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+                    <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-red-800">Failed to Save</p>
+                      <p className="text-sm text-red-600">{mutationError}</p>
+                    </div>
+                  </div>
+                )}
+
                 <button
                   onClick={handleSubmitPick}
                   disabled={!selectedCastaway || submitPickMutation.isPending}
@@ -425,18 +479,22 @@ export function WeeklyPick() {
                       : 'bg-cream-200 text-neutral-400 cursor-not-allowed'
                   }`}
                 >
-                  {submitPickMutation.isPending
-                    ? 'Saving...'
-                    : pickSubmitted
-                    ? 'Update Pick'
-                    : selectedCastaway
-                    ? 'Confirm Pick'
-                    : 'Select a Castaway'
-                  }
+                  {submitPickMutation.isPending ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Saving...
+                    </span>
+                  ) : pickSubmitted ? (
+                    'Update Pick'
+                  ) : selectedCastaway ? (
+                    'Confirm Pick'
+                  ) : (
+                    'Select a Castaway'
+                  )}
                 </button>
-                {pickSubmitted && (
-                  <p className="text-center text-sm text-green-600 mt-3">
-                    Pick saved! You can change it until picks lock.
+                {pickSubmitted && !showSuccess && (
+                  <p className="text-center text-sm text-neutral-500 mt-3">
+                    Current pick: <span className="font-medium text-neutral-700">{roster?.find(r => r.castaway_id === currentPick?.castaway_id)?.castaways?.name}</span>
                   </p>
                 )}
               </div>

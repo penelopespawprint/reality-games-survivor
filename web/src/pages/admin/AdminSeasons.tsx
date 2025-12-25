@@ -70,11 +70,12 @@ export function AdminSeasons() {
   // Activate season mutation
   const activateSeason = useMutation({
     mutationFn: async (seasonId: string) => {
-      // Deactivate all seasons first
-      await supabase
+      // Deactivate all other seasons first
+      const { error: deactivateError } = await supabase
         .from('seasons')
         .update({ is_active: false })
-        .neq('id', 'placeholder');
+        .neq('id', seasonId);
+      if (deactivateError) throw deactivateError;
 
       // Activate the selected season
       const { error } = await supabase
