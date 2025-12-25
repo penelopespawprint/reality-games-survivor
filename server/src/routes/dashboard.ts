@@ -6,6 +6,20 @@ const router = Router();
 
 type Phase = 'picks_locked' | 'awaiting_results' | 'results_posted' | 'make_pick' | 'pre_season' | 'draft';
 
+interface Episode {
+  id: string;
+  season_id: string;
+  number: number;
+  title: string | null;
+  air_date: string;
+  picks_lock_at: string;
+  results_posted_at: string | null;
+  is_finale: boolean;
+  is_scored: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 interface DashboardResponse {
   phase: Phase;
   primaryCta: {
@@ -35,7 +49,7 @@ interface DashboardResponse {
   alerts: Array<{ type: string; message: string }>;
 }
 
-function getCurrentPhase(now: Date, episode: any): Phase {
+function getCurrentPhase(now: Date, episode: Episode | null): Phase {
   if (!episode) return 'pre_season';
 
   const picksLockAt = new Date(episode.picks_lock_at);
@@ -83,7 +97,7 @@ router.get('/dashboard', authenticate, async (req: AuthenticatedRequest, res: Re
       .order('air_date', { ascending: true })
       .limit(1);
 
-    const currentEpisode = episodes?.[0] || null;
+    const currentEpisode: Episode | null = episodes?.[0] || null;
     const phase = getCurrentPhase(now, currentEpisode);
 
     // Get user's league membership

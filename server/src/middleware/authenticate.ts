@@ -31,16 +31,22 @@ export async function authenticate(
     }
 
     // Get user role from public.users table
-    const { data: userData } = await supabase
+    const { data: userData, error: userError } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single();
 
+    // User must have a profile record - fail if missing
+    if (userError || !userData) {
+      console.error('User profile not found for authenticated user:', user.id);
+      return res.status(401).json({ error: 'User profile not found' });
+    }
+
     req.user = {
       id: user.id,
       email: user.email!,
-      role: userData?.role || 'player',
+      role: userData.role,
     };
     req.accessToken = token;
 

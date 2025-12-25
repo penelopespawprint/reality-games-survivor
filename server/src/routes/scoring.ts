@@ -232,63 +232,109 @@ router.post('/:id/scoring/finalize', requireAdmin, async (req: AuthenticatedRequ
         (castawayTotals[score.castaway_id] || 0) + score.points;
     }
 
-    // Update weekly picks with points earned
+    // Update weekly picks with points earned - bulk operation
     const { data: picks } = await supabaseAdmin
       .from('weekly_picks')
       .select('id, castaway_id')
       .eq('episode_id', episodeId);
 
+    // Batch update picks by points value to reduce queries
+    const picksByPoints = new Map<number, string[]>();
     for (const pick of picks || []) {
-      const pointsEarned = castawayTotals[pick.castaway_id] || 0;
-      await supabaseAdmin
-        .from('weekly_picks')
-        .update({ points_earned: pointsEarned })
-        .eq('id', pick.id);
+      const points = castawayTotals[pick.castaway_id] || 0;
+      if (!picksByPoints.has(points)) picksByPoints.set(points, []);
+      picksByPoints.get(points)!.push(pick.id);
     }
 
-    // Update league member totals
+    // Update all picks with same points in one query each
+    await Promise.all(
+      Array.from(picksByPoints.entries()).map(([points, pickIds]) =>
+        supabaseAdmin
+          .from('weekly_picks')
+          .update({ points_earned: points })
+          .in('id', pickIds)
+      )
+    );
+
+    // Get all active leagues for this season
     const { data: leagues } = await supabaseAdmin
       .from('leagues')
       .select('id')
       .eq('season_id', episode.season_id)
       .eq('status', 'active');
 
-    for (const league of leagues || []) {
-      const { data: members } = await supabaseAdmin
-        .from('league_members')
-        .select('user_id')
-        .eq('league_id', league.id);
+    if (leagues && leagues.length > 0) {
+      const leagueIds = leagues.map((l) => l.id);
 
-      for (const member of members || []) {
-        // Sum all points earned
-        const { data: userPicks } = await supabaseAdmin
+      // Bulk fetch all members and picks for all leagues at once
+      const [membersResult, allPicksResult] = await Promise.all([
+        supabaseAdmin
+          .from('league_members')
+          .select('id, league_id, user_id')
+          .in('league_id', leagueIds),
+        supabaseAdmin
           .from('weekly_picks')
-          .select('points_earned')
-          .eq('league_id', league.id)
-          .eq('user_id', member.user_id);
+          .select('league_id, user_id, points_earned')
+          .in('league_id', leagueIds),
+      ]);
 
-        const totalPoints = userPicks?.reduce((sum, p) => sum + (p.points_earned || 0), 0) || 0;
+      const allMembers = membersResult.data || [];
+      const allPicks = allPicksResult.data || [];
 
-        await supabaseAdmin
-          .from('league_members')
-          .update({ total_points: totalPoints })
-          .eq('league_id', league.id)
-          .eq('user_id', member.user_id);
+      // Calculate total points per user per league in memory
+      const userPointsMap = new Map<string, number>(); // "leagueId:userId" -> totalPoints
+      for (const pick of allPicks) {
+        const key = `${pick.league_id}:${pick.user_id}`;
+        userPointsMap.set(key, (userPointsMap.get(key) || 0) + (pick.points_earned || 0));
       }
 
-      // Update ranks
-      const { data: rankedMembers } = await supabaseAdmin
-        .from('league_members')
-        .select('id, total_points')
-        .eq('league_id', league.id)
-        .order('total_points', { ascending: false });
+      // Batch update member total_points
+      const memberUpdates = allMembers.map((member) => {
+        const key = `${member.league_id}:${member.user_id}`;
+        return {
+          id: member.id,
+          league_id: member.league_id,
+          total_points: userPointsMap.get(key) || 0,
+        };
+      });
 
-      for (let i = 0; i < (rankedMembers?.length || 0); i++) {
-        await supabaseAdmin
-          .from('league_members')
-          .update({ rank: i + 1 })
-          .eq('id', rankedMembers![i].id);
+      // Update total_points for all members
+      await Promise.all(
+        memberUpdates.map((update) =>
+          supabaseAdmin
+            .from('league_members')
+            .update({ total_points: update.total_points })
+            .eq('id', update.id)
+        )
+      );
+
+      // Calculate and update ranks per league
+      const membersByLeague = new Map<string, typeof memberUpdates>();
+      for (const member of memberUpdates) {
+        if (!membersByLeague.has(member.league_id)) {
+          membersByLeague.set(member.league_id, []);
+        }
+        membersByLeague.get(member.league_id)!.push(member);
       }
+
+      // Sort and assign ranks, then batch update
+      const rankUpdates: Array<{ id: string; rank: number }> = [];
+      for (const [, members] of membersByLeague) {
+        members.sort((a, b) => b.total_points - a.total_points);
+        members.forEach((member, idx) => {
+          rankUpdates.push({ id: member.id, rank: idx + 1 });
+        });
+      }
+
+      // Update ranks in parallel
+      await Promise.all(
+        rankUpdates.map((update) =>
+          supabaseAdmin
+            .from('league_members')
+            .update({ rank: update.rank })
+            .eq('id', update.id)
+        )
+      );
     }
 
     // Check for eliminated castaways (those with elimination rule)

@@ -470,8 +470,8 @@ describe('Category 3: Draft Actions', () => {
     });
 
     it('should reject pick if not users turn', () => {
-      const currentTurn = 'user-456';
-      const requestingUser = 'user-123';
+      const currentTurn = 'user-456' as string;
+      const requestingUser = 'user-123' as string;
       const isMyTurn = currentTurn === requestingUser;
       expect(isMyTurn).toBe(false);
     });

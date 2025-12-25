@@ -260,7 +260,7 @@ router.post('/auto-fill', requireAdmin, async (req: AuthenticatedRequest, res: R
     // Find episodes past lock time
     const { data: episodes } = await supabaseAdmin
       .from('episodes')
-      .select('id, season_id')
+      .select('id, season_id, number')
       .lte('picks_lock_at', now.toISOString())
       .eq('is_scored', false);
 
@@ -268,54 +268,118 @@ router.post('/auto-fill', requireAdmin, async (req: AuthenticatedRequest, res: R
       return res.json({ auto_picked: 0, users: [] });
     }
 
+    const seasonIds = [...new Set(episodes.map((e) => e.season_id))];
+    const episodeIds = episodes.map((e) => e.id);
+
+    // Bulk fetch all data in parallel
+    const [leaguesResult, existingPicksResult] = await Promise.all([
+      supabaseAdmin
+        .from('leagues')
+        .select('id, season_id')
+        .in('season_id', seasonIds)
+        .eq('status', 'active'),
+      supabaseAdmin
+        .from('weekly_picks')
+        .select('user_id, league_id, episode_id')
+        .in('episode_id', episodeIds),
+    ]);
+
+    const leagues = leaguesResult.data || [];
+    const existingPicks = existingPicksResult.data || [];
+
+    if (leagues.length === 0) {
+      return res.json({ auto_picked: 0, users: [] });
+    }
+
+    const leagueIds = leagues.map((l) => l.id);
+
+    // Bulk fetch members and rosters for all leagues
+    const [membersResult, rostersResult] = await Promise.all([
+      supabaseAdmin
+        .from('league_members')
+        .select('user_id, league_id')
+        .in('league_id', leagueIds),
+      supabaseAdmin
+        .from('rosters')
+        .select('user_id, league_id, castaway_id, castaways(id, status)')
+        .in('league_id', leagueIds)
+        .is('dropped_at', null),
+    ]);
+
+    const members = membersResult.data || [];
+    const rosters = rostersResult.data || [];
+
+    // Build lookup maps for O(1) access
+    const leaguesBySeasonMap = new Map<string, typeof leagues>();
+    for (const league of leagues) {
+      if (!leaguesBySeasonMap.has(league.season_id)) {
+        leaguesBySeasonMap.set(league.season_id, []);
+      }
+      leaguesBySeasonMap.get(league.season_id)!.push(league);
+    }
+
+    const membersByLeagueMap = new Map<string, typeof members>();
+    for (const member of members) {
+      if (!membersByLeagueMap.has(member.league_id)) {
+        membersByLeagueMap.set(member.league_id, []);
+      }
+      membersByLeagueMap.get(member.league_id)!.push(member);
+    }
+
+    // Key: `${league_id}:${episode_id}` -> Set of user_ids who picked
+    const pickedUsersMap = new Map<string, Set<string>>();
+    for (const pick of existingPicks) {
+      const key = `${pick.league_id}:${pick.episode_id}`;
+      if (!pickedUsersMap.has(key)) {
+        pickedUsersMap.set(key, new Set());
+      }
+      pickedUsersMap.get(key)!.add(pick.user_id);
+    }
+
+    // Key: `${league_id}:${user_id}` -> first active castaway_id
+    const activeRosterMap = new Map<string, string>();
+    for (const roster of rosters) {
+      const key = `${roster.league_id}:${roster.user_id}`;
+      if (!activeRosterMap.has(key) && (roster as any).castaways?.status === 'active') {
+        activeRosterMap.set(key, roster.castaway_id);
+      }
+    }
+
+    // Build episode lookup
+    const episodeMap = new Map(episodes.map((e) => [e.id, e]));
+
+    // Process all combinations in memory
     const autoPicks: Array<{ user_id: string; episode_id: string; league_id: string; castaway_id: string }> = [];
+    const picksToInsert: Array<{
+      league_id: string;
+      user_id: string;
+      episode_id: string;
+      castaway_id: string;
+      status: string;
+      picked_at: string;
+      locked_at: string;
+    }> = [];
 
     for (const episode of episodes) {
-      // Get all leagues for this season
-      const { data: leagues } = await supabaseAdmin
-        .from('leagues')
-        .select('id')
-        .eq('season_id', episode.season_id)
-        .eq('status', 'active');
+      const seasonLeagues = leaguesBySeasonMap.get(episode.season_id) || [];
 
-      if (!leagues) continue;
+      for (const league of seasonLeagues) {
+        const leagueMembers = membersByLeagueMap.get(league.id) || [];
+        const pickedKey = `${league.id}:${episode.id}`;
+        const pickedUsers = pickedUsersMap.get(pickedKey) || new Set();
 
-      for (const league of leagues) {
-        // Get members who haven't picked
-        const { data: members } = await supabaseAdmin
-          .from('league_members')
-          .select('user_id')
-          .eq('league_id', league.id);
+        for (const member of leagueMembers) {
+          if (pickedUsers.has(member.user_id)) continue;
 
-        const { data: existingPicks } = await supabaseAdmin
-          .from('weekly_picks')
-          .select('user_id')
-          .eq('league_id', league.id)
-          .eq('episode_id', episode.id);
+          const rosterKey = `${league.id}:${member.user_id}`;
+          const activeCastawayId = activeRosterMap.get(rosterKey);
 
-        const pickedUserIds = new Set(existingPicks?.map((p) => p.user_id) || []);
-        const missingUsers = members?.filter((m) => !pickedUserIds.has(m.user_id)) || [];
-
-        for (const member of missingUsers) {
-          // Get user's active roster
-          const { data: roster } = await supabaseAdmin
-            .from('rosters')
-            .select('castaway_id, castaways(id, status)')
-            .eq('league_id', league.id)
-            .eq('user_id', member.user_id)
-            .is('dropped_at', null);
-
-          // Pick first active castaway
-          const activeCastaway = roster?.find(
-            (r: any) => r.castaways?.status === 'active'
-          );
-
-          if (activeCastaway) {
-            await supabaseAdmin.from('weekly_picks').insert({
+          if (activeCastawayId) {
+            picksToInsert.push({
               league_id: league.id,
               user_id: member.user_id,
               episode_id: episode.id,
-              castaway_id: activeCastaway.castaway_id,
+              castaway_id: activeCastawayId,
               status: 'auto_picked',
               picked_at: now.toISOString(),
               locked_at: now.toISOString(),
@@ -325,64 +389,82 @@ router.post('/auto-fill', requireAdmin, async (req: AuthenticatedRequest, res: R
               user_id: member.user_id,
               episode_id: episode.id,
               league_id: league.id,
-              castaway_id: activeCastaway.castaway_id,
+              castaway_id: activeCastawayId,
             });
           }
         }
       }
     }
 
-    // Send auto-pick alert emails (fire and forget)
-    (async () => {
-      for (const autoPick of autoPicks) {
+    // Bulk insert all auto-picks
+    if (picksToInsert.length > 0) {
+      await supabaseAdmin.from('weekly_picks').insert(picksToInsert);
+    }
+
+    // Send auto-pick alert emails (fire and forget with bulk lookups)
+    if (autoPicks.length > 0) {
+      (async () => {
         try {
-          // Get user, castaway, league, and episode details
-          const { data: user } = await supabaseAdmin
-            .from('users')
-            .select('email, display_name')
-            .eq('id', autoPick.user_id)
-            .single();
+          // Bulk fetch all needed data for emails
+          const userIds = [...new Set(autoPicks.map((p) => p.user_id))];
+          const castawayIds = [...new Set(autoPicks.map((p) => p.castaway_id))];
+          const leagueIdsForEmail = [...new Set(autoPicks.map((p) => p.league_id))];
 
-          const { data: castawayDetails } = await supabaseAdmin
-            .from('castaways')
-            .select('name')
-            .eq('id', autoPick.castaway_id)
-            .single();
+          const [usersResult, castawaysResult, leaguesResult] = await Promise.all([
+            supabaseAdmin
+              .from('users')
+              .select('id, email, display_name')
+              .in('id', userIds),
+            supabaseAdmin
+              .from('castaways')
+              .select('id, name')
+              .in('id', castawayIds),
+            supabaseAdmin
+              .from('leagues')
+              .select('id, name')
+              .in('id', leagueIdsForEmail),
+          ]);
 
-          const { data: leagueDetails } = await supabaseAdmin
-            .from('leagues')
-            .select('name')
-            .eq('id', autoPick.league_id)
-            .single();
+          const usersMap = new Map((usersResult.data || []).map((u) => [u.id, u]));
+          const castawaysMap = new Map((castawaysResult.data || []).map((c) => [c.id, c]));
+          const leaguesMap = new Map((leaguesResult.data || []).map((l) => [l.id, l]));
 
-          const { data: episodeDetails } = await supabaseAdmin
-            .from('episodes')
-            .select('number')
-            .eq('id', autoPick.episode_id)
-            .single();
+          // Send emails in parallel batches
+          await Promise.all(
+            autoPicks.map(async (autoPick) => {
+              try {
+                const user = usersMap.get(autoPick.user_id);
+                const castaway = castawaysMap.get(autoPick.castaway_id);
+                const league = leaguesMap.get(autoPick.league_id);
+                const episode = episodeMap.get(autoPick.episode_id);
 
-          if (user && castawayDetails && leagueDetails && episodeDetails) {
-            await EmailService.sendAutoPickAlert({
-              displayName: user.display_name,
-              email: user.email,
-              castawayName: castawayDetails.name,
-              leagueName: leagueDetails.name,
-              leagueId: autoPick.league_id,
-              episodeNumber: episodeDetails.number,
-            });
+                if (user && castaway && league && episode) {
+                  await EmailService.sendAutoPickAlert({
+                    displayName: user.display_name,
+                    email: user.email,
+                    castawayName: castaway.name,
+                    leagueName: league.name,
+                    leagueId: autoPick.league_id,
+                    episodeNumber: episode.number,
+                  });
 
-            await EmailService.logNotification(
-              autoPick.user_id,
-              'email',
-              `Auto-pick applied: ${castawayDetails.name}`,
-              `You missed the pick deadline for Episode ${episodeDetails.number}. We auto-selected ${castawayDetails.name} for you.`
-            );
-          }
-        } catch (emailErr) {
-          console.error('Failed to send auto-pick alert email:', emailErr);
+                  await EmailService.logNotification(
+                    autoPick.user_id,
+                    'email',
+                    `Auto-pick applied: ${castaway.name}`,
+                    `You missed the pick deadline for Episode ${episode.number}. We auto-selected ${castaway.name} for you.`
+                  );
+                }
+              } catch (emailErr) {
+                console.error('Failed to send auto-pick alert email:', emailErr);
+              }
+            })
+          );
+        } catch (bulkEmailErr) {
+          console.error('Failed to send auto-pick alert emails:', bulkEmailErr);
         }
-      }
-    })();
+      })();
+    }
 
     res.json({
       auto_picked: autoPicks.length,

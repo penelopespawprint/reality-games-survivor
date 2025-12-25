@@ -399,13 +399,48 @@ router.post('/:id/draft/set-order', authenticate, async (req: AuthenticatedReque
       .select('user_id')
       .eq('league_id', leagueId);
 
+    const memberIds = members?.map((m) => m.user_id) || [];
     let draftOrder: string[];
 
     if (randomize) {
       // Shuffle members using cryptographically secure random
-      const memberIds = members?.map((m) => m.user_id) || [];
       draftOrder = secureShuffle(memberIds);
     } else if (order && Array.isArray(order)) {
+      // Validate custom order matches league members exactly
+      if (order.length !== memberIds.length) {
+        return res.status(400).json({
+          error: `Order must contain exactly ${memberIds.length} members`,
+        });
+      }
+
+      // Check for duplicates
+      const orderSet = new Set(order);
+      if (orderSet.size !== order.length) {
+        return res.status(400).json({ error: 'Order contains duplicate user IDs' });
+      }
+
+      // Validate all IDs are strings (basic type check)
+      if (!order.every((id) => typeof id === 'string' && id.length > 0)) {
+        return res.status(400).json({ error: 'Order must contain valid user ID strings' });
+      }
+
+      // Validate all provided user_ids are league members
+      const memberIdSet = new Set(memberIds);
+      const invalidIds = order.filter((id: string) => !memberIdSet.has(id));
+      if (invalidIds.length > 0) {
+        return res.status(400).json({
+          error: 'Order contains users who are not league members',
+        });
+      }
+
+      // Validate all league members are in the order
+      const missingMembers = memberIds.filter((id) => !orderSet.has(id));
+      if (missingMembers.length > 0) {
+        return res.status(400).json({
+          error: 'Order is missing some league members',
+        });
+      }
+
       draftOrder = order;
     } else {
       return res.status(400).json({ error: 'Must provide order array or randomize=true' });

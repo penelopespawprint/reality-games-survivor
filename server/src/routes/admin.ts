@@ -342,7 +342,11 @@ router.post('/jobs/:name/run', async (req: AuthenticatedRequest, res: Response) 
 // GET /api/admin/payments - All payments
 router.get('/payments', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { league_id, status } = req.query;
+    const { league_id, status, limit = 100, offset = 0 } = req.query;
+
+    // Enforce max limit to prevent unbounded queries
+    const safeLimit = Math.min(Number(limit) || 100, 500);
+    const safeOffset = Math.max(Number(offset) || 0, 0);
 
     let query = supabaseAdmin
       .from('payments')
@@ -357,8 +361,9 @@ router.get('/payments', async (req: AuthenticatedRequest, res: Response) => {
           id,
           name
         )
-      `)
-      .order('created_at', { ascending: false });
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(safeOffset, safeOffset + safeLimit - 1);
 
     if (league_id) {
       query = query.eq('league_id', league_id);
@@ -368,15 +373,15 @@ router.get('/payments', async (req: AuthenticatedRequest, res: Response) => {
       query = query.eq('status', status);
     }
 
-    const { data: payments, error } = await query;
+    const { data: payments, error, count } = await query;
 
     if (error) {
       return res.status(400).json({ error: error.message });
     }
 
-    const total = payments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+    const pageTotal = payments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
-    res.json({ payments, total });
+    res.json({ payments, total: count, pageTotal });
   } catch (err) {
     console.error('GET /api/admin/payments error:', err);
     res.status(500).json({ error: 'Failed to fetch payments' });
@@ -388,18 +393,29 @@ router.get('/users', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { role, search, limit = 50, offset = 0 } = req.query;
 
+    // Enforce max limit to prevent unbounded queries
+    const safeLimit = Math.min(Number(limit) || 50, 200);
+    const safeOffset = Math.max(Number(offset) || 0, 0);
+
     let query = supabaseAdmin
       .from('users')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
-      .range(Number(offset), Number(offset) + Number(limit) - 1);
+      .range(safeOffset, safeOffset + safeLimit - 1);
 
     if (role) {
       query = query.eq('role', role);
     }
 
-    if (search) {
-      query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%`);
+    if (search && typeof search === 'string') {
+      // Sanitize search to prevent LIKE pattern injection
+      const safeSearch = search
+        .replace(/[%_\\]/g, '') // Remove LIKE wildcards
+        .trim()
+        .substring(0, 100); // Reasonable length limit
+      if (safeSearch.length >= 2) {
+        query = query.or(`display_name.ilike.%${safeSearch}%,email.ilike.%${safeSearch}%`);
+      }
     }
 
     const { data: users, error, count } = await query;
@@ -448,6 +464,10 @@ router.get('/leagues', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { season_id, status, search, limit = 50, offset = 0 } = req.query;
 
+    // Enforce max limit to prevent unbounded queries
+    const safeLimit = Math.min(Number(limit) || 50, 200);
+    const safeOffset = Math.max(Number(offset) || 0, 0);
+
     let query = supabaseAdmin
       .from('leagues')
       .select(`
@@ -464,7 +484,7 @@ router.get('/leagues', async (req: AuthenticatedRequest, res: Response) => {
         )
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
-      .range(Number(offset), Number(offset) + Number(limit) - 1);
+      .range(safeOffset, safeOffset + safeLimit - 1);
 
     if (season_id) {
       query = query.eq('season_id', season_id);
@@ -474,8 +494,15 @@ router.get('/leagues', async (req: AuthenticatedRequest, res: Response) => {
       query = query.eq('status', status);
     }
 
-    if (search) {
-      query = query.ilike('name', `%${search}%`);
+    if (search && typeof search === 'string') {
+      // Sanitize search to prevent LIKE pattern injection
+      const safeSearch = search
+        .replace(/[%_\\]/g, '') // Remove LIKE wildcards
+        .trim()
+        .substring(0, 100);
+      if (safeSearch.length >= 2) {
+        query = query.ilike('name', `%${safeSearch}%`);
+      }
     }
 
     const { data: leagues, error, count } = await query;

@@ -175,17 +175,17 @@ router.post('/:id/join', authenticate, async (req: AuthenticatedRequest, res: Re
       });
     }
 
-    // Check max players
-    const { count } = await supabase
+    // Check max players (initial check - final validation after insert)
+    const { count: preCount } = await supabase
       .from('league_members')
       .select('*', { count: 'exact', head: true })
       .eq('league_id', leagueId);
 
-    if (count && count >= (league.max_players || 12)) {
+    if (preCount && preCount >= (league.max_players || 12)) {
       return res.status(400).json({ error: 'League is full' });
     }
 
-    // Add member
+    // Add member - handle unique constraint and race conditions
     const { data: membership, error } = await supabaseAdmin
       .from('league_members')
       .insert({
@@ -196,7 +196,26 @@ router.post('/:id/join', authenticate, async (req: AuthenticatedRequest, res: Re
       .single();
 
     if (error) {
+      // Handle duplicate membership
+      if (error.code === '23505') {
+        return res.status(400).json({ error: 'Already a member of this league' });
+      }
       return res.status(400).json({ error: error.message });
+    }
+
+    // Post-insert validation: check if we exceeded max due to race condition
+    const { count: postCount } = await supabaseAdmin
+      .from('league_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('league_id', leagueId);
+
+    if (postCount && postCount > (league.max_players || 12)) {
+      // Race condition occurred - rollback by removing this membership
+      await supabaseAdmin
+        .from('league_members')
+        .delete()
+        .eq('id', membership.id);
+      return res.status(400).json({ error: 'League is full' });
     }
 
     // Send league joined email

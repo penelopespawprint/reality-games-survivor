@@ -198,9 +198,22 @@ router.post('/sms', async (req: Request, res: Response) => {
           break;
         }
 
-        const castawayName = parts.slice(1).join(' ');
-        if (!castawayName) {
+        const rawCastawayName = parts.slice(1).join(' ');
+        if (!rawCastawayName) {
           response = 'Usage: PICK [castaway name]';
+          break;
+        }
+
+        // Sanitize input: remove LIKE pattern characters and limit length
+        // This prevents SQL injection via pattern matching
+        const castawayName = rawCastawayName
+          .replace(/[%_\\]/g, '') // Remove LIKE wildcards and escape char
+          .replace(/[^\w\s'-]/g, '') // Only allow letters, numbers, spaces, hyphens, apostrophes
+          .trim()
+          .substring(0, 50); // Reasonable name length limit
+
+        if (castawayName.length < 2) {
+          response = 'Please provide at least 2 characters of the castaway name.';
           break;
         }
 
