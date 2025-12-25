@@ -311,8 +311,8 @@ router.put('/rankings', authenticate, async (req: AuthenticatedRequest, res: Res
 });
 
 // POST /api/draft/finalize-all - Process rankings and assign castaways (system/cron)
-// Each player gets their top 2 ranked castaways (duplicates allowed across players)
-// Special handling when participants > castaways/2
+// Snake draft with unique picks - each castaway can only be on one roster per league
+// Draft order is randomized, deadline is Tuesday before episode 2
 router.post('/finalize-all', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     // Get all leagues with pending drafts past deadline
