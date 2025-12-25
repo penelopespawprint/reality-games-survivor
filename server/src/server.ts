@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -13,17 +14,41 @@ import notificationRoutes from './routes/notifications.js';
 import adminRoutes from './routes/admin.js';
 import webhookRoutes from './routes/webhooks.js';
 
+// Middleware
+import { generalLimiter, authLimiter, adminLimiter, webhookLimiter, smsLimiter } from './middleware/rateLimit.js';
+
 // Jobs scheduler
 import { startScheduler } from './jobs/index.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
+// Security headers with helmet
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", process.env.SUPABASE_URL || ''].filter(Boolean),
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Needed for some external resources
+}));
+
+// CORS configuration - requires explicit CORS_ORIGIN in production
+const corsOrigin = process.env.CORS_ORIGIN;
+if (!corsOrigin && process.env.NODE_ENV === 'production') {
+  console.warn('WARNING: CORS_ORIGIN not set in production!');
+}
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: corsOrigin || (process.env.NODE_ENV === 'production' ? false : 'http://localhost:5173'),
   credentials: true,
 }));
+
+// General rate limiting
+app.use(generalLimiter);
 
 // Raw body for Stripe webhooks
 app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
@@ -36,7 +61,10 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API Routes
+// API Routes with rate limiting
+app.use('/api/me/phone', smsLimiter);  // SMS verification - very strict
+app.use('/api/me/verify-phone', authLimiter);  // Auth attempts - strict
+app.use('/api/me/resend-code', smsLimiter);  // SMS resend - very strict
 app.use('/api', authRoutes);
 app.use('/api', dashboardRoutes);
 app.use('/api/leagues', leagueRoutes);
@@ -45,13 +73,20 @@ app.use('/api/leagues', pickRoutes);
 app.use('/api/leagues', waiverRoutes);
 app.use('/api/episodes', scoringRoutes);
 app.use('/api', notificationRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/webhooks', webhookRoutes);
+app.use('/api/admin', adminLimiter, adminRoutes);  // Admin routes - moderate
+app.use('/webhooks', webhookLimiter, webhookRoutes);  // Webhooks - higher limit
 
-// Error handler
+// Error handler - hide internal details in production
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+
+  // Never expose internal error details to clients
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.status(500).json({
+    error: 'Internal server error',
+    // Only include error message in development
+    ...(isProduction ? {} : { details: err.message }),
+  });
 });
 
 app.listen(PORT, () => {

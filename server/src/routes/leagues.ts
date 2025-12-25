@@ -466,7 +466,9 @@ router.patch('/:id/settings', authenticate, async (req: AuthenticatedRequest, re
     const updates: Record<string, any> = {};
     if (name !== undefined) updates.name = name;
     if (description !== undefined) updates.description = description;
-    if (password !== undefined) updates.password_hash = password || null;
+    if (password !== undefined) {
+      updates.password_hash = password ? await bcrypt.hash(password, SALT_ROUNDS) : null;
+    }
     if (donation_amount !== undefined) {
       updates.donation_amount = donation_amount;
       updates.require_donation = !!donation_amount;

@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../config/supabase.js';
+import { secureShuffle } from '../utils/crypto.js';
 
 /**
  * Auto-generate random rankings for users who haven't submitted by deadline
@@ -93,8 +94,8 @@ export async function autoRandomizeRankings(): Promise<{
   let usersProcessed = 0;
 
   for (const userId of usersNeedingRankings) {
-    // Shuffle castaways randomly for this user
-    const shuffled = [...castawayIds].sort(() => Math.random() - 0.5);
+    // Shuffle castaways using cryptographically secure random
+    const shuffled = secureShuffle([...castawayIds]);
 
     const { error: insertError } = await supabaseAdmin
       .from('draft_rankings')

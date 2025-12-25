@@ -1,5 +1,6 @@
 // Twilio SMS Configuration
 import twilio from 'twilio';
+import { randomInt } from 'crypto';
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -81,10 +82,11 @@ export async function sendSMS({ to, text }: SendSMSOptions): Promise<SendSMSResp
 }
 
 /**
- * Generate a 6-digit verification code
+ * Generate a cryptographically secure 6-digit verification code
  */
 export function generateVerificationCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // randomInt is cryptographically secure (uses crypto.getRandomValues internally)
+  return randomInt(100000, 999999).toString();
 }
 
 /**

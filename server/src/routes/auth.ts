@@ -9,8 +9,52 @@ import {
 
 const router = Router();
 
-// Verification codes stored in memory (in production, use Redis or database)
-const verificationCodes = new Map<string, { code: string; expiresAt: Date; phone: string }>();
+// Helper functions for verification codes (stored in database for persistence)
+async function storeVerificationCode(userId: string, code: string, phone: string): Promise<void> {
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+  // Upsert: insert or update existing code for this user
+  await supabaseAdmin
+    .from('verification_codes')
+    .upsert({
+      user_id: userId,
+      code,
+      phone,
+      expires_at: expiresAt.toISOString(),
+      used_at: null,
+    }, { onConflict: 'user_id' });
+}
+
+async function getVerificationCode(userId: string): Promise<{ code: string; expiresAt: Date; phone: string } | null> {
+  const { data } = await supabaseAdmin
+    .from('verification_codes')
+    .select('code, phone, expires_at')
+    .eq('user_id', userId)
+    .is('used_at', null)
+    .single();
+
+  if (!data) return null;
+
+  return {
+    code: data.code,
+    phone: data.phone,
+    expiresAt: new Date(data.expires_at),
+  };
+}
+
+async function markCodeAsUsed(userId: string): Promise<void> {
+  await supabaseAdmin
+    .from('verification_codes')
+    .update({ used_at: new Date().toISOString() })
+    .eq('user_id', userId);
+}
+
+async function deleteVerificationCode(userId: string): Promise<void> {
+  await supabaseAdmin
+    .from('verification_codes')
+    .delete()
+    .eq('user_id', userId);
+}
 
 // GET /api/me - Current user with leagues
 router.get('/me', authenticate, async (req: AuthenticatedRequest, res: Response) => {
@@ -99,11 +143,9 @@ router.patch('/me/phone', authenticate, async (req: AuthenticatedRequest, res: R
       return res.status(400).json({ error: error.message });
     }
 
-    // Generate and store verification code
+    // Generate and store verification code in database
     const code = generateVerificationCode();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    verificationCodes.set(userId, { code, expiresAt, phone: normalizedPhone });
+    await storeVerificationCode(userId, code, normalizedPhone);
 
     // Send verification SMS
     const sent = await sendVerificationSMS(normalizedPhone, code);
@@ -131,8 +173,8 @@ router.post('/me/verify-phone', authenticate, async (req: AuthenticatedRequest, 
       return res.status(400).json({ error: 'Verification code is required' });
     }
 
-    // Get stored verification
-    const stored = verificationCodes.get(userId);
+    // Get stored verification from database
+    const stored = await getVerificationCode(userId);
 
     if (!stored) {
       return res.status(400).json({ error: 'No pending verification. Please request a new code.' });
@@ -140,7 +182,7 @@ router.post('/me/verify-phone', authenticate, async (req: AuthenticatedRequest, 
 
     // Check expiry
     if (new Date() > stored.expiresAt) {
-      verificationCodes.delete(userId);
+      await deleteVerificationCode(userId);
       return res.status(400).json({ error: 'Code expired. Please request a new code.' });
     }
 
@@ -159,8 +201,8 @@ router.post('/me/verify-phone', authenticate, async (req: AuthenticatedRequest, 
       return res.status(400).json({ error: error.message });
     }
 
-    // Clean up
-    verificationCodes.delete(userId);
+    // Mark code as used
+    await markCodeAsUsed(userId);
 
     res.json({
       verified: true,
@@ -192,11 +234,9 @@ router.post('/me/resend-code', authenticate, async (req: AuthenticatedRequest, r
       return res.status(400).json({ error: 'Phone already verified' });
     }
 
-    // Generate new code
+    // Generate new code and store in database
     const code = generateVerificationCode();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    verificationCodes.set(userId, { code, expiresAt, phone: user.phone });
+    await storeVerificationCode(userId, code, user.phone);
 
     // Send verification SMS
     const sent = await sendVerificationSMS(user.phone, code);

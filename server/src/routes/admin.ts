@@ -3,6 +3,25 @@ import { authenticate, AuthenticatedRequest, requireAdmin } from '../middleware/
 import { supabase, supabaseAdmin } from '../config/supabase.js';
 import { stripe } from '../config/stripe.js';
 import { runJob, getJobStatus } from '../jobs/index.js';
+import {
+  validate,
+  validateQuery,
+  validateParams,
+  createSeasonSchema,
+  updateSeasonSchema,
+  createCastawaySchema,
+  updateCastawaySchema,
+  eliminateCastawaySchema,
+  createEpisodeSchema,
+  updateEpisodeSchema,
+  updateUserRoleSchema,
+  usersQuerySchema,
+  leaguesQuerySchema,
+  paymentsQuerySchema,
+  refundSchema,
+  idParamSchema,
+  nameParamSchema,
+} from '../validation/admin.js';
 
 const router = Router();
 
@@ -11,7 +30,7 @@ router.use(authenticate);
 router.use(requireAdmin);
 
 // POST /api/admin/seasons - Create season
-router.post('/seasons', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/seasons', validate(createSeasonSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const {
       number,
@@ -23,10 +42,6 @@ router.post('/seasons', async (req: AuthenticatedRequest, res: Response) => {
       draft_deadline,
       finale_at,
     } = req.body;
-
-    if (!number || !name || !premiere_at || !draft_deadline) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
 
     const { data: season, error } = await supabaseAdmin
       .from('seasons')
@@ -55,7 +70,7 @@ router.post('/seasons', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 // PATCH /api/admin/seasons/:id - Update season
-router.patch('/seasons/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.patch('/seasons/:id', validateParams(idParamSchema), validate(updateSeasonSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const seasonId = req.params.id;
     const updates = req.body;
@@ -109,13 +124,9 @@ router.post('/seasons/:id/activate', async (req: AuthenticatedRequest, res: Resp
 });
 
 // POST /api/admin/castaways - Add castaway
-router.post('/castaways', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/castaways', validate(createCastawaySchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { season_id, name, age, hometown, occupation, photo_url, tribe_original } = req.body;
-
-    if (!season_id || !name) {
-      return res.status(400).json({ error: 'season_id and name are required' });
-    }
 
     const { data: castaway, error } = await supabaseAdmin
       .from('castaways')
@@ -209,13 +220,9 @@ router.post('/castaways/:id/eliminate', async (req: AuthenticatedRequest, res: R
 });
 
 // POST /api/admin/episodes - Create episode
-router.post('/episodes', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/episodes', validate(createEpisodeSchema), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { season_id, number, title, air_date } = req.body;
-
-    if (!season_id || !number || !air_date) {
-      return res.status(400).json({ error: 'season_id, number, and air_date are required' });
-    }
 
     // Calculate default times based on air_date
     const airDate = new Date(air_date);

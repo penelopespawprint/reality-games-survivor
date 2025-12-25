@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../config/supabase.js';
+import { secureShuffle } from '../utils/crypto.js';
 
 /**
  * Auto-complete incomplete drafts after deadline
@@ -81,8 +82,8 @@ export async function finalizeDrafts(): Promise<{
       }
     }
 
-    // Shuffle available castaways
-    const shuffled = [...availableCastaways].sort(() => Math.random() - 0.5);
+    // Shuffle available castaways using cryptographically secure random
+    const shuffled = secureShuffle([...availableCastaways]);
 
     // Assign remaining castaways
     let castawayIndex = 0;

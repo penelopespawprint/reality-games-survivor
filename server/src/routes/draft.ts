@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { authenticate, AuthenticatedRequest, requireAdmin } from '../middleware/authenticate.js';
 import { supabase, supabaseAdmin } from '../config/supabase.js';
 import { EmailService } from '../emails/index.js';
+import { secureShuffle } from '../utils/crypto.js';
 
 const router = Router();
 
@@ -401,9 +402,9 @@ router.post('/:id/draft/set-order', authenticate, async (req: AuthenticatedReque
     let draftOrder: string[];
 
     if (randomize) {
-      // Shuffle members
+      // Shuffle members using cryptographically secure random
       const memberIds = members?.map((m) => m.user_id) || [];
-      draftOrder = memberIds.sort(() => Math.random() - 0.5);
+      draftOrder = secureShuffle(memberIds);
     } else if (order && Array.isArray(order)) {
       draftOrder = order;
     } else {
