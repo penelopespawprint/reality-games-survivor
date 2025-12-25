@@ -171,6 +171,9 @@ export type Database = {
           status: 'active' | 'eliminated' | 'winner';
           eliminated_episode_id: string | null;
           placement: number | null;
+          previous_seasons: string[] | null;
+          best_placement: number | null;
+          fun_fact: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -186,6 +189,9 @@ export type Database = {
           status?: 'active' | 'eliminated' | 'winner';
           eliminated_episode_id?: string | null;
           placement?: number | null;
+          previous_seasons?: string[] | null;
+          best_placement?: number | null;
+          fun_fact?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -201,6 +207,9 @@ export type Database = {
           status?: 'active' | 'eliminated' | 'winner';
           eliminated_episode_id?: string | null;
           placement?: number | null;
+          previous_seasons?: string[] | null;
+          best_placement?: number | null;
+          fun_fact?: string | null;
           created_at?: string;
           updated_at?: string;
         };
