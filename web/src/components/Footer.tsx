@@ -48,13 +48,23 @@ export function Footer() {
             </h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/faq" className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm">
-                  FAQ
+                <Link to="/sms" className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm">
+                  SMS Commands
                 </Link>
               </li>
               <li>
-                <Link to="/sms" className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm">
-                  SMS Commands
+                <Link to="/contact" className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm">
+                  Contact Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm">
+                  Terms of Service
                 </Link>
               </li>
             </ul>
@@ -94,6 +104,8 @@ export function Footer() {
             © {currentYear} Reality Games Fantasy League. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-sm text-neutral-500">
+            <Link to="/privacy" className="hover:text-neutral-300 transition-colors">Privacy</Link>
+            <Link to="/terms" className="hover:text-neutral-300 transition-colors">Terms</Link>
             <span>Not affiliated with CBS or Survivor.</span>
           </div>
         </div>
