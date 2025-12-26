@@ -14,8 +14,6 @@ import {
   BarChart3,
   Shield,
   Flame,
-  BookOpen,
-  Mail,
 } from 'lucide-react';
 
 // Check if we're on the main domain (splash page) or survivor subdomain (full app)
@@ -899,433 +897,271 @@ function CTASection() {
   );
 }
 
-// Interactive Block Component for Splash Page
-function InteractiveBlock({
-  children,
-  href,
-  className = '',
-  onClick,
-}: {
-  children: React.ReactNode;
-  href?: string;
-  className?: string;
-  onClick?: () => void;
-}) {
-  const { elementRef, tiltStyle, handleMouseMove, handleMouseLeave } = useTilt(8);
-
-  const content = (
-    <div
-      ref={elementRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className={`interactive-block glow-on-hover rounded-3xl ${className}`}
-      style={{
-        ...tiltStyle,
-        transformStyle: 'preserve-3d',
-      }}
-    >
-      <div style={{ transform: 'translateZ(30px)' }}>{children}</div>
-    </div>
-  );
-
-  if (href) {
-    return (
-      <a href={href} className="block">
-        {content}
-      </a>
-    );
-  }
-
-  return (
-    <div onClick={onClick} role={onClick ? 'button' : undefined}>
-      {content}
-    </div>
-  );
-}
-
-// Side Dot Navigation for Splash Page
-function SideNav({
-  sections,
-  activeSection,
-  onNavigate,
-}: {
-  sections: string[];
-  activeSection: number;
-  onNavigate: (index: number) => void;
-}) {
-  return (
-    <div className="fixed right-6 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-3">
-      {sections.map((label, i) => (
-        <button
-          key={i}
-          onClick={() => onNavigate(i)}
-          className="group flex items-center gap-3"
-          aria-label={`Go to ${label}`}
-        >
-          <span
-            className={`text-xs font-medium transition-all duration-300 opacity-0 group-hover:opacity-100 ${
-              activeSection === i ? 'text-burgundy-600' : 'text-neutral-500'
-            }`}
-          >
-            {label}
-          </span>
-          <span
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              activeSection === i
-                ? 'bg-burgundy-500 scale-125'
-                : 'bg-neutral-300 hover:bg-neutral-400'
-            }`}
-          />
-        </button>
-      ))}
-    </div>
-  );
-}
-
 // Splash page for main domain (realitygamesfantasyleague.com)
 function SplashPage() {
-  const [activeSection, setActiveSection] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
-  const heroParallax = useParallax(0.1);
+  const [scrollY, setScrollY] = useState(0);
 
-  const sections = ['Home', 'Survivor', 'How It Works', 'Scoring', 'Contact'];
-
-  // Track active section on scroll
+  // Track scroll position for parallax
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
     const handleScroll = () => {
-      const windowHeight = window.innerHeight;
-
-      sectionRefs.current.forEach((ref, index) => {
-        if (ref) {
-          const rect = ref.getBoundingClientRect();
-          if (rect.top <= windowHeight / 2 && rect.bottom >= windowHeight / 2) {
-            setActiveSection(index);
-          }
-        }
-      });
+      setScrollY(window.scrollY);
     };
-
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navigateToSection = (index: number) => {
-    sectionRefs.current[index]?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const counter24 = useAnimatedCounter(24, 1500, true);
   const counter100 = useAnimatedCounter(100, 2000, true);
-  const counter50 = useAnimatedCounter(50, 1800, true);
 
   return (
-    <div ref={containerRef} className="snap-container bg-cream-50">
-      {/* Side Navigation */}
-      <SideNav sections={sections} activeSection={activeSection} onNavigate={navigateToSection} />
-
-      {/* BLOCK 1: Hero with Logo */}
-      <section
-        ref={(el) => {
-          sectionRefs.current[0] = el;
-        }}
-        className="snap-section relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-cream-100 via-cream-50 to-cream-100"
-      >
-        {/* Parallax Background */}
+    <div className="min-h-screen bg-cream-50 overflow-x-hidden">
+      {/* Hero Section - Full viewport with Logo */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Parallax Background Elements */}
         <div
-          ref={heroParallax.elementRef}
-          className="absolute -top-32 -right-32 w-96 h-96 bg-burgundy-500/10 rounded-full blur-3xl pointer-events-none"
-          style={{ transform: `translateY(${heroParallax.offset}px)` }}
+          className="absolute -top-20 -right-32 w-[500px] h-[500px] bg-burgundy-500/10 rounded-full blur-3xl pointer-events-none"
+          style={{ transform: `translateY(${scrollY * 0.3}px)` }}
         />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-orange-400/10 rounded-full blur-3xl pointer-events-none" />
+        <div
+          className="absolute top-1/4 -left-48 w-[400px] h-[400px] bg-orange-400/15 rounded-full blur-3xl pointer-events-none"
+          style={{ transform: `translateY(${scrollY * 0.2}px)` }}
+        />
+        <div
+          className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-amber-300/10 rounded-full blur-3xl pointer-events-none"
+          style={{ transform: `translateY(${-scrollY * 0.15}px)` }}
+        />
+        <div
+          className="absolute top-1/2 left-1/3 w-[300px] h-[300px] bg-burgundy-400/5 rounded-full blur-3xl pointer-events-none"
+          style={{ transform: `translateY(${scrollY * 0.25}px) rotate(${scrollY * 0.02}deg)` }}
+        />
 
-        <div className="relative text-center px-4">
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
+        {/* Subtle dot pattern */}
+        <div className="absolute inset-0 opacity-[0.03]">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `radial-gradient(circle at 2px 2px, #A52A2A 1px, transparent 0)`,
+              backgroundSize: '48px 48px',
+            }}
+          />
+        </div>
+
+        <div
+          className="relative text-center px-4 max-w-5xl mx-auto"
+          style={{ transform: `translateY(${scrollY * 0.1}px)` }}
+        >
+          {/* Logo - Front and Center */}
+          <div className="flex justify-center mb-10">
             <div className="relative">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-orange-400/20 rounded-full blur-3xl animate-pulse" />
+              {/* Multi-layer glow effect */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-orange-400/20 rounded-full blur-3xl animate-pulse" />
+              <div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-yellow-400/25 rounded-full blur-2xl"
+                style={{
+                  animation: 'pulse 3s ease-in-out infinite',
+                  animationDelay: '0.5s',
+                }}
+              />
+              <div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-burgundy-500/10 rounded-full blur-xl"
+                style={{
+                  animation: 'pulse 2.5s ease-in-out infinite',
+                  animationDelay: '1s',
+                }}
+              />
               <img
                 src="/logo.png"
                 alt="Reality Games Fantasy League"
-                className="h-40 sm:h-48 lg:h-56 relative z-10 drop-shadow-2xl"
+                className="h-48 sm:h-56 lg:h-72 relative z-10 drop-shadow-2xl"
               />
             </div>
           </div>
 
           {/* Brand Name */}
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl text-neutral-800 leading-tight tracking-tight mb-4">
+          <h1 className="font-display text-5xl sm:text-6xl lg:text-8xl text-neutral-800 leading-[1.1] tracking-tight mb-8">
             REALITY GAMES
             <br />
             <span className="text-burgundy-600">FANTASY LEAGUE</span>
           </h1>
 
-          {/* Tagline */}
-          <p className="text-xl sm:text-2xl text-neutral-600 max-w-2xl mx-auto leading-relaxed mb-12">
-            Fantasy leagues built by superfans, for superfans.
-          </p>
-
           {/* Scroll Indicator */}
-          <div className="scroll-indicator flex flex-col items-center text-neutral-400">
-            <span className="text-sm mb-2">Scroll to explore</span>
+          <div className="scroll-indicator flex flex-col items-center text-neutral-400 mt-12">
+            <span className="text-sm mb-2">Scroll to learn more</span>
             <ChevronDown className="h-6 w-6" />
           </div>
         </div>
       </section>
 
-      {/* BLOCK 2: Survivor */}
-      <section
-        ref={(el) => {
-          sectionRefs.current[1] = el;
-        }}
-        className="snap-section relative flex items-center justify-center bg-white py-20"
-      >
-        <div className="max-w-5xl mx-auto px-4 w-full">
-          <InteractiveBlock
-            href={SURVIVOR_APP_URL}
-            className="bg-gradient-to-br from-cream-50 to-cream-100 p-8 lg:p-12"
+      {/* Main Content Section */}
+      <section className="relative py-24 lg:py-32">
+        {/* More parallax background elements */}
+        <div
+          className="absolute top-0 left-0 w-[400px] h-[400px] bg-burgundy-500/5 rounded-full blur-3xl pointer-events-none"
+          style={{ transform: `translateY(${(scrollY - 800) * 0.2}px)` }}
+        />
+        <div
+          className="absolute top-1/3 right-0 w-[500px] h-[500px] bg-orange-400/8 rounded-full blur-3xl pointer-events-none"
+          style={{ transform: `translateY(${(scrollY - 800) * -0.15}px)` }}
+        />
+
+        <div className="max-w-4xl mx-auto px-6">
+          {/* Opening Hook */}
+          <div
+            className="text-center mb-16"
+            style={{
+              opacity: Math.min(1, Math.max(0, (scrollY - 400) / 300)),
+              transform: `translateY(${Math.max(0, 50 - (scrollY - 400) * 0.15)}px)`,
+            }}
           >
-            <div className="grid lg:grid-cols-2 gap-8 items-center">
-              {/* Left: Torch */}
-              <div className="flex justify-center">
-                <div className="relative">
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-orange-400/30 rounded-full blur-3xl animate-pulse" />
-                  <TikiTorch className="h-64 lg:h-80 relative z-10" />
-                </div>
-              </div>
-
-              {/* Right: Content */}
-              <div className="text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 bg-burgundy-500/10 text-burgundy-600 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-                  <Flame className="h-4 w-4" />
-                  Season 50 Now Open
-                </div>
-
-                <h2 className="font-display text-4xl lg:text-5xl text-neutral-800 mb-4">
-                  SURVIVOR
-                </h2>
-
-                <p className="text-lg text-neutral-600 mb-4">In the Hands of the Fans</p>
-
-                <p className="text-neutral-500 mb-8">
-                  <span ref={counter24.ref} className="font-display text-3xl text-burgundy-600">
-                    {counter24.count}
-                  </span>{' '}
-                  legendary castaways return. Draft your dream team.
-                </p>
-
-                <div className="inline-flex items-center gap-2 bg-burgundy-500 text-white px-8 py-4 rounded-xl font-semibold text-lg group">
-                  Play Now
-                  <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </div>
-
-                <p className="text-sm text-neutral-400 mt-4">Premiere: February 25, 2026</p>
-              </div>
-            </div>
-          </InteractiveBlock>
-        </div>
-      </section>
-
-      {/* BLOCK 3: How It Works */}
-      <section
-        ref={(el) => {
-          sectionRefs.current[2] = el;
-        }}
-        className="snap-section relative flex items-center justify-center bg-cream-100 py-20"
-      >
-        <div className="max-w-5xl mx-auto px-4 w-full">
-          <InteractiveBlock
-            href={`${SURVIVOR_APP_URL}/how-to-play`}
-            className="bg-white p-8 lg:p-12"
-          >
-            <div className="grid lg:grid-cols-2 gap-8 items-center">
-              {/* Left: Content */}
-              <div className="text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 text-burgundy-600 text-sm font-semibold mb-6">
-                  <BookOpen className="h-4 w-4" />
-                  THREE SIMPLE STEPS
-                </div>
-
-                <h2 className="font-display text-4xl lg:text-5xl text-neutral-800 mb-6">
-                  How It Works
-                </h2>
-
-                <ul className="space-y-4 text-lg text-neutral-600 mb-8">
-                  <li className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-burgundy-100 flex items-center justify-center text-burgundy-600 font-bold text-sm">
-                      1
-                    </span>
-                    Draft 2 castaways in snake draft
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-burgundy-100 flex items-center justify-center text-burgundy-600 font-bold text-sm">
-                      2
-                    </span>
-                    Make weekly picks before each episode
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-burgundy-100 flex items-center justify-center text-burgundy-600 font-bold text-sm">
-                      3
-                    </span>
-                    Score points and climb the leaderboard
-                  </li>
-                </ul>
-
-                <div className="inline-flex items-center gap-2 bg-burgundy-500 text-white px-8 py-4 rounded-xl font-semibold text-lg group">
-                  Learn More
-                  <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-
-              {/* Right: Visual */}
-              <div className="flex justify-center">
-                <div className="grid grid-cols-3 gap-4">
-                  {[
-                    { icon: Users, label: 'Draft', color: 'from-blue-400 to-blue-600' },
-                    { icon: Target, label: 'Pick', color: 'from-green-400 to-green-600' },
-                    { icon: Trophy, label: 'Win', color: 'from-amber-400 to-amber-600' },
-                  ].map((step, i) => (
-                    <div key={i} className="text-center">
-                      <div
-                        className={`w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mx-auto mb-3 shadow-lg`}
-                      >
-                        <step.icon className="h-10 w-10 lg:h-12 lg:w-12 text-white" />
-                      </div>
-                      <span className="font-semibold text-neutral-700">{step.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </InteractiveBlock>
-        </div>
-      </section>
-
-      {/* BLOCK 4: Scoring (Dark) */}
-      <section
-        ref={(el) => {
-          sectionRefs.current[3] = el;
-        }}
-        className="snap-section relative flex items-center justify-center bg-neutral-900 py-20"
-      >
-        <div className="max-w-5xl mx-auto px-4 w-full">
-          <InteractiveBlock
-            href={`${SURVIVOR_APP_URL}/scoring-rules`}
-            className="bg-gradient-to-br from-burgundy-900 to-neutral-900 p-8 lg:p-12 border border-burgundy-800/50"
-          >
-            <div className="grid lg:grid-cols-2 gap-8 items-center">
-              {/* Left: Big Number */}
-              <div className="text-center">
-                <div
-                  ref={counter100.ref}
-                  className="font-display text-8xl lg:text-9xl text-burgundy-400"
-                >
-                  {counter100.count}+
-                </div>
-                <p className="text-xl text-neutral-400">Scoring Rules</p>
-              </div>
-
-              {/* Right: Content */}
-              <div className="text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 text-burgundy-400 text-sm font-semibold mb-6">
-                  <BarChart3 className="h-4 w-4" />
-                  COMPREHENSIVE SCORING
-                </div>
-
-                <h2 className="font-display text-4xl lg:text-5xl text-white mb-6">
-                  Every Move Counts
-                </h2>
-
-                <p className="text-lg text-neutral-400 mb-6">
-                  We score everything that matters in Survivor:
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-8">
-                  {['Idols', 'Votes', 'Challenges', 'Alliances', 'Blindsides', 'Social Plays'].map(
-                    (item) => (
-                      <span
-                        key={item}
-                        className="px-3 py-1 bg-burgundy-800/50 text-burgundy-300 rounded-full text-sm"
-                      >
-                        {item}
-                      </span>
-                    )
-                  )}
-                </div>
-
-                <div className="inline-flex items-center gap-2 bg-burgundy-500 text-white px-8 py-4 rounded-xl font-semibold text-lg group">
-                  View All Rules
-                  <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            </div>
-          </InteractiveBlock>
-        </div>
-      </section>
-
-      {/* BLOCK 5: Footer / Contact */}
-      <section
-        ref={(el) => {
-          sectionRefs.current[4] = el;
-        }}
-        className="snap-section relative flex items-center justify-center bg-cream-100 py-20"
-      >
-        <div className="max-w-5xl mx-auto px-4 w-full">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-4xl text-neutral-800 mb-4">Ready to Play?</h2>
-            <p className="text-lg text-neutral-600">
-              Join{' '}
-              <span ref={counter50.ref} className="font-display text-2xl text-burgundy-600">
-                {counter50.count}
-              </span>{' '}
-              seasons of Survivor history
+            <p className="text-2xl sm:text-3xl lg:text-4xl text-neutral-700 font-display leading-relaxed">
+              Bored of the same old fantasy leagues where you pick one Survivor and pray for luck?
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto mb-16">
-            <InteractiveBlock
-              href={`${SURVIVOR_APP_URL}/contact`}
-              className="bg-white p-6 text-center"
-            >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mx-auto mb-4">
-                <Mail className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="font-semibold text-lg text-neutral-800 mb-2">Contact Us</h3>
-              <p className="text-neutral-500 text-sm">Questions? We&apos;re here to help.</p>
-            </InteractiveBlock>
+          {/* Main Copy */}
+          <div
+            className="space-y-8 mb-20"
+            style={{
+              opacity: Math.min(1, Math.max(0, (scrollY - 600) / 300)),
+              transform: `translateY(${Math.max(0, 60 - (scrollY - 600) * 0.12)}px)`,
+            }}
+          >
+            <p className="text-xl sm:text-2xl text-neutral-600 leading-relaxed">
+              Get ready for something completely different.{' '}
+              <span className="text-burgundy-600 font-semibold">Reality Games Fantasy League</span>{' '}
+              is launching the first-ever Survivor fantasy experience built by superfans, for
+              superfans.
+            </p>
 
-            <InteractiveBlock
+            <p className="text-xl sm:text-2xl text-neutral-600 leading-relaxed">
+              We&apos;ve created a scoring system with{' '}
+              <span
+                ref={counter100.ref}
+                className="font-display text-3xl sm:text-4xl text-burgundy-600"
+              >
+                {counter100.count}+
+              </span>{' '}
+              game-tested rules that reward real strategy, not just luck.
+            </p>
+
+            <p className="text-xl sm:text-2xl text-neutral-600 leading-relaxed">
+              Every vote, idol play, alliance move, and blindside can earn (or cost) you points
+              &mdash; so this league is for players who{' '}
+              <span className="italic">live and breathe Survivor</span>.
+            </p>
+          </div>
+
+          {/* Scoring Tags */}
+          <div
+            className="flex flex-wrap justify-center gap-3 mb-20"
+            style={{
+              opacity: Math.min(1, Math.max(0, (scrollY - 800) / 250)),
+              transform: `translateY(${Math.max(0, 40 - (scrollY - 800) * 0.1)}px)`,
+            }}
+          >
+            {[
+              'Idol Plays',
+              'Tribal Votes',
+              'Challenge Wins',
+              'Alliance Moves',
+              'Blindsides',
+              'Social Strategy',
+              'Advantages',
+              'Jury Management',
+            ].map((tag, i) => (
+              <span
+                key={tag}
+                className="px-4 py-2 bg-white/80 backdrop-blur-sm text-neutral-700 rounded-full text-sm font-medium shadow-sm border border-cream-200"
+                style={{
+                  animationDelay: `${i * 0.1}s`,
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section - Join Season 50 */}
+      <section className="relative py-24 lg:py-32 bg-gradient-to-br from-burgundy-600 via-burgundy-500 to-burgundy-700 overflow-hidden">
+        {/* Parallax decorative elements */}
+        <div
+          className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl pointer-events-none"
+          style={{ transform: `translateY(${(scrollY - 1200) * 0.1}px)` }}
+        />
+        <div
+          className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none"
+          style={{ transform: `translateY(${(scrollY - 1200) * -0.08}px)` }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-burgundy-400/10 rounded-full blur-3xl pointer-events-none"
+          style={{ transform: `translateY(${(scrollY - 1200) * 0.05}px)` }}
+        />
+
+        <div className="max-w-4xl mx-auto px-6 text-center relative">
+          <div className="inline-flex items-center gap-2 bg-white/20 text-white px-5 py-2.5 rounded-full text-sm font-semibold mb-8 backdrop-blur-sm">
+            <Flame className="h-4 w-4" />
+            Season 50: In the Hands of the Fans
+          </div>
+
+          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white mb-6 leading-tight">
+            Join Survivor Season 50
+          </h2>
+
+          <p className="text-xl sm:text-2xl text-white/80 mb-4 max-w-2xl mx-auto">
+            24 legendary castaways return for the ultimate showdown.
+          </p>
+
+          <p className="text-lg text-white/60 mb-12">Premiere: February 25, 2026</p>
+
+          <a
+            href={`${SURVIVOR_APP_URL}/signup`}
+            className="inline-flex items-center gap-3 bg-white text-burgundy-600 px-12 py-5 rounded-xl font-bold text-xl hover:bg-cream-50 transition-all duration-300 hover:-translate-y-1 hover:scale-105 shadow-float group"
+          >
+            Join Now &mdash; It&apos;s Free
+            <ChevronRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
+          </a>
+
+          <p className="text-white/50 text-sm mt-6">
+            Already have an account?{' '}
+            <a
               href={`${SURVIVOR_APP_URL}/login`}
-              className="bg-white p-6 text-center"
+              className="text-white/80 hover:text-white underline underline-offset-2"
             >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-burgundy-400 to-burgundy-600 flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="font-semibold text-lg text-neutral-800 mb-2">Log In</h3>
-              <p className="text-neutral-500 text-sm">Already have an account? Welcome back.</p>
-            </InteractiveBlock>
-          </div>
+              Log in here
+            </a>
+          </p>
+        </div>
+      </section>
 
-          {/* Footer Links */}
-          <div className="text-center text-sm text-neutral-500">
-            <div className="flex items-center justify-center gap-6 mb-4">
-              <a
-                href={`${SURVIVOR_APP_URL}/privacy`}
-                className="hover:text-burgundy-600 transition-colors"
-              >
-                Privacy Policy
-              </a>
-              <span>•</span>
-              <a
-                href={`${SURVIVOR_APP_URL}/terms`}
-                className="hover:text-burgundy-600 transition-colors"
-              >
-                Terms of Service
-              </a>
-            </div>
-            <p>&copy; 2025 Reality Games Fantasy League. Not affiliated with CBS or Survivor.</p>
+      {/* Footer */}
+      <section className="py-12 bg-cream-100">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="flex items-center justify-center gap-6 mb-4 text-sm text-neutral-500">
+            <a
+              href={`${SURVIVOR_APP_URL}/privacy`}
+              className="hover:text-burgundy-600 transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <span>•</span>
+            <a
+              href={`${SURVIVOR_APP_URL}/terms`}
+              className="hover:text-burgundy-600 transition-colors"
+            >
+              Terms of Service
+            </a>
+            <span>•</span>
+            <a
+              href={`${SURVIVOR_APP_URL}/contact`}
+              className="hover:text-burgundy-600 transition-colors"
+            >
+              Contact
+            </a>
           </div>
+          <p className="text-sm text-neutral-400">
+            &copy; 2025 Reality Games Fantasy League. Not affiliated with CBS or Survivor.
+          </p>
         </div>
       </section>
     </div>
