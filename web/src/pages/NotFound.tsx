@@ -15,9 +15,7 @@ export function NotFound() {
           <h1 className="text-6xl font-display font-bold text-burgundy-500 mb-2">404</h1>
           <h2 className="text-xl font-display text-neutral-600 mb-4">Page Not Found</h2>
 
-          <p className="text-neutral-500 mb-8">
-            This page has been voted off the island.
-          </p>
+          <p className="text-neutral-500 mb-8">This page has been voted off the island.</p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button

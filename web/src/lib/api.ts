@@ -27,7 +27,7 @@ const isRetryableStatus = (status: number): boolean => {
   return status === 408 || status === 429 || (status >= 502 && status <= 504);
 };
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Fetch with automatic retry on network errors
@@ -35,10 +35,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * @param options - Fetch options plus maxRetries and retryDelay
  * @returns Promise with the Response
  */
-export async function fetchWithRetry(
-  url: string,
-  options: FetchOptions = {}
-): Promise<Response> {
+export async function fetchWithRetry(url: string, options: FetchOptions = {}): Promise<Response> {
   const { maxRetries = 3, retryDelay = 1000, ...fetchOptions } = options;
 
   let lastError: Error | null = null;
@@ -63,7 +60,9 @@ export async function fetchWithRetry(
 
       // Wait before retry with exponential backoff
       const delay = retryDelay * Math.pow(2, attempt);
-      console.warn(`API request to ${url} failed with status ${response.status}, retrying in ${delay}ms...`);
+      console.warn(
+        `API request to ${url} failed with status ${response.status}, retrying in ${delay}ms...`
+      );
       await sleep(delay);
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
@@ -180,6 +179,4 @@ export const apiPatch = <T>(url: string, body: unknown, token?: string) =>
     : api<T>(url, { method: 'PATCH', body: JSON.stringify(body) });
 
 export const apiDelete = <T>(url: string, token?: string) =>
-  token
-    ? apiWithAuth<T>(url, token, { method: 'DELETE' })
-    : api<T>(url, { method: 'DELETE' });
+  token ? apiWithAuth<T>(url, token, { method: 'DELETE' }) : api<T>(url, { method: 'DELETE' });

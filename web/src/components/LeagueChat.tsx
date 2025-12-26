@@ -33,7 +33,8 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('league_messages')
-        .select(`
+        .select(
+          `
           id,
           user_id,
           content,
@@ -42,7 +43,8 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
             display_name,
             avatar_url
           )
-        `)
+        `
+        )
         .eq('league_id', leagueId)
         .order('created_at', { ascending: true })
         .limit(100);
@@ -56,13 +58,11 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
   const sendMessage = useMutation({
     mutationFn: async (content: string) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
-        .from('league_messages')
-        .insert({
-          league_id: leagueId,
-          user_id: user!.id,
-          content,
-        });
+      const { error } = await (supabase as any).from('league_messages').insert({
+        league_id: leagueId,
+        user_id: user!.id,
+        content,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -112,7 +112,7 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     });
   };
 
@@ -129,20 +129,24 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
     } else {
       return date.toLocaleDateString('en-US', {
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
       });
     }
   };
 
   // Group messages by date
-  const groupedMessages = messages?.reduce((groups, msg) => {
-    const date = new Date(msg.created_at).toDateString();
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(msg);
-    return groups;
-  }, {} as Record<string, Message[]>) || {};
+  const groupedMessages =
+    messages?.reduce(
+      (groups, msg) => {
+        const date = new Date(msg.created_at).toDateString();
+        if (!groups[date]) {
+          groups[date] = [];
+        }
+        groups[date].push(msg);
+        return groups;
+      },
+      {} as Record<string, Message[]>
+    ) || {};
 
   if (isLoading) {
     return (
@@ -159,9 +163,7 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
         <div className="flex items-center gap-3">
           <MessageCircle className="h-5 w-5 text-burgundy-500" />
           <h3 className="font-semibold text-neutral-800">League Chat</h3>
-          <span className="text-sm text-neutral-400">
-            {messages?.length || 0} messages
-          </span>
+          <span className="text-sm text-neutral-400">{messages?.length || 0} messages</span>
         </div>
       </div>
 
@@ -198,9 +200,11 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
                     {/* Avatar placeholder */}
                     <div className={`w-8 flex-shrink-0 ${!showAvatar ? 'invisible' : ''}`}>
                       {showAvatar && (
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold ${
-                          isOwn ? 'bg-burgundy-500' : 'bg-neutral-400'
-                        }`}>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold ${
+                            isOwn ? 'bg-burgundy-500' : 'bg-neutral-400'
+                          }`}
+                        >
                           {(msg.user as any)?.display_name?.charAt(0)?.toUpperCase() || '?'}
                         </div>
                       )}
@@ -222,7 +226,9 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
                       >
                         <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                       </div>
-                      <p className={`text-xs text-neutral-400 mt-1 ${isOwn ? 'text-right mr-1' : 'ml-1'}`}>
+                      <p
+                        className={`text-xs text-neutral-400 mt-1 ${isOwn ? 'text-right mr-1' : 'ml-1'}`}
+                      >
                         {formatTime(msg.created_at)}
                       </p>
                     </div>

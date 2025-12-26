@@ -37,14 +37,18 @@ export default function JoinLeague() {
   });
 
   // Fetch league by code via API (bypasses RLS) - with automatic retry
-  const { data: leagueData, isLoading: leagueLoading, error: leagueError } = useQuery({
+  const {
+    data: leagueData,
+    isLoading: leagueLoading,
+    error: leagueError,
+  } = useQuery({
     queryKey: ['league-by-code', code],
     queryFn: async () => {
       if (!code) throw new Error('No code provided');
 
-      const result = await api<{ league: League & { has_password: boolean; member_count: number } }>(
-        `/leagues/code/${code.toUpperCase()}`
-      );
+      const result = await api<{
+        league: League & { has_password: boolean; member_count: number };
+      }>(`/leagues/code/${code.toUpperCase()}`);
 
       if (result.error) {
         throw new Error(result.error);
@@ -152,10 +156,7 @@ export default function JoinLeague() {
             <p className="text-neutral-500 mb-6">
               The invite code "{code}" doesn't match any league. Check the code and try again.
             </p>
-            <Link
-              to="/dashboard"
-              className="btn btn-primary inline-block"
-            >
+            <Link to="/dashboard" className="btn btn-primary inline-block">
               Go to Dashboard
             </Link>
           </div>
@@ -174,13 +175,8 @@ export default function JoinLeague() {
             <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
               Already a Member
             </h1>
-            <p className="text-neutral-500 mb-6">
-              You're already a member of {league.name}!
-            </p>
-            <Link
-              to={`/leagues/${league.id}`}
-              className="btn btn-primary inline-block"
-            >
+            <p className="text-neutral-500 mb-6">You're already a member of {league.name}!</p>
+            <Link to={`/leagues/${league.id}`} className="btn btn-primary inline-block">
               Go to League
             </Link>
           </div>
@@ -197,107 +193,104 @@ export default function JoinLeague() {
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-elevated p-8 border border-cream-200 max-w-md w-full">
           {/* League Info */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
-            {league.name}
-          </h1>
-          <p className="text-neutral-500">
-            Season {league.seasons.number}: {league.seasons.name}
-          </p>
-        </div>
-
-        {/* Stats */}
-        <div className="flex justify-center gap-6 mb-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-burgundy-500">
-              <Users className="h-5 w-5" />
-              <span className="text-xl font-bold">{memberCount}/{league.max_players}</span>
-            </div>
-            <p className="text-neutral-500 text-sm">Players</p>
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">{league.name}</h1>
+            <p className="text-neutral-500">
+              Season {league.seasons.number}: {league.seasons.name}
+            </p>
           </div>
 
-          {league.require_donation && league.donation_amount && (
+          {/* Stats */}
+          <div className="flex justify-center gap-6 mb-8">
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-burgundy-500">
-                <DollarSign className="h-5 w-5" />
-                <span className="text-xl font-bold">{league.donation_amount}</span>
+                <Users className="h-5 w-5" />
+                <span className="text-xl font-bold">
+                  {memberCount}/{league.max_players}
+                </span>
               </div>
-              <p className="text-neutral-500 text-sm">Entry Fee</p>
+              <p className="text-neutral-500 text-sm">Players</p>
+            </div>
+
+            {league.require_donation && league.donation_amount && (
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 text-burgundy-500">
+                  <DollarSign className="h-5 w-5" />
+                  <span className="text-xl font-bold">{league.donation_amount}</span>
+                </div>
+                <p className="text-neutral-500 text-sm">Entry Fee</p>
+              </div>
+            )}
+          </div>
+
+          {/* Donation Notes */}
+          {league.donation_notes && (
+            <div className="bg-cream-50 rounded-xl p-4 mb-6 border border-cream-200">
+              <p className="text-neutral-600 text-sm">{league.donation_notes}</p>
             </div>
           )}
-        </div>
 
-        {/* Donation Notes */}
-        {league.donation_notes && (
-          <div className="bg-cream-50 rounded-xl p-4 mb-6 border border-cream-200">
-            <p className="text-neutral-600 text-sm">{league.donation_notes}</p>
-          </div>
-        )}
-
-        {/* Join Form */}
-        {isFull ? (
-          <div className="text-center">
-            <p className="text-red-500 mb-4">This league is full.</p>
-            <Link
-              to="/dashboard"
-              className="btn btn-secondary inline-block"
+          {/* Join Form */}
+          {isFull ? (
+            <div className="text-center">
+              <p className="text-red-500 mb-4">This league is full.</p>
+              <Link to="/dashboard" className="btn btn-secondary inline-block">
+                Back to Dashboard
+              </Link>
+            </div>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setError(null);
+                joinMutation.mutate();
+              }}
             >
-              Back to Dashboard
-            </Link>
-          </div>
-        ) : (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setError(null);
-              joinMutation.mutate();
-            }}
-          >
-            {/* Password field only if league requires one */}
-            {leagueData?.has_password && (
-              <div className="mb-6">
-                <label className="block text-neutral-700 text-sm font-medium mb-2">
-                  <Lock className="h-4 w-4 inline mr-1" />
-                  League Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  className="input"
-                  required
-                />
-              </div>
-            )}
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-6">
-                <p className="text-red-600 text-sm">{error}</p>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={joinMutation.isPending}
-              className="w-full btn btn-primary flex items-center justify-center gap-2"
-            >
-              {joinMutation.isPending ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Joining...
-                </>
-              ) : league.require_donation ? (
-                <>
-                  <DollarSign className="h-5 w-5" />
-                  Pay ${league.donation_amount} & Join
-                </>
-              ) : (
-                'Join League'
+              {/* Password field only if league requires one */}
+              {leagueData?.has_password && (
+                <div className="mb-6">
+                  <label className="block text-neutral-700 text-sm font-medium mb-2">
+                    <Lock className="h-4 w-4 inline mr-1" />
+                    League Password
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password"
+                    className="input"
+                    required
+                  />
+                </div>
               )}
-            </button>
-          </form>
-        )}
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-6">
+                  <p className="text-red-600 text-sm">{error}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={joinMutation.isPending}
+                className="w-full btn btn-primary flex items-center justify-center gap-2"
+              >
+                {joinMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Joining...
+                  </>
+                ) : league.require_donation ? (
+                  <>
+                    <DollarSign className="h-5 w-5" />
+                    Pay ${league.donation_amount} & Join
+                  </>
+                ) : (
+                  'Join League'
+                )}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </>

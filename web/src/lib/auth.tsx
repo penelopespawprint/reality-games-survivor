@@ -25,7 +25,12 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, displayName: string, options?: SignUpOptions) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    displayName: string,
+    options?: SignUpOptions
+  ) => Promise<void>;
   signInWithMagicLink: (email: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -77,7 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
 
@@ -98,7 +105,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
-  const signUp = async (email: string, password: string, displayName: string, options?: SignUpOptions) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    displayName: string,
+    options?: SignUpOptions
+  ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -152,7 +164,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = profile?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, profile, session, loading, isAdmin, signIn, signUp, signInWithMagicLink, signInWithGoogle, signOut, refreshProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        session,
+        loading,
+        isAdmin,
+        signIn,
+        signUp,
+        signInWithMagicLink,
+        signInWithGoogle,
+        signOut,
+        refreshProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -72,72 +72,90 @@ export default function App() {
         <AuthProvider>
           <Analytics />
           <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/register" element={<Signup />} />
-        <Route path="/how-to-play" element={<HowToPlay />} />
-        <Route path="/scoring" element={<ScoringRules />} />
-        <Route path="/scoring-rules" element={<ScoringRules />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/update-password" element={<UpdatePassword />} />
-        <Route path="/sms" element={<SMSCommands />} />
-        <Route path="/l/:code" element={<PublicLeaderboard />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/castaways" element={<Castaways />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsOfService />} />
+            {/* Public routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/register" element={<Signup />} />
+            <Route path="/how-to-play" element={<HowToPlay />} />
+            <Route path="/scoring" element={<ScoringRules />} />
+            <Route path="/scoring-rules" element={<ScoringRules />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
+            <Route path="/sms" element={<SMSCommands />} />
+            <Route path="/l/:code" element={<PublicLeaderboard />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/castaways" element={<Castaways />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
 
-        {/* Protected routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/leagues/:leagueId/leaderboard" element={<Leaderboard />} />
-            <Route path="/leaderboard" element={<GlobalLeaderboard />} />
-            <Route path="/leagues" element={<Leagues />} />
-          </Route>
-          {/* Full-page protected routes (no Layout wrapper) */}
-          <Route path="/join" element={<Navigate to="/signup" replace />} />
-          <Route path="/join/:code" element={<JoinLeague />} />
-          <Route path="/leagues/create" element={<CreateLeague />} />
-          <Route path="/leagues/:id" element={<LeagueHome />} />
-          <Route path="/leagues/:leagueId/draft" element={<Draft />} />
-          <Route path="/leagues/:leagueId/draft/settings" element={<DraftSettings />} />
-          <Route path="/leagues/:leagueId/pick" element={<WeeklyPick />} />
-          <Route path="/leagues/:leagueId/team" element={<MyTeam />} />
-          <Route path="/leagues/:leagueId/settings" element={<LeagueSettings />} />
-          <Route path="/leagues/:leagueId/invite" element={<InviteLink />} />
-          <Route path="/leagues/:leagueId/history" element={<LeagueHistory />} />
-          <Route path="/leagues/:leagueId/episodes/:episodeId" element={<EpisodeResults />} />
-          <Route path="/profile/payments" element={<PaymentHistory />} />
-          <Route path="/profile/notifications" element={<Notifications />} />
-          <Route path="/seasons/:seasonId/schedule" element={<SeasonSchedule />} />
-          <Route path="/seasons/:seasonId/castaways" element={<SeasonCastaways />} />
-        </Route>
+            {/* Protected routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<Layout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/leagues/:leagueId/leaderboard" element={<Leaderboard />} />
+                <Route path="/leaderboard" element={<GlobalLeaderboard />} />
+                <Route path="/leagues" element={<Leagues />} />
+              </Route>
+              {/* Full-page protected routes (no Layout wrapper) */}
+              <Route path="/join" element={<Navigate to="/signup" replace />} />
+              <Route path="/join/:code" element={<JoinLeague />} />
+              <Route path="/leagues/create" element={<CreateLeague />} />
+              <Route path="/leagues/:id" element={<LeagueHome />} />
+              <Route path="/leagues/:leagueId/draft" element={<Draft />} />
+              <Route path="/leagues/:leagueId/draft/settings" element={<DraftSettings />} />
+              <Route path="/leagues/:leagueId/pick" element={<WeeklyPick />} />
+              <Route path="/leagues/:leagueId/team" element={<MyTeam />} />
+              <Route path="/leagues/:leagueId/settings" element={<LeagueSettings />} />
+              <Route path="/leagues/:leagueId/invite" element={<InviteLink />} />
+              <Route path="/leagues/:leagueId/history" element={<LeagueHistory />} />
+              <Route path="/leagues/:leagueId/episodes/:episodeId" element={<EpisodeResults />} />
+              <Route path="/profile/payments" element={<PaymentHistory />} />
+              <Route path="/profile/notifications" element={<Notifications />} />
+              <Route path="/seasons/:seasonId/schedule" element={<SeasonSchedule />} />
+              <Route path="/seasons/:seasonId/castaways" element={<SeasonCastaways />} />
+            </Route>
 
-        {/* Admin routes - require admin role */}
-        <Route element={<AdminRoute />}>
-          <Route path="/admin" element={withAdminErrorBoundary(AdminDashboard)} />
-          <Route path="/admin/scoring" element={withAdminErrorBoundary(AdminScoring)} />
-          <Route path="/admin/castaways" element={withAdminErrorBoundary(AdminCastaways)} />
-          <Route path="/admin/seasons" element={withAdminErrorBoundary(AdminSeasons)} />
-          <Route path="/admin/seasons/:seasonId" element={withAdminErrorBoundary(AdminSeasons)} />
-          <Route path="/admin/seasons/:seasonId/episodes" element={withAdminErrorBoundary(AdminEpisodes)} />
-          <Route path="/admin/seasons/:seasonId/castaways" element={withAdminErrorBoundary(AdminCastaways)} />
-          <Route path="/admin/episodes/:episodeId/scoring" element={withAdminErrorBoundary(AdminScoring)} />
-          <Route path="/admin/leagues" element={withAdminErrorBoundary(AdminLeagues)} />
-          <Route path="/admin/users" element={withAdminErrorBoundary(AdminUsers)} />
-          <Route path="/admin/payments" element={withAdminErrorBoundary(AdminPayments)} />
-          <Route path="/admin/jobs" element={withAdminErrorBoundary(AdminJobs)} />
-          <Route path="/admin/global" element={withAdminErrorBoundary(AdminGlobal)} />
-          <Route path="/admin/scoring-rules" element={withAdminErrorBoundary(AdminScoringRules)} />
-          <Route path="/admin/scoring/grid" element={withAdminErrorBoundary(AdminScoringGrid)} />
-        </Route>
+            {/* Admin routes - require admin role */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={withAdminErrorBoundary(AdminDashboard)} />
+              <Route path="/admin/scoring" element={withAdminErrorBoundary(AdminScoring)} />
+              <Route path="/admin/castaways" element={withAdminErrorBoundary(AdminCastaways)} />
+              <Route path="/admin/seasons" element={withAdminErrorBoundary(AdminSeasons)} />
+              <Route
+                path="/admin/seasons/:seasonId"
+                element={withAdminErrorBoundary(AdminSeasons)}
+              />
+              <Route
+                path="/admin/seasons/:seasonId/episodes"
+                element={withAdminErrorBoundary(AdminEpisodes)}
+              />
+              <Route
+                path="/admin/seasons/:seasonId/castaways"
+                element={withAdminErrorBoundary(AdminCastaways)}
+              />
+              <Route
+                path="/admin/episodes/:episodeId/scoring"
+                element={withAdminErrorBoundary(AdminScoring)}
+              />
+              <Route path="/admin/leagues" element={withAdminErrorBoundary(AdminLeagues)} />
+              <Route path="/admin/users" element={withAdminErrorBoundary(AdminUsers)} />
+              <Route path="/admin/payments" element={withAdminErrorBoundary(AdminPayments)} />
+              <Route path="/admin/jobs" element={withAdminErrorBoundary(AdminJobs)} />
+              <Route path="/admin/global" element={withAdminErrorBoundary(AdminGlobal)} />
+              <Route
+                path="/admin/scoring-rules"
+                element={withAdminErrorBoundary(AdminScoringRules)}
+              />
+              <Route
+                path="/admin/scoring/grid"
+                element={withAdminErrorBoundary(AdminScoringGrid)}
+              />
+            </Route>
 
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
       </ToastProvider>

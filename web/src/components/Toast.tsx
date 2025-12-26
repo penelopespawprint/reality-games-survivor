@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -57,13 +57,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const showToast = useCallback((message: string, type: ToastType = 'info') => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, message, type }]);
+  const showToast = useCallback(
+    (message: string, type: ToastType = 'info') => {
+      const id = Math.random().toString(36).substring(2, 9);
+      setToasts((prev) => [...prev, { id, message, type }]);
 
-    // Auto-remove after 5 seconds
-    setTimeout(() => removeToast(id), 5000);
-  }, [removeToast]);
+      // Auto-remove after 5 seconds
+      setTimeout(() => removeToast(id), 5000);
+    },
+    [removeToast]
+  );
 
   const showSuccess = useCallback((message: string) => showToast(message, 'success'), [showToast]);
   const showError = useCallback((message: string) => showToast(message, 'error'), [showToast]);

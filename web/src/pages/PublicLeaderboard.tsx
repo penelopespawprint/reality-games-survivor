@@ -9,7 +9,11 @@ export default function PublicLeaderboard() {
   const [copied, setCopied] = useState(false);
 
   // Fetch league by code
-  const { data: league, isLoading: leagueLoading, error } = useQuery({
+  const {
+    data: league,
+    isLoading: leagueLoading,
+    error,
+  } = useQuery({
     queryKey: ['public-league', code],
     queryFn: async () => {
       if (!code) throw new Error('No league code');
@@ -60,14 +64,11 @@ export default function PublicLeaderboard() {
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center p-4">
         <div className="text-center">
           <Trophy className="h-16 w-16 text-neutral-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">Leaderboard Not Found</h1>
-          <p className="text-neutral-500 mb-6">
-            This league doesn't exist or isn't public.
-          </p>
-          <Link
-            to="/"
-            className="btn btn-primary inline-block"
-          >
+          <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
+            Leaderboard Not Found
+          </h1>
+          <p className="text-neutral-500 mb-6">This league doesn't exist or isn't public.</p>
+          <Link to="/" className="btn btn-primary inline-block">
             Go Home
           </Link>
         </div>
@@ -124,7 +125,9 @@ export default function PublicLeaderboard() {
               <p className="text-neutral-800 font-bold text-sm truncate max-w-24">
                 {members[0]?.users?.display_name}
               </p>
-              <p className="text-burgundy-500 text-xs font-medium">{members[0]?.total_points || 0} pts</p>
+              <p className="text-burgundy-500 text-xs font-medium">
+                {members[0]?.total_points || 0} pts
+              </p>
               <div className="w-24 h-28 bg-burgundy-100 rounded-t-xl mt-2" />
             </div>
 
@@ -155,17 +158,17 @@ export default function PublicLeaderboard() {
             {members?.map((member: any, index: number) => (
               <div
                 key={member.id}
-                className={`flex items-center gap-3 px-4 py-3 ${
-                  index < 3 ? 'bg-burgundy-50' : ''
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 ${index < 3 ? 'bg-burgundy-50' : ''}`}
               >
                 <div className="w-8 h-8 flex items-center justify-center">
                   {index === 0 ? (
                     <Crown className="h-5 w-5 text-burgundy-500" />
                   ) : (
-                    <span className={`font-bold ${
-                      index < 3 ? 'text-burgundy-500' : 'text-neutral-400'
-                    }`}>
+                    <span
+                      className={`font-bold ${
+                        index < 3 ? 'text-burgundy-500' : 'text-neutral-400'
+                      }`}
+                    >
                       {index + 1}
                     </span>
                   )}
@@ -189,9 +192,9 @@ export default function PublicLeaderboard() {
                   </p>
                 </div>
 
-                <p className={`font-bold ${
-                  index === 0 ? 'text-burgundy-500' : 'text-neutral-800'
-                }`}>
+                <p
+                  className={`font-bold ${index === 0 ? 'text-burgundy-500' : 'text-neutral-800'}`}
+                >
                   {member.total_points || 0}
                 </p>
               </div>
@@ -205,10 +208,7 @@ export default function PublicLeaderboard() {
           <p className="text-neutral-600 text-sm mb-4">
             Create your own league and compete with friends!
           </p>
-          <Link
-            to="/signup"
-            className="btn btn-primary inline-block"
-          >
+          <Link to="/signup" className="btn btn-primary inline-block">
             Sign Up Free
           </Link>
         </div>
@@ -216,7 +216,9 @@ export default function PublicLeaderboard() {
         {/* Footer */}
         <div className="mt-8 text-center text-neutral-500 text-sm pb-8">
           <p>Reality Games Fantasy League</p>
-          <p>Season {league.seasons?.number}: {league.seasons?.name}</p>
+          <p>
+            Season {league.seasons?.number}: {league.seasons?.name}
+          </p>
         </div>
       </div>
     </div>

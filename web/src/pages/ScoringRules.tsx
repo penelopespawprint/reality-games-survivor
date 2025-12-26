@@ -13,7 +13,7 @@ import {
   Star,
   Award,
   Check,
-  X
+  X,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
@@ -150,22 +150,18 @@ export default function ScoringRules() {
   });
 
   const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => ({
+    setExpandedCategories((prev) => ({
       ...prev,
       [category]: !prev[category],
     }));
   };
 
   const expandAll = () => {
-    setExpandedCategories(
-      CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.name]: true }), {})
-    );
+    setExpandedCategories(CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.name]: true }), {}));
   };
 
   const collapseAll = () => {
-    setExpandedCategories(
-      CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.name]: false }), {})
-    );
+    setExpandedCategories(CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.name]: false }), {}));
   };
 
   return (
@@ -176,12 +172,11 @@ export default function ScoringRules() {
       <div className="px-6 py-12 text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <BookOpen className="h-10 w-10 text-burgundy-500" />
-          <h1 className="text-4xl font-display font-bold text-neutral-800">
-            Scoring Rules
-          </h1>
+          <h1 className="text-4xl font-display font-bold text-neutral-800">Scoring Rules</h1>
         </div>
         <p className="text-neutral-500 text-lg max-w-2xl mx-auto">
-          Earn and lose points based on what your castaways do each episode. Here are examples from each category.
+          Earn and lose points based on what your castaways do each episode. Here are examples from
+          each category.
         </p>
       </div>
 
@@ -193,21 +188,27 @@ export default function ScoringRules() {
           </h2>
           <div className="space-y-3 text-neutral-600">
             <p>
-              <strong>1. Draft your team:</strong> You'll draft 2 castaways before the season premiere.
+              <strong>1. Draft your team:</strong> You'll draft 2 castaways before the season
+              premiere.
             </p>
             <p>
-              <strong>2. Make weekly picks:</strong> Each week, choose which of your 2 castaways to "play" for that episode.
+              <strong>2. Make weekly picks:</strong> Each week, choose which of your 2 castaways to
+              "play" for that episode.
             </p>
             <p>
-              <strong>3. Earn points:</strong> Your picked castaway earns (or loses) points based on what happens during the episode.
+              <strong>3. Earn points:</strong> Your picked castaway earns (or loses) points based on
+              what happens during the episode.
             </p>
             <p>
-              <strong>4. Compete:</strong> The player with the most total points at the end of the season wins!
+              <strong>4. Compete:</strong> The player with the most total points at the end of the
+              season wins!
             </p>
           </div>
           <div className="mt-4 p-4 bg-burgundy-50 rounded-xl border border-burgundy-100">
             <p className="text-burgundy-700 text-sm">
-              <strong>Pro tip:</strong> Study confessional counts, challenge performance, and edit visibility when making your weekly picks. A castaway with a lot of screen time often earns more points!
+              <strong>Pro tip:</strong> Study confessional counts, challenge performance, and edit
+              visibility when making your weekly picks. A castaway with a lot of screen time often
+              earns more points!
             </p>
           </div>
         </div>
@@ -216,16 +217,10 @@ export default function ScoringRules() {
       {/* Controls */}
       <div className="max-w-4xl mx-auto px-6 mb-6">
         <div className="flex justify-end gap-2">
-          <button
-            onClick={expandAll}
-            className="btn btn-secondary text-sm"
-          >
+          <button onClick={expandAll} className="btn btn-secondary text-sm">
             Expand All
           </button>
-          <button
-            onClick={collapseAll}
-            className="btn btn-secondary text-sm"
-          >
+          <button onClick={collapseAll} className="btn btn-secondary text-sm">
             Collapse All
           </button>
         </div>
@@ -255,9 +250,7 @@ export default function ScoringRules() {
                     <h3 className="text-lg font-display font-bold text-neutral-800">
                       {category.name}
                     </h3>
-                    <p className="text-neutral-500 text-sm">
-                      {category.description}
-                    </p>
+                    <p className="text-neutral-500 text-sm">{category.description}</p>
                   </div>
                   {isExpanded ? (
                     <ChevronDown className="h-5 w-5 text-neutral-400" />
@@ -277,9 +270,7 @@ export default function ScoringRules() {
                         >
                           <div
                             className={`p-1.5 rounded-full flex-shrink-0 ${
-                              example.positive
-                                ? 'bg-green-100'
-                                : 'bg-red-100'
+                              example.positive ? 'bg-green-100' : 'bg-red-100'
                             }`}
                           >
                             {example.positive ? (
@@ -288,9 +279,7 @@ export default function ScoringRules() {
                               <X className="h-4 w-4 text-red-600" />
                             )}
                           </div>
-                          <p className="text-neutral-700">
-                            {example.text}
-                          </p>
+                          <p className="text-neutral-700">{example.text}</p>
                           <span
                             className={`ml-auto text-xs font-medium px-2 py-1 rounded-full ${
                               example.positive
@@ -323,7 +312,9 @@ export default function ScoringRules() {
             Why don't you show exact point values?
           </h3>
           <p className="text-neutral-600 text-sm">
-            Our scoring system is carefully balanced to reward strategic gameplay. We keep the exact point values private to prevent gaming the system and to keep the competition fair. Focus on drafting well-rounded players who are likely to go deep in the game!
+            Our scoring system is carefully balanced to reward strategic gameplay. We keep the exact
+            point values private to prevent gaming the system and to keep the competition fair.
+            Focus on drafting well-rounded players who are likely to go deep in the game!
           </p>
         </div>
       </div>

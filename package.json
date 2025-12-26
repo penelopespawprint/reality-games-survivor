@@ -17,7 +17,8 @@
     "dev:all": "concurrently \"npm run dev:server\" \"npm run dev\"",
     "build": "npm run build --workspace=web",
     "build:server": "cd server && npm run build",
-    "dev:mobile": "npm run start --workspace=mobile"
+    "dev:mobile": "npm run start --workspace=mobile",
+    "prepare": "husky"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

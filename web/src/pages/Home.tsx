@@ -3,20 +3,14 @@ import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { useState, useEffect } from 'react';
-import {
-  Flame,
-  Trophy,
-  Users,
-  Target,
-  ChevronRight,
-  Sparkles,
-} from 'lucide-react';
+import { Flame, Trophy, Users, Target, ChevronRight, Sparkles } from 'lucide-react';
 
 // Check if we're on the main domain (splash page) or survivor subdomain (full app)
 const isMainDomain = () => {
   const hostname = window.location.hostname;
-  return hostname === 'realitygamesfantasyleague.com' ||
-         hostname === 'www.realitygamesfantasyleague.com';
+  return (
+    hostname === 'realitygamesfantasyleague.com' || hostname === 'www.realitygamesfantasyleague.com'
+  );
 };
 
 // Check if we're on the shortlink domain - redirect to survivor app
@@ -79,12 +73,26 @@ function RGFLLogo({ className }: { className?: string }) {
       <rect x="85" y="162" width="30" height="8" fill="#5C3317" rx="2" />
       <rect x="85" y="176" width="30" height="8" fill="#5C3317" rx="2" />
       <defs>
-        <linearGradient id="flame-gradient-logo" x1="100" y1="0" x2="100" y2="145" gradientUnits="userSpaceOnUse">
+        <linearGradient
+          id="flame-gradient-logo"
+          x1="100"
+          y1="0"
+          x2="100"
+          y2="145"
+          gradientUnits="userSpaceOnUse"
+        >
           <stop stopColor="#FF6B00" />
           <stop offset="0.5" stopColor="#FF4500" />
           <stop offset="1" stopColor="#A52A2A" />
         </linearGradient>
-        <linearGradient id="wood-gradient-logo" x1="90" y1="140" x2="110" y2="140" gradientUnits="userSpaceOnUse">
+        <linearGradient
+          id="wood-gradient-logo"
+          x1="90"
+          y1="140"
+          x2="110"
+          y2="140"
+          gradientUnits="userSpaceOnUse"
+        >
           <stop stopColor="#8B4513" />
           <stop offset="0.5" stopColor="#A0522D" />
           <stop offset="1" stopColor="#8B4513" />
@@ -100,7 +108,7 @@ function StepCard({
   title,
   desc,
   color,
-  delay
+  delay,
 }: {
   icon: React.ElementType;
   title: string;
@@ -118,12 +126,24 @@ function StepCard({
       }`}
       style={{ transitionDelay: `${delay}ms` }}
     >
-      <div className={`w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ${
-        color === 'burgundy' ? 'bg-burgundy-100' : color === 'orange' ? 'bg-orange-100' : 'bg-amber-100'
-      }`}>
-        <Icon className={`h-10 w-10 ${
-          color === 'burgundy' ? 'text-burgundy-500' : color === 'orange' ? 'text-orange-500' : 'text-amber-500'
-        }`} />
+      <div
+        className={`w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ${
+          color === 'burgundy'
+            ? 'bg-burgundy-100'
+            : color === 'orange'
+              ? 'bg-orange-100'
+              : 'bg-amber-100'
+        }`}
+      >
+        <Icon
+          className={`h-10 w-10 ${
+            color === 'burgundy'
+              ? 'text-burgundy-500'
+              : color === 'orange'
+                ? 'text-orange-500'
+                : 'text-amber-500'
+          }`}
+        />
       </div>
       <h3 className="font-display text-2xl font-bold text-neutral-800 mb-2">{title}</h3>
       <p className="text-neutral-500">{desc}</p>
@@ -157,12 +177,18 @@ function SplashPage() {
             </h1>
 
             {/* Tagline */}
-            <p className="text-lg text-neutral-600 max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
+            <p
+              className="text-lg text-neutral-600 max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-in"
+              style={{ animationDelay: '200ms' }}
+            >
               Fantasy leagues built by superfans, for superfans.
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 animate-fade-in" style={{ animationDelay: '400ms' }}>
+            <div
+              className="flex flex-col sm:flex-row gap-4 justify-center mb-8 animate-fade-in"
+              style={{ animationDelay: '400ms' }}
+            >
               <a
                 href={SURVIVOR_APP_URL}
                 className="btn btn-primary text-lg px-10 py-4 shadow-float hover:shadow-elevated transition-all duration-300 hover:-translate-y-1"
@@ -177,7 +203,10 @@ function SplashPage() {
               </a>
             </div>
 
-            <p className="text-sm text-neutral-500 animate-fade-in" style={{ animationDelay: '600ms' }}>
+            <p
+              className="text-sm text-neutral-500 animate-fade-in"
+              style={{ animationDelay: '600ms' }}
+            >
               Premiere: February 25, 2026
             </p>
           </div>
@@ -192,10 +221,16 @@ function SplashPage() {
               © 2025 Reality Games Fantasy League. Not affiliated with CBS or Survivor.
             </p>
             <div className="flex items-center gap-6 text-sm">
-              <a href={`${SURVIVOR_APP_URL}/login`} className="text-neutral-500 hover:text-burgundy-600 transition-colors">
+              <a
+                href={`${SURVIVOR_APP_URL}/login`}
+                className="text-neutral-500 hover:text-burgundy-600 transition-colors"
+              >
                 Log In
               </a>
-              <a href={`${SURVIVOR_APP_URL}/contact`} className="text-neutral-500 hover:text-burgundy-600 transition-colors">
+              <a
+                href={`${SURVIVOR_APP_URL}/contact`}
+                className="text-neutral-500 hover:text-burgundy-600 transition-colors"
+              >
                 Contact
               </a>
             </div>
@@ -220,7 +255,9 @@ function SurvivorHome() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: Content */}
-            <div className={`transition-all duration-1000 ${heroInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'}`}>
+            <div
+              className={`transition-all duration-1000 ${heroInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'}`}
+            >
               <div className="inline-flex items-center gap-2 bg-burgundy-100 text-burgundy-700 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-pulse">
                 <Sparkles className="h-4 w-4" />
                 Season 50 Now Open
@@ -264,13 +301,13 @@ function SurvivorHome() {
                 )}
               </div>
 
-              <p className="text-sm text-neutral-400">
-                Premiere: February 25, 2026 • Free to play
-              </p>
+              <p className="text-sm text-neutral-400">Premiere: February 25, 2026 • Free to play</p>
             </div>
 
             {/* Right: Logo with glow effect */}
-            <div className={`flex justify-center lg:justify-end transition-all duration-1000 delay-300 ${heroInView ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-12 scale-95'}`}>
+            <div
+              className={`flex justify-center lg:justify-end transition-all duration-1000 delay-300 ${heroInView ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-12 scale-95'}`}
+            >
               <div className="relative group">
                 <RGFLLogo className="h-64 sm:h-80 lg:h-96 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0 animate-pulse opacity-30">
@@ -292,7 +329,13 @@ function SurvivorHome() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <StepCard icon={Users} title="Draft" desc="Pick 2 castaways" color="burgundy" delay={0} />
+            <StepCard
+              icon={Users}
+              title="Draft"
+              desc="Pick 2 castaways"
+              color="burgundy"
+              delay={0}
+            />
             <StepCard icon={Target} title="Pick" desc="Choose weekly" color="orange" delay={150} />
             <StepCard icon={Trophy} title="Win" desc="Climb the ranks" color="amber" delay={300} />
           </div>

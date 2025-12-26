@@ -11,27 +11,32 @@ export default function HowToPlay() {
     {
       icon: Users,
       title: 'Join or Create a League',
-      description: 'Create a private league with friends or join an existing one using an invite code. Leagues can have up to 12 players. Optional charity donations make competition meaningful — the winner recommends where the pool goes!',
+      description:
+        'Create a private league with friends or join an existing one using an invite code. Leagues can have up to 12 players. Optional charity donations make competition meaningful — the winner recommends where the pool goes!',
     },
     {
       icon: Trophy,
       title: 'Draft Your Team',
-      description: 'Before the season premiere, you\'ll rank all 18 castaways based on who you think will go far. Your rankings are used across all your leagues in a snake draft format — if you\'re pick 5, you get whoever is highest on YOUR list that hasn\'t been taken. Study the cast bios, watch pre-season interviews, and trust your Survivor instincts. Consider edit visibility (who gets confessionals?), challenge prowess (physical and puzzle skills), and social game (who can build alliances?). Your 2 best available castaways become your roster for the season.',
+      description:
+        "Before the season premiere, you'll rank all 18 castaways based on who you think will go far. Your rankings are used across all your leagues in a snake draft format — if you're pick 5, you get whoever is highest on YOUR list that hasn't been taken. Study the cast bios, watch pre-season interviews, and trust your Survivor instincts. Consider edit visibility (who gets confessionals?), challenge prowess (physical and puzzle skills), and social game (who can build alliances?). Your 2 best available castaways become your roster for the season.",
     },
     {
       icon: Calendar,
       title: 'Make Weekly Picks',
-      description: 'Each week, choose which of your 2 castaways to play. Picks lock at 3pm PST on Wednesdays before the episode airs.',
+      description:
+        'Each week, choose which of your 2 castaways to play. Picks lock at 3pm PST on Wednesdays before the episode airs.',
     },
     {
       icon: Star,
       title: 'Earn Points',
-      description: 'Your picked castaway earns points based on what happens in the episode. Every idol play, challenge win, and strategic move counts. See the full list on our Scoring Rules page.',
+      description:
+        'Your picked castaway earns points based on what happens in the episode. Every idol play, challenge win, and strategic move counts. See the full list on our Scoring Rules page.',
     },
     {
       icon: Award,
       title: 'Win Your League',
-      description: 'Accumulate the most points over the season to win your league and claim bragging rights until next season!',
+      description:
+        'Accumulate the most points over the season to win your league and claim bragging rights until next season!',
     },
   ];
 
@@ -39,7 +44,7 @@ export default function HowToPlay() {
     { day: 'Wednesday 3pm', event: 'Picks lock for the week' },
     { day: 'Wednesday 8pm', event: 'Episode airs (live scoring!)' },
     { day: 'Friday 12pm', event: 'Official results posted' },
-    { day: 'Saturday 12pm', event: 'Next week\'s picks open' },
+    { day: 'Saturday 12pm', event: "Next week's picks open" },
     { day: 'Wednesday 3pm', event: 'Picks lock, cycle repeats' },
   ];
 
@@ -49,11 +54,10 @@ export default function HowToPlay() {
 
       {/* Header */}
       <div className="px-6 py-12 text-center">
-        <h1 className="text-4xl font-display font-bold text-neutral-800 mb-4">
-          How to Play
-        </h1>
+        <h1 className="text-4xl font-display font-bold text-neutral-800 mb-4">How to Play</h1>
         <p className="text-neutral-500 text-lg max-w-2xl mx-auto">
-          Fantasy Survivor for people who actually watch Survivor. 100+ rules. Real strategy. No luck required.
+          Fantasy Survivor for people who actually watch Survivor. 100+ rules. Real strategy. No
+          luck required.
         </p>
       </div>
 
@@ -126,18 +130,12 @@ export default function HowToPlay() {
       {/* CTA */}
       <div className="max-w-4xl mx-auto px-6 pb-16 text-center">
         {user ? (
-          <Link
-            to="/dashboard"
-            className="btn btn-primary text-lg px-8 py-3"
-          >
+          <Link to="/dashboard" className="btn btn-primary text-lg px-8 py-3">
             Go to Dashboard
           </Link>
         ) : (
           <>
-            <Link
-              to="/signup"
-              className="btn btn-primary text-lg px-8 py-3"
-            >
+            <Link to="/signup" className="btn btn-primary text-lg px-8 py-3">
               Join Season 50: In the Hands of the Fans
             </Link>
             <p className="mt-4 text-neutral-400 text-sm">

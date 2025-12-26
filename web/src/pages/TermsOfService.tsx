@@ -20,9 +20,7 @@ export default function TermsOfService() {
           </Link>
           <div className="flex items-center gap-3">
             <FileText className="h-8 w-8 text-burgundy-500" />
-            <h1 className="text-3xl font-display font-bold text-neutral-800">
-              Terms of Service
-            </h1>
+            <h1 className="text-3xl font-display font-bold text-neutral-800">Terms of Service</h1>
           </div>
           <p className="text-neutral-500 mt-2">Last updated: December 26, 2025</p>
         </div>
@@ -34,7 +32,9 @@ export default function TermsOfService() {
               1. Acceptance of Terms
             </h2>
             <p className="text-neutral-600">
-              By accessing or using Reality Games Survivor Fantasy League ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+              By accessing or using Reality Games Survivor Fantasy League ("the Service"), you agree
+              to be bound by these Terms of Service. If you do not agree to these terms, please do
+              not use the Service.
             </p>
           </section>
 
@@ -43,7 +43,10 @@ export default function TermsOfService() {
               2. Description of Service
             </h2>
             <p className="text-neutral-600">
-              Reality Games Survivor Fantasy League is a fantasy sports platform where users draft castaways from the CBS television show "Survivor," make weekly picks, and compete in leagues based on castaway performance. This is a fan-made fantasy game and is not affiliated with, endorsed by, or sponsored by CBS, Survivor, or any related entities.
+              Reality Games Survivor Fantasy League is a fantasy sports platform where users draft
+              castaways from the CBS television show "Survivor," make weekly picks, and compete in
+              leagues based on castaway performance. This is a fan-made fantasy game and is not
+              affiliated with, endorsed by, or sponsored by CBS, Survivor, or any related entities.
             </p>
           </section>
 
@@ -81,9 +84,7 @@ export default function TermsOfService() {
             <h2 className="text-xl font-display font-bold text-neutral-800 mb-3">
               5. User Conduct
             </h2>
-            <p className="text-neutral-600 mb-3">
-              You agree not to:
-            </p>
+            <p className="text-neutral-600 mb-3">You agree not to:</p>
             <ul className="list-disc list-inside text-neutral-600 space-y-2 ml-4">
               <li>Use the Service for any unlawful purpose</li>
               <li>Harass, abuse, or harm other users</li>
@@ -99,7 +100,10 @@ export default function TermsOfService() {
               6. Scoring and Game Rules
             </h2>
             <p className="text-neutral-600">
-              Scoring is determined by our proprietary system based on castaway actions during each episode. We reserve the right to adjust scores if errors are discovered. All scoring decisions are final. Picks must be submitted before the posted deadline; late picks may be auto-filled.
+              Scoring is determined by our proprietary system based on castaway actions during each
+              episode. We reserve the right to adjust scores if errors are discovered. All scoring
+              decisions are final. Picks must be submitted before the posted deadline; late picks
+              may be auto-filled.
             </p>
           </section>
 
@@ -108,7 +112,9 @@ export default function TermsOfService() {
               7. Intellectual Property
             </h2>
             <p className="text-neutral-600">
-              The Service and its original content, features, and functionality are owned by Reality Games Fantasy League and are protected by copyright, trademark, and other intellectual property laws. "Survivor" is a trademark of CBS. We are not affiliated with CBS.
+              The Service and its original content, features, and functionality are owned by Reality
+              Games Fantasy League and are protected by copyright, trademark, and other intellectual
+              property laws. "Survivor" is a trademark of CBS. We are not affiliated with CBS.
             </p>
           </section>
 
@@ -117,7 +123,9 @@ export default function TermsOfService() {
               8. Disclaimer of Warranties
             </h2>
             <p className="text-neutral-600">
-              THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED. WE DO NOT GUARANTEE THAT THE SERVICE WILL BE UNINTERRUPTED, SECURE, OR ERROR-FREE.
+              THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND,
+              EXPRESS OR IMPLIED. WE DO NOT GUARANTEE THAT THE SERVICE WILL BE UNINTERRUPTED,
+              SECURE, OR ERROR-FREE.
             </p>
           </section>
 
@@ -126,7 +134,9 @@ export default function TermsOfService() {
               9. Limitation of Liability
             </h2>
             <p className="text-neutral-600">
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM YOUR USE OF THE SERVICE, INCLUDING LOSS OF PROFITS, DATA, OR PRIZES.
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE SHALL NOT BE LIABLE FOR ANY INDIRECT,
+              INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM YOUR USE OF THE
+              SERVICE, INCLUDING LOSS OF PROFITS, DATA, OR PRIZES.
             </p>
           </section>
 
@@ -135,7 +145,9 @@ export default function TermsOfService() {
               10. Termination
             </h2>
             <p className="text-neutral-600">
-              We may terminate or suspend your account at any time for violations of these Terms or for any other reason at our discretion. Upon termination, your right to use the Service will immediately cease.
+              We may terminate or suspend your account at any time for violations of these Terms or
+              for any other reason at our discretion. Upon termination, your right to use the
+              Service will immediately cease.
             </p>
           </section>
 
@@ -144,19 +156,20 @@ export default function TermsOfService() {
               11. Changes to Terms
             </h2>
             <p className="text-neutral-600">
-              We reserve the right to modify these Terms at any time. We will provide notice of significant changes by posting the updated Terms on this page. Your continued use of the Service after changes constitutes acceptance of the new Terms.
+              We reserve the right to modify these Terms at any time. We will provide notice of
+              significant changes by posting the updated Terms on this page. Your continued use of
+              the Service after changes constitutes acceptance of the new Terms.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-display font-bold text-neutral-800 mb-3">
-              12. Contact Us
-            </h2>
+            <h2 className="text-xl font-display font-bold text-neutral-800 mb-3">12. Contact Us</h2>
             <p className="text-neutral-600">
               If you have any questions about these Terms, please contact us at{' '}
               <Link to="/contact" className="text-burgundy-600 hover:text-burgundy-700 underline">
                 our contact page
-              </Link>.
+              </Link>
+              .
             </p>
           </section>
         </div>

@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
 import { Navigation } from './Navigation';
 
@@ -55,7 +55,8 @@ export class AdminErrorBoundary extends Component<Props, State> {
               </h1>
 
               <p className="text-neutral-500 mb-6 text-center">
-                Something went wrong while loading this admin page. This error has been logged for review.
+                Something went wrong while loading this admin page. This error has been logged for
+                review.
               </p>
 
               {process.env.NODE_ENV !== 'production' && this.state.error && (

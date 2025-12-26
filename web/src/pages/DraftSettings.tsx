@@ -1,7 +1,18 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Settings, Users, Shuffle, GripVertical, Save, Loader2, AlertCircle, Check, Crown } from 'lucide-react';
+import {
+  ArrowLeft,
+  Settings,
+  Users,
+  Shuffle,
+  GripVertical,
+  Save,
+  Loader2,
+  AlertCircle,
+  Check,
+  Crown,
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Navigation } from '@/components/Navigation';
 
@@ -17,7 +28,9 @@ export default function DraftSettings() {
   const { data: currentUser } = useQuery({
     queryKey: ['current-user'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       return user;
     },
   });
@@ -168,22 +181,22 @@ export default function DraftSettings() {
       <>
         <Navigation />
         <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-        <div className="flex items-center gap-3 mb-6">
-          <Link
-            to={`/leagues/${leagueId}`}
-            className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
-          >
-            <ArrowLeft className="h-5 w-5 text-neutral-600" />
-          </Link>
-          <h1 className="text-2xl font-display font-bold text-neutral-800">Draft Settings</h1>
-        </div>
+          <div className="flex items-center gap-3 mb-6">
+            <Link
+              to={`/leagues/${leagueId}`}
+              className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
+            >
+              <ArrowLeft className="h-5 w-5 text-neutral-600" />
+            </Link>
+            <h1 className="text-2xl font-display font-bold text-neutral-800">Draft Settings</h1>
+          </div>
 
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-display font-bold text-neutral-800 mb-2">Access Denied</h2>
-          <p className="text-neutral-600">Only the league creator can manage draft settings.</p>
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-display font-bold text-neutral-800 mb-2">Access Denied</h2>
+            <p className="text-neutral-600">Only the league creator can manage draft settings.</p>
+          </div>
         </div>
-      </div>
       </>
     );
   }
@@ -192,196 +205,199 @@ export default function DraftSettings() {
     <>
       <Navigation />
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link
-          to={`/leagues/${leagueId}/settings`}
-          className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
-        >
-          <ArrowLeft className="h-5 w-5 text-neutral-600" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-display font-bold text-neutral-800 flex items-center gap-2">
-            <Settings className="h-6 w-6 text-burgundy-500" />
-            Draft Settings
-          </h1>
-          <p className="text-neutral-500">{league?.name}</p>
-        </div>
-      </div>
-
-      {/* Draft Status */}
-      <div className={`rounded-2xl p-4 mb-6 ${
-        draftAlreadyStarted
-          ? 'bg-amber-50 border border-amber-200'
-          : 'bg-green-50 border border-green-200'
-      }`}>
-        <div className="flex items-center gap-3">
-          {draftAlreadyStarted ? (
-            <AlertCircle className="h-5 w-5 text-amber-600" />
-          ) : (
-            <Check className="h-5 w-5 text-green-600" />
-          )}
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <Link
+            to={`/leagues/${leagueId}/settings`}
+            className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
+          >
+            <ArrowLeft className="h-5 w-5 text-neutral-600" />
+          </Link>
           <div>
-            <p className={`font-medium ${draftAlreadyStarted ? 'text-amber-800' : 'text-green-800'}`}>
-              {draftAlreadyStarted
-                ? `Draft is ${league?.draft_status}`
-                : 'Draft has not started yet'}
-            </p>
-            <p className={`text-sm ${draftAlreadyStarted ? 'text-amber-600' : 'text-green-600'}`}>
-              {draftAlreadyStarted
-                ? 'Draft order cannot be changed after the draft begins.'
-                : 'Set the draft order below before starting.'}
-            </p>
+            <h1 className="text-2xl font-display font-bold text-neutral-800 flex items-center gap-2">
+              <Settings className="h-6 w-6 text-burgundy-500" />
+              Draft Settings
+            </h1>
+            <p className="text-neutral-500">{league?.name}</p>
           </div>
         </div>
-      </div>
 
-      {/* Draft Order */}
-      <div className="bg-white rounded-2xl shadow-card border border-cream-200 mb-6">
-        <div className="px-4 py-3 border-b border-cream-200 flex items-center justify-between">
-          <h2 className="text-lg font-display font-bold text-neutral-800 flex items-center gap-2">
-            <Users className="h-5 w-5 text-burgundy-500" />
-            Draft Order
-          </h2>
-          {!draftAlreadyStarted && (
-            <button
-              onClick={randomizeDraftOrder}
-              className="flex items-center gap-2 px-3 py-1.5 bg-burgundy-100 hover:bg-burgundy-200 text-burgundy-700 rounded-lg text-sm transition-colors"
-            >
-              <Shuffle className="h-4 w-4" />
-              Randomize
-            </button>
+        {/* Draft Status */}
+        <div
+          className={`rounded-2xl p-4 mb-6 ${
+            draftAlreadyStarted
+              ? 'bg-amber-50 border border-amber-200'
+              : 'bg-green-50 border border-green-200'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            {draftAlreadyStarted ? (
+              <AlertCircle className="h-5 w-5 text-amber-600" />
+            ) : (
+              <Check className="h-5 w-5 text-green-600" />
+            )}
+            <div>
+              <p
+                className={`font-medium ${draftAlreadyStarted ? 'text-amber-800' : 'text-green-800'}`}
+              >
+                {draftAlreadyStarted
+                  ? `Draft is ${league?.draft_status}`
+                  : 'Draft has not started yet'}
+              </p>
+              <p className={`text-sm ${draftAlreadyStarted ? 'text-amber-600' : 'text-green-600'}`}>
+                {draftAlreadyStarted
+                  ? 'Draft order cannot be changed after the draft begins.'
+                  : 'Set the draft order below before starting.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Draft Order */}
+        <div className="bg-white rounded-2xl shadow-card border border-cream-200 mb-6">
+          <div className="px-4 py-3 border-b border-cream-200 flex items-center justify-between">
+            <h2 className="text-lg font-display font-bold text-neutral-800 flex items-center gap-2">
+              <Users className="h-5 w-5 text-burgundy-500" />
+              Draft Order
+            </h2>
+            {!draftAlreadyStarted && (
+              <button
+                onClick={randomizeDraftOrder}
+                className="flex items-center gap-2 px-3 py-1.5 bg-burgundy-100 hover:bg-burgundy-200 text-burgundy-700 rounded-lg text-sm transition-colors"
+              >
+                <Shuffle className="h-4 w-4" />
+                Randomize
+              </button>
+            )}
+          </div>
+
+          <div className="divide-y divide-cream-100">
+            {draftOrder.map((userId, index) => {
+              const member = getMemberByUserId(userId);
+              const isCurrentUser = userId === currentUser?.id;
+
+              return (
+                <div
+                  key={userId}
+                  draggable={!draftAlreadyStarted}
+                  onDragStart={() => handleDragStart(index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`flex items-center gap-3 px-4 py-3 ${
+                    !draftAlreadyStarted ? 'cursor-grab active:cursor-grabbing' : ''
+                  } ${draggedIndex === index ? 'bg-burgundy-50' : ''} ${
+                    isCurrentUser ? 'bg-burgundy-50/50' : ''
+                  }`}
+                >
+                  {!draftAlreadyStarted && (
+                    <GripVertical className="h-5 w-5 text-neutral-400 flex-shrink-0" />
+                  )}
+                  <div className="w-8 h-8 bg-burgundy-500 rounded-full flex items-center justify-center text-white font-bold">
+                    {index + 1}
+                  </div>
+                  {member?.users?.avatar_url ? (
+                    <img
+                      src={member.users.avatar_url}
+                      alt=""
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-cream-100 rounded-full flex items-center justify-center border border-cream-200">
+                      <Users className="h-5 w-5 text-neutral-400" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <p className="text-neutral-800 font-medium flex items-center gap-2">
+                      {member?.users?.display_name}
+                      {userId === league?.commissioner_id && (
+                        <Crown className="h-4 w-4 text-burgundy-500" />
+                      )}
+                    </p>
+                    {isCurrentUser && <p className="text-burgundy-500 text-sm">You</p>}
+                  </div>
+                  <div className="text-neutral-500 text-sm">
+                    Pick {index + 1} & {(members?.length || 0) * 2 - index}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {members?.length === 0 && (
+            <div className="p-8 text-center">
+              <Users className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+              <p className="text-neutral-600">No members yet.</p>
+              <p className="text-neutral-500 text-sm">Invite players to join your league.</p>
+            </div>
           )}
         </div>
 
-        <div className="divide-y divide-cream-100">
-          {draftOrder.map((userId, index) => {
-            const member = getMemberByUserId(userId);
-            const isCurrentUser = userId === currentUser?.id;
-
-            return (
-              <div
-                key={userId}
-                draggable={!draftAlreadyStarted}
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center gap-3 px-4 py-3 ${
-                  !draftAlreadyStarted ? 'cursor-grab active:cursor-grabbing' : ''
-                } ${draggedIndex === index ? 'bg-burgundy-50' : ''} ${
-                  isCurrentUser ? 'bg-burgundy-50/50' : ''
-                }`}
-              >
-                {!draftAlreadyStarted && (
-                  <GripVertical className="h-5 w-5 text-neutral-400 flex-shrink-0" />
-                )}
-                <div className="w-8 h-8 bg-burgundy-500 rounded-full flex items-center justify-center text-white font-bold">
-                  {index + 1}
-                </div>
-                {member?.users?.avatar_url ? (
-                  <img
-                    src={member.users.avatar_url}
-                    alt=""
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 bg-cream-100 rounded-full flex items-center justify-center border border-cream-200">
-                    <Users className="h-5 w-5 text-neutral-400" />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <p className="text-neutral-800 font-medium flex items-center gap-2">
-                    {member?.users?.display_name}
-                    {userId === league?.commissioner_id && (
-                      <Crown className="h-4 w-4 text-burgundy-500" />
-                    )}
-                  </p>
-                  {isCurrentUser && (
-                    <p className="text-burgundy-500 text-sm">You</p>
-                  )}
-                </div>
-                <div className="text-neutral-500 text-sm">
-                  Pick {index + 1} & {(members?.length || 0) * 2 - index}
-                </div>
-              </div>
-            );
-          })}
+        {/* Snake Draft Explanation */}
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6">
+          <h3 className="text-neutral-800 font-medium mb-2 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-blue-500" />
+            Snake Draft Format
+          </h3>
+          <p className="text-neutral-600 text-sm">
+            Each player drafts 2 castaways. Round 1 goes in order (1, 2, 3...), then Round 2
+            reverses (...3, 2, 1). This ensures fairness by giving later picks an earlier second
+            pick.
+          </p>
         </div>
 
-        {members?.length === 0 && (
-          <div className="p-8 text-center">
-            <Users className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-            <p className="text-neutral-600">No members yet.</p>
-            <p className="text-neutral-500 text-sm">Invite players to join your league.</p>
-          </div>
-        )}
-      </div>
+        {/* Action Buttons */}
+        <div className="space-y-3">
+          {!draftAlreadyStarted && (
+            <>
+              <button
+                onClick={() => saveDraftOrder.mutate()}
+                disabled={!hasChanges || saveDraftOrder.isPending}
+                className="btn btn-primary w-full flex items-center justify-center gap-2"
+              >
+                {saveDraftOrder.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>
+                    <Save className="h-5 w-5" />
+                    Save Draft Order
+                  </>
+                )}
+              </button>
 
-      {/* Snake Draft Explanation */}
-      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6">
-        <h3 className="text-neutral-800 font-medium mb-2 flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-blue-500" />
-          Snake Draft Format
-        </h3>
-        <p className="text-neutral-600 text-sm">
-          Each player drafts 2 castaways. Round 1 goes in order (1, 2, 3...), then Round 2 reverses
-          (...3, 2, 1). This ensures fairness by giving later picks an earlier second pick.
-        </p>
-      </div>
+              <button
+                onClick={() => {
+                  if (confirm('Are you sure you want to start the draft? This cannot be undone.')) {
+                    startDraft.mutate();
+                  }
+                }}
+                disabled={!canStartDraft || startDraft.isPending || hasChanges}
+                className="w-full bg-green-600 hover:bg-green-500 disabled:bg-neutral-300 disabled:text-neutral-500 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+              >
+                {startDraft.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  'Start Draft Now'
+                )}
+              </button>
 
-      {/* Action Buttons */}
-      <div className="space-y-3">
-        {!draftAlreadyStarted && (
-          <>
-            <button
-              onClick={() => saveDraftOrder.mutate()}
-              disabled={!hasChanges || saveDraftOrder.isPending}
+              {hasChanges && (
+                <p className="text-amber-600 text-sm text-center">
+                  Save your changes before starting the draft.
+                </p>
+              )}
+            </>
+          )}
+
+          {draftAlreadyStarted && (
+            <Link
+              to={`/leagues/${leagueId}/draft`}
               className="btn btn-primary w-full flex items-center justify-center gap-2"
             >
-              {saveDraftOrder.isPending ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <>
-                  <Save className="h-5 w-5" />
-                  Save Draft Order
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={() => {
-                if (confirm('Are you sure you want to start the draft? This cannot be undone.')) {
-                  startDraft.mutate();
-                }
-              }}
-              disabled={!canStartDraft || startDraft.isPending || hasChanges}
-              className="w-full bg-green-600 hover:bg-green-500 disabled:bg-neutral-300 disabled:text-neutral-500 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-            >
-              {startDraft.isPending ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                'Start Draft Now'
-              )}
-            </button>
-
-            {hasChanges && (
-              <p className="text-amber-600 text-sm text-center">
-                Save your changes before starting the draft.
-              </p>
-            )}
-          </>
-        )}
-
-        {draftAlreadyStarted && (
-          <Link
-            to={`/leagues/${leagueId}/draft`}
-            className="btn btn-primary w-full flex items-center justify-center gap-2"
-          >
-            Go to Draft Room
-          </Link>
-        )}
+              Go to Draft Room
+            </Link>
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 }

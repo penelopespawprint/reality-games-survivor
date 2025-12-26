@@ -2,7 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 
 export function AdminRoute() {
-  const { user, profile, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -19,7 +19,13 @@ export function AdminRoute() {
 
   // Logged in but not admin - redirect to dashboard with error
   if (!isAdmin) {
-    return <Navigate to="/dashboard" replace state={{ error: 'Access denied. Admin privileges required.' }} />;
+    return (
+      <Navigate
+        to="/dashboard"
+        replace
+        state={{ error: 'Access denied. Admin privileges required.' }}
+      />
+    );
   }
 
   return <Outlet />;

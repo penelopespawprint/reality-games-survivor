@@ -4,15 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Trophy,
   Users,
-  Calendar,
-  ArrowRight,
   Loader2,
   Crown,
   Settings,
   Share2,
   Flame,
   Heart,
-  UserPlus,
   BarChart3,
   Target,
   Clock,
@@ -42,11 +39,13 @@ export default function LeagueHome() {
       if (!id) throw new Error('No league ID');
       const { data, error } = await supabase
         .from('leagues')
-        .select(`
+        .select(
+          `
           *,
           seasons(*),
           commissioner:users!leagues_commissioner_id_fkey(id, display_name)
-        `)
+        `
+        )
         .eq('id', id)
         .single();
 
@@ -80,11 +79,13 @@ export default function LeagueHome() {
       if (!id) throw new Error('No league ID');
       const { data, error } = await supabase
         .from('rosters')
-        .select(`
+        .select(
+          `
           *,
           castaways(id, name, photo_url, status),
           users(id, display_name)
-        `)
+        `
+        )
         .eq('league_id', id)
         .is('dropped_at', null);
 
@@ -172,7 +173,7 @@ export default function LeagueHome() {
     );
   }
 
-  const myMembership = members?.find(m => m.user_id === user?.id);
+  const myMembership = members?.find((m) => m.user_id === user?.id);
   const isCommissioner = league?.commissioner_id === user?.id;
   const isAdmin = userProfile?.role === 'admin';
   const canManageLeague = isCommissioner || isAdmin;
@@ -191,9 +192,24 @@ export default function LeagueHome() {
   }, {});
 
   const getRankStyle = (rank: number) => {
-    if (rank === 1) return { bg: 'bg-yellow-100', text: 'text-yellow-700', icon: <Crown className="h-4 w-4 text-yellow-500" /> };
-    if (rank === 2) return { bg: 'bg-gray-100', text: 'text-gray-600', icon: <Medal className="h-4 w-4 text-gray-400" /> };
-    if (rank === 3) return { bg: 'bg-orange-100', text: 'text-orange-600', icon: <Medal className="h-4 w-4 text-orange-400" /> };
+    if (rank === 1)
+      return {
+        bg: 'bg-yellow-100',
+        text: 'text-yellow-700',
+        icon: <Crown className="h-4 w-4 text-yellow-500" />,
+      };
+    if (rank === 2)
+      return {
+        bg: 'bg-gray-100',
+        text: 'text-gray-600',
+        icon: <Medal className="h-4 w-4 text-gray-400" />,
+      };
+    if (rank === 3)
+      return {
+        bg: 'bg-orange-100',
+        text: 'text-orange-600',
+        icon: <Medal className="h-4 w-4 text-orange-400" />,
+      };
     return { bg: 'bg-cream-50', text: 'text-neutral-600', icon: null };
   };
 
@@ -249,7 +265,9 @@ export default function LeagueHome() {
               <p className="text-xs text-neutral-500 uppercase tracking-wide">Your Rank</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-neutral-800">{myMembership?.total_points || 0}</p>
+              <p className="text-2xl font-bold text-neutral-800">
+                {myMembership?.total_points || 0}
+              </p>
               <p className="text-xs text-neutral-500 uppercase tracking-wide">Your Points</p>
             </div>
             <div className="text-center">
@@ -263,8 +281,12 @@ export default function LeagueHome() {
             <div className="mt-4 flex items-center gap-3 p-3 bg-gradient-to-r from-burgundy-50 to-cream-50 rounded-xl border border-burgundy-100">
               <Heart className="h-5 w-5 text-burgundy-500 flex-shrink-0" />
               <div>
-                <p className="text-burgundy-700 font-medium text-sm">${league.donation_amount} Charity Entry</p>
-                <p className="text-burgundy-500 text-xs">All proceeds donated to charity chosen by winner</p>
+                <p className="text-burgundy-700 font-medium text-sm">
+                  ${league.donation_amount} Charity Entry
+                </p>
+                <p className="text-burgundy-500 text-xs">
+                  All proceeds donated to charity chosen by winner
+                </p>
               </div>
             </div>
           )}
@@ -334,14 +356,19 @@ export default function LeagueHome() {
                         roster.castaways?.status === 'eliminated' ? 'opacity-60' : ''
                       }`}
                     >
-                      <div className={`p-4 ${
-                        roster.castaways?.status === 'eliminated'
-                          ? 'bg-neutral-100 border border-neutral-200'
-                          : 'bg-gradient-to-br from-cream-50 to-cream-100 border border-cream-200'
-                      }`}>
+                      <div
+                        className={`p-4 ${
+                          roster.castaways?.status === 'eliminated'
+                            ? 'bg-neutral-100 border border-neutral-200'
+                            : 'bg-gradient-to-br from-cream-50 to-cream-100 border border-cream-200'
+                        }`}
+                      >
                         <div className="flex items-center gap-3">
                           <img
-                            src={getAvatarUrl(roster.castaways?.name || 'Unknown', roster.castaways?.photo_url)}
+                            src={getAvatarUrl(
+                              roster.castaways?.name || 'Unknown',
+                              roster.castaways?.photo_url
+                            )}
                             alt={roster.castaways?.name || 'Castaway'}
                             className={`w-12 h-12 rounded-full object-cover border-2 ${
                               roster.castaways?.status === 'eliminated'
@@ -350,18 +377,24 @@ export default function LeagueHome() {
                             }`}
                           />
                           <div>
-                            <p className="font-semibold text-neutral-800">{roster.castaways?.name}</p>
+                            <p className="font-semibold text-neutral-800">
+                              {roster.castaways?.name}
+                            </p>
                             <div className="flex items-center gap-1">
-                              <Flame className={`h-3 w-3 ${
-                                roster.castaways?.status === 'eliminated'
-                                  ? 'text-neutral-400'
-                                  : 'text-orange-500'
-                              }`} />
-                              <span className={`text-xs capitalize ${
-                                roster.castaways?.status === 'eliminated'
-                                  ? 'text-neutral-500'
-                                  : 'text-green-600'
-                              }`}>
+                              <Flame
+                                className={`h-3 w-3 ${
+                                  roster.castaways?.status === 'eliminated'
+                                    ? 'text-neutral-400'
+                                    : 'text-orange-500'
+                                }`}
+                              />
+                              <span
+                                className={`text-xs capitalize ${
+                                  roster.castaways?.status === 'eliminated'
+                                    ? 'text-neutral-500'
+                                    : 'text-green-600'
+                                }`}
+                              >
                                 {roster.castaways?.status}
                               </span>
                             </div>
@@ -464,11 +497,17 @@ export default function LeagueHome() {
                     <div
                       key={member.id}
                       className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
-                        isYou ? 'bg-burgundy-50 border border-burgundy-200' : `${rankStyle.bg} border border-transparent`
+                        isYou
+                          ? 'bg-burgundy-50 border border-burgundy-200'
+                          : `${rankStyle.bg} border border-transparent`
                       }`}
                     >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${rankStyle.bg}`}>
-                        {rankStyle.icon || <span className={`font-bold ${rankStyle.text}`}>{index + 1}</span>}
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${rankStyle.bg}`}
+                      >
+                        {rankStyle.icon || (
+                          <span className={`font-bold ${rankStyle.text}`}>{index + 1}</span>
+                        )}
                       </div>
                       <div className="flex-1">
                         <p className="font-medium text-neutral-800">
@@ -535,9 +574,13 @@ export default function LeagueHome() {
                                   : 'bg-cream-100 text-neutral-700'
                               }`}
                             >
-                              <Flame className={`h-3 w-3 ${
-                                castaway.status === 'eliminated' ? 'text-neutral-400' : 'text-orange-500'
-                              }`} />
+                              <Flame
+                                className={`h-3 w-3 ${
+                                  castaway.status === 'eliminated'
+                                    ? 'text-neutral-400'
+                                    : 'text-orange-500'
+                                }`}
+                              />
                               {castaway.name}
                             </div>
                           )) || (
@@ -548,7 +591,9 @@ export default function LeagueHome() {
 
                       {/* Points */}
                       <div className="text-right">
-                        <p className="text-xl font-bold text-neutral-800">{member.total_points || 0}</p>
+                        <p className="text-xl font-bold text-neutral-800">
+                          {member.total_points || 0}
+                        </p>
                         <p className="text-xs text-neutral-400">points</p>
                       </div>
                     </div>
@@ -569,8 +614,12 @@ export default function LeagueHome() {
                   <div className="w-10 h-10 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
                     <Medal className="h-5 w-5 text-gray-500" />
                   </div>
-                  <p className="font-semibold text-neutral-800 truncate text-sm">{members[1].users?.display_name}</p>
-                  <p className="text-2xl font-display text-gray-600 mt-1">{members[1].total_points || 0}</p>
+                  <p className="font-semibold text-neutral-800 truncate text-sm">
+                    {members[1].users?.display_name}
+                  </p>
+                  <p className="text-2xl font-display text-gray-600 mt-1">
+                    {members[1].total_points || 0}
+                  </p>
                   <p className="text-xs text-neutral-400">pts</p>
                 </div>
 
@@ -579,8 +628,12 @@ export default function LeagueHome() {
                   <div className="w-12 h-12 bg-yellow-300 rounded-full mx-auto mb-2 flex items-center justify-center">
                     <Crown className="h-6 w-6 text-yellow-700" />
                   </div>
-                  <p className="font-bold text-neutral-800 truncate">{members[0].users?.display_name}</p>
-                  <p className="text-3xl font-display text-yellow-700 mt-1">{members[0].total_points || 0}</p>
+                  <p className="font-bold text-neutral-800 truncate">
+                    {members[0].users?.display_name}
+                  </p>
+                  <p className="text-3xl font-display text-yellow-700 mt-1">
+                    {members[0].total_points || 0}
+                  </p>
                   <p className="text-xs text-neutral-500">pts</p>
                 </div>
 
@@ -589,8 +642,12 @@ export default function LeagueHome() {
                   <div className="w-10 h-10 bg-orange-200 rounded-full mx-auto mb-2 flex items-center justify-center">
                     <Medal className="h-5 w-5 text-orange-500" />
                   </div>
-                  <p className="font-semibold text-neutral-800 truncate text-sm">{members[2].users?.display_name}</p>
-                  <p className="text-2xl font-display text-orange-600 mt-1">{members[2].total_points || 0}</p>
+                  <p className="font-semibold text-neutral-800 truncate text-sm">
+                    {members[2].users?.display_name}
+                  </p>
+                  <p className="text-2xl font-display text-orange-600 mt-1">
+                    {members[2].total_points || 0}
+                  </p>
                   <p className="text-xs text-neutral-400">pts</p>
                 </div>
               </div>
@@ -611,22 +668,36 @@ export default function LeagueHome() {
                     <div
                       key={member.id}
                       className={`flex items-center gap-4 p-4 transition-colors ${
-                        isYou ? 'bg-burgundy-50 border-l-4 border-burgundy-500' : 'hover:bg-cream-50'
+                        isYou
+                          ? 'bg-burgundy-50 border-l-4 border-burgundy-500'
+                          : 'hover:bg-cream-50'
                       }`}
                     >
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${rankStyle.bg}`}>
-                        {rankStyle.icon || <span className={`font-bold ${rankStyle.text}`}>{index + 1}</span>}
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center ${rankStyle.bg}`}
+                      >
+                        {rankStyle.icon || (
+                          <span className={`font-bold ${rankStyle.text}`}>{index + 1}</span>
+                        )}
                       </div>
 
                       <div className="flex-1">
-                        <p className={`font-semibold ${isYou ? 'text-burgundy-700' : 'text-neutral-800'}`}>
+                        <p
+                          className={`font-semibold ${isYou ? 'text-burgundy-700' : 'text-neutral-800'}`}
+                        >
                           {member.users?.display_name}
-                          {isYou && <span className="ml-2 text-xs text-burgundy-500 font-normal">(You)</span>}
+                          {isYou && (
+                            <span className="ml-2 text-xs text-burgundy-500 font-normal">
+                              (You)
+                            </span>
+                          )}
                         </p>
                       </div>
 
                       <div className="text-right">
-                        <p className="text-2xl font-display text-neutral-800">{member.total_points || 0}</p>
+                        <p className="text-2xl font-display text-neutral-800">
+                          {member.total_points || 0}
+                        </p>
                         <p className="text-xs text-neutral-400">points</p>
                       </div>
                     </div>
@@ -643,7 +714,9 @@ export default function LeagueHome() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-neutral-500 text-sm">League Invite Code</p>
-                <p className="font-mono text-2xl font-bold text-burgundy-600 tracking-wider">{league.code}</p>
+                <p className="font-mono text-2xl font-bold text-burgundy-600 tracking-wider">
+                  {league.code}
+                </p>
               </div>
               <button
                 onClick={copyInviteCode}
@@ -671,12 +744,11 @@ export default function LeagueHome() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-neutral-500 text-sm">Invite Friends</p>
-                <p className="text-neutral-700 font-medium">Share the invite link to grow your league!</p>
+                <p className="text-neutral-700 font-medium">
+                  Share the invite link to grow your league!
+                </p>
               </div>
-              <button
-                onClick={copyInviteCode}
-                className="btn btn-primary flex items-center gap-2"
-              >
+              <button onClick={copyInviteCode} className="btn btn-primary flex items-center gap-2">
                 {copied ? (
                   <>
                     <Check className="h-5 w-5" />

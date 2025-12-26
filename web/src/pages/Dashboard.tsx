@@ -17,7 +17,7 @@ import {
   TrendingUp,
   Play,
   AlertCircle,
-  XCircle
+  XCircle,
 } from 'lucide-react';
 import { Footer } from '@/components/Footer';
 
@@ -76,7 +76,14 @@ interface Episode {
 }
 
 // Game phase detection
-type GamePhase = 'pre_registration' | 'registration' | 'pre_draft' | 'draft' | 'pre_season' | 'active' | 'post_season';
+type GamePhase =
+  | 'pre_registration'
+  | 'registration'
+  | 'pre_draft'
+  | 'draft'
+  | 'pre_season'
+  | 'active'
+  | 'post_season';
 
 // Weekly phase detection (for active game)
 type WeeklyPhase = 'make_pick' | 'picks_locked' | 'awaiting_results' | 'results_posted';
@@ -104,7 +111,10 @@ function getGamePhase(season: Season | null, nextEpisode: Episode | null): GameP
   return 'post_season';
 }
 
-function getWeeklyPhase(episode: Episode | null, previousEpisode: Episode | null): WeeklyPhaseInfo | null {
+function getWeeklyPhase(
+  episode: Episode | null,
+  previousEpisode: Episode | null
+): WeeklyPhaseInfo | null {
   if (!episode) return null;
 
   const now = new Date();
@@ -199,11 +209,7 @@ export function Dashboard() {
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user!.id)
-        .single();
+      const { data, error } = await supabase.from('users').select('*').eq('id', user!.id).single();
       if (error) throw error;
       return data as UserProfile;
     },
@@ -229,7 +235,8 @@ export function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('league_members')
-        .select(`
+        .select(
+          `
           league_id,
           total_points,
           rank,
@@ -240,15 +247,18 @@ export function Dashboard() {
             status,
             is_global
           )
-        `)
+        `
+        )
         .eq('user_id', user!.id);
       if (error) throw error;
-      return (data as any[]).map(d => ({
-        league_id: d.league_id,
-        total_points: d.total_points,
-        rank: d.rank,
-        league: d.league as League
-      })).filter(d => d.league !== null) as LeagueMembership[];
+      return (data as any[])
+        .map((d) => ({
+          league_id: d.league_id,
+          total_points: d.total_points,
+          rank: d.rank,
+          league: d.league as League,
+        }))
+        .filter((d) => d.league !== null) as LeagueMembership[];
     },
     enabled: !!user?.id,
   });
@@ -259,7 +269,8 @@ export function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('rosters')
-        .select(`
+        .select(
+          `
           league_id,
           castaway_id,
           castaway:castaways (
@@ -268,7 +279,8 @@ export function Dashboard() {
             photo_url,
             status
           )
-        `)
+        `
+        )
         .eq('user_id', user!.id)
         .is('dropped_at', null);
       if (error) throw error;
@@ -342,8 +354,8 @@ export function Dashboard() {
       if (error) throw error;
 
       // Filter to only castaways the user had on their roster
-      const userCastawayIds = myRosters.map(r => r.castaway_id);
-      return data?.filter(c => userCastawayIds.includes(c.id)) || [];
+      const userCastawayIds = myRosters.map((r) => r.castaway_id);
+      return data?.filter((c) => userCastawayIds.includes(c.id)) || [];
     },
     enabled: !!user?.id && !!previousEpisode?.id && !!myRosters,
   });
@@ -354,7 +366,7 @@ export function Dashboard() {
     queryFn: async () => {
       if (!previousEpisode || !myLeagues) return [];
 
-      const leagueIds = myLeagues.filter(l => !l.league.is_global).map(l => l.league_id);
+      const leagueIds = myLeagues.filter((l) => !l.league.is_global).map((l) => l.league_id);
       if (leagueIds.length === 0) return [];
 
       const { data, error } = await supabase
@@ -372,20 +384,27 @@ export function Dashboard() {
   });
 
   // Group rosters by league
-  const rostersByLeague = myRosters?.reduce((acc, roster) => {
-    if (!acc[roster.league_id]) acc[roster.league_id] = [];
-    acc[roster.league_id].push(roster);
-    return acc;
-  }, {} as Record<string, RosterEntry[]>) || {};
+  const rostersByLeague =
+    myRosters?.reduce(
+      (acc, roster) => {
+        if (!acc[roster.league_id]) acc[roster.league_id] = [];
+        acc[roster.league_id].push(roster);
+        return acc;
+      },
+      {} as Record<string, RosterEntry[]>
+    ) || {};
 
-  const nonGlobalLeagues = myLeagues?.filter(l => !l.league.is_global) || [];
-  const globalLeague = myLeagues?.find(l => l.league.is_global);
+  const nonGlobalLeagues = myLeagues?.filter((l) => !l.league.is_global) || [];
+  const globalLeague = myLeagues?.find((l) => l.league.is_global);
   const gamePhase = getGamePhase(activeSeason || null, nextEpisode || null);
-  const weeklyPhase = gamePhase === 'active' ? getWeeklyPhase(nextEpisode || null, previousEpisode || null) : null;
+  const weeklyPhase =
+    gamePhase === 'active' ? getWeeklyPhase(nextEpisode || null, previousEpisode || null) : null;
 
   // Calculate stats
   const totalPoints = globalLeague?.total_points || 0;
-  const activeCastaways = Object.values(rostersByLeague).flat().filter((r: any) => r.castaway?.status === 'active').length;
+  const activeCastaways = Object.values(rostersByLeague)
+    .flat()
+    .filter((r: any) => r.castaway?.status === 'active').length;
 
   return (
     <div className="pb-8">
@@ -401,21 +420,31 @@ export function Dashboard() {
 
       {/* Weekly Phase Banner */}
       {weeklyPhase && (
-        <div className={`rounded-2xl p-6 mb-8 ${
-          weeklyPhase.color === 'burgundy' ? 'bg-gradient-to-r from-burgundy-500 to-burgundy-600 text-white' :
-          weeklyPhase.color === 'orange' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' :
-          weeklyPhase.color === 'amber' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white' :
-          weeklyPhase.color === 'green' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' :
-          'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
-        }`}>
+        <div
+          className={`rounded-2xl p-6 mb-8 ${
+            weeklyPhase.color === 'burgundy'
+              ? 'bg-gradient-to-r from-burgundy-500 to-burgundy-600 text-white'
+              : weeklyPhase.color === 'orange'
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white'
+                : weeklyPhase.color === 'amber'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
+                  : weeklyPhase.color === 'green'
+                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
+                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+          }`}
+        >
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <div className={`w-3 h-3 rounded-full ${
-                  weeklyPhase.phase === 'make_pick' ? 'bg-white animate-pulse' :
-                  weeklyPhase.phase === 'picks_locked' ? 'bg-white/80' :
-                  'bg-white/60'
-                }`} />
+                <div
+                  className={`w-3 h-3 rounded-full ${
+                    weeklyPhase.phase === 'make_pick'
+                      ? 'bg-white animate-pulse'
+                      : weeklyPhase.phase === 'picks_locked'
+                        ? 'bg-white/80'
+                        : 'bg-white/60'
+                  }`}
+                />
                 <span className="text-sm font-semibold opacity-90 uppercase tracking-wide">
                   {weeklyPhase.label}
                 </span>
@@ -423,7 +452,8 @@ export function Dashboard() {
               <p className="text-lg font-medium">{weeklyPhase.description}</p>
               {weeklyPhase.countdown && (
                 <p className="text-sm opacity-80 mt-1">
-                  {weeklyPhase.countdown.label}: {getCountdownText(weeklyPhase.countdown.targetTime)}
+                  {weeklyPhase.countdown.label}:{' '}
+                  {getCountdownText(weeklyPhase.countdown.targetTime)}
                 </p>
               )}
             </div>
@@ -431,11 +461,15 @@ export function Dashboard() {
               <Link
                 to={`/leagues/${nonGlobalLeagues[0].league_id}${weeklyPhase.ctaPath}`}
                 className={`btn ${
-                  weeklyPhase.color === 'burgundy' ? 'bg-white text-burgundy-600 hover:bg-cream-100' :
-                  weeklyPhase.color === 'orange' ? 'bg-white text-orange-600 hover:bg-cream-100' :
-                  weeklyPhase.color === 'amber' ? 'bg-white text-amber-600 hover:bg-cream-100' :
-                  weeklyPhase.color === 'green' ? 'bg-white text-green-600 hover:bg-cream-100' :
-                  'bg-white text-blue-600 hover:bg-cream-100'
+                  weeklyPhase.color === 'burgundy'
+                    ? 'bg-white text-burgundy-600 hover:bg-cream-100'
+                    : weeklyPhase.color === 'orange'
+                      ? 'bg-white text-orange-600 hover:bg-cream-100'
+                      : weeklyPhase.color === 'amber'
+                        ? 'bg-white text-amber-600 hover:bg-cream-100'
+                        : weeklyPhase.color === 'green'
+                          ? 'bg-white text-green-600 hover:bg-cream-100'
+                          : 'bg-white text-blue-600 hover:bg-cream-100'
                 } font-semibold`}
               >
                 {weeklyPhase.ctaLabel}
@@ -455,7 +489,7 @@ export function Dashboard() {
               <p className="font-medium text-red-800">
                 {recentlyEliminated.length === 1
                   ? `${recentlyEliminated[0].name} was eliminated!`
-                  : `${recentlyEliminated.map(c => c.name).join(' and ')} were eliminated!`}
+                  : `${recentlyEliminated.map((c) => c.name).join(' and ')} were eliminated!`}
               </p>
               <p className="text-sm text-red-700 mt-1">
                 {recentlyEliminated.length === 1
@@ -472,12 +506,14 @@ export function Dashboard() {
             <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="font-medium text-amber-800">
-                You were auto-picked in {autoPickedLeagues.length === 1
+                You were auto-picked in{' '}
+                {autoPickedLeagues.length === 1
                   ? (autoPickedLeagues[0] as any).leagues?.name || 'a league'
                   : `${autoPickedLeagues.length} leagues`}
               </p>
               <p className="text-sm text-amber-700 mt-1">
-                You didn't submit a pick in time last episode. Make sure to pick before the deadline this week!
+                You didn't submit a pick in time last episode. Make sure to pick before the deadline
+                this week!
               </p>
             </div>
           </div>
@@ -498,7 +534,9 @@ export function Dashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-xl">Set Your Draft Rankings</h3>
-                <p className="text-burgundy-100 text-sm mt-1">Rank all 24 castaways before the draft</p>
+                <p className="text-burgundy-100 text-sm mt-1">
+                  Rank all 24 castaways before the draft
+                </p>
               </div>
               <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -513,7 +551,11 @@ export function Dashboard() {
           </Link>
         ) : gamePhase === 'active' && nextEpisode ? (
           <Link
-            to={nonGlobalLeagues.length > 0 ? `/leagues/${nonGlobalLeagues[0].league_id}/pick` : '/leagues'}
+            to={
+              nonGlobalLeagues.length > 0
+                ? `/leagues/${nonGlobalLeagues[0].league_id}/pick`
+                : '/leagues'
+            }
             className="col-span-2 bg-burgundy-500 hover:bg-burgundy-600 text-white rounded-2xl p-6 transition-colors group"
           >
             <div className="flex items-center gap-4">
@@ -522,7 +564,9 @@ export function Dashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-xl">Make Your Pick</h3>
-                <p className="text-burgundy-100 text-sm mt-1">Episode {nextEpisode.number} — Lock in before Wednesday</p>
+                <p className="text-burgundy-100 text-sm mt-1">
+                  Episode {nextEpisode.number} — Lock in before Wednesday
+                </p>
               </div>
               <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -545,7 +589,9 @@ export function Dashboard() {
               <div className="flex-1">
                 <h3 className="font-bold text-xl">View Final Standings</h3>
                 <p className="text-burgundy-100 text-sm mt-1">
-                  {activeSeason ? `Season ${activeSeason.number} results are in!` : 'Results are in!'}
+                  {activeSeason
+                    ? `Season ${activeSeason.number} results are in!`
+                    : 'Results are in!'}
                 </p>
               </div>
               <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
@@ -584,7 +630,9 @@ export function Dashboard() {
           <div className="w-12 h-12 bg-burgundy-100 rounded-xl flex items-center justify-center mx-auto mb-3">
             <Users className="h-6 w-6 text-burgundy-500" />
           </div>
-          <p className="text-3xl font-display font-bold text-neutral-800">{nonGlobalLeagues.length}</p>
+          <p className="text-3xl font-display font-bold text-neutral-800">
+            {nonGlobalLeagues.length}
+          </p>
           <p className="text-sm text-neutral-500 mt-1">My Leagues</p>
         </div>
         <div className="bg-white rounded-2xl p-5 border border-cream-200 text-center">
@@ -616,11 +664,15 @@ export function Dashboard() {
               </div>
               <div>
                 <h3 className="font-bold text-lg text-neutral-800">Your Global Rank</h3>
-                <p className="text-neutral-500 text-sm">{globalLeague.total_points} points earned this season</p>
+                <p className="text-neutral-500 text-sm">
+                  {globalLeague.total_points} points earned this season
+                </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-4xl font-display font-bold text-burgundy-500">#{globalLeague.rank}</p>
+              <p className="text-4xl font-display font-bold text-burgundy-500">
+                #{globalLeague.rank}
+              </p>
               <p className="text-xs text-neutral-400 mt-1">out of all players</p>
             </div>
           </div>
@@ -632,7 +684,10 @@ export function Dashboard() {
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-display font-bold text-neutral-800">My Leagues</h2>
-            <Link to="/leagues" className="text-burgundy-500 hover:text-burgundy-600 text-sm font-semibold flex items-center gap-1">
+            <Link
+              to="/leagues"
+              className="text-burgundy-500 hover:text-burgundy-600 text-sm font-semibold flex items-center gap-1"
+            >
               View All <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
@@ -650,11 +705,17 @@ export function Dashboard() {
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <h3 className="font-semibold text-lg text-neutral-800 group-hover:text-burgundy-600 transition-colors">{membership.league.name}</h3>
-                          <p className="text-sm text-neutral-400 font-mono">{membership.league.code}</p>
+                          <h3 className="font-semibold text-lg text-neutral-800 group-hover:text-burgundy-600 transition-colors">
+                            {membership.league.name}
+                          </h3>
+                          <p className="text-sm text-neutral-400 font-mono">
+                            {membership.league.code}
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-display text-burgundy-500">{membership.total_points}</p>
+                          <p className="text-2xl font-display text-burgundy-500">
+                            {membership.total_points}
+                          </p>
                           <p className="text-xs text-neutral-400">points</p>
                         </div>
                       </div>
@@ -672,22 +733,29 @@ export function Dashboard() {
                               }`}
                             >
                               <img
-                                src={getAvatarUrl(roster.castaway?.name || 'Unknown', roster.castaway?.photo_url)}
+                                src={getAvatarUrl(
+                                  roster.castaway?.name || 'Unknown',
+                                  roster.castaway?.photo_url
+                                )}
                                 alt={roster.castaway?.name || 'Castaway'}
                                 className={`w-10 h-10 rounded-full object-cover ${
                                   roster.castaway?.status === 'eliminated' ? 'grayscale' : ''
                                 }`}
                               />
                               <div>
-                                <p className={`font-medium text-sm ${
-                                  roster.castaway?.status === 'eliminated'
-                                    ? 'text-neutral-500 line-through'
-                                    : 'text-neutral-800'
-                                }`}>
+                                <p
+                                  className={`font-medium text-sm ${
+                                    roster.castaway?.status === 'eliminated'
+                                      ? 'text-neutral-500 line-through'
+                                      : 'text-neutral-800'
+                                  }`}
+                                >
                                   {roster.castaway?.name || 'Unknown'}
                                 </p>
                                 <p className="text-xs text-neutral-400">
-                                  {roster.castaway?.status === 'eliminated' ? 'Eliminated' : 'Active'}
+                                  {roster.castaway?.status === 'eliminated'
+                                    ? 'Eliminated'
+                                    : 'Active'}
                                 </p>
                               </div>
                             </div>
@@ -703,7 +771,9 @@ export function Dashboard() {
                       {membership.rank && (
                         <div className="mt-4 pt-4 border-t border-cream-100 flex items-center justify-between">
                           <span className="text-sm text-neutral-500">Your Rank</span>
-                          <span className="font-semibold text-burgundy-500">#{membership.rank}</span>
+                          <span className="font-semibold text-burgundy-500">
+                            #{membership.rank}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -748,15 +818,21 @@ export function Dashboard() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-neutral-500">Registration Opens</span>
-                  <span className="text-burgundy-500 font-semibold">{formatDate(activeSeason.registration_opens_at)}</span>
+                  <span className="text-burgundy-500 font-semibold">
+                    {formatDate(activeSeason.registration_opens_at)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-neutral-500">Premiere</span>
-                  <span className="text-neutral-800 font-semibold">{formatDate(activeSeason.premiere_at)}</span>
+                  <span className="text-neutral-800 font-semibold">
+                    {formatDate(activeSeason.premiere_at)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-neutral-500">Draft Deadline</span>
-                  <span className="text-neutral-800 font-semibold">{formatDate(activeSeason.draft_deadline)}</span>
+                  <span className="text-neutral-800 font-semibold">
+                    {formatDate(activeSeason.draft_deadline)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -806,17 +882,26 @@ export function Dashboard() {
           <div className="bg-white rounded-2xl p-6 border border-cream-200">
             <h3 className="font-semibold text-neutral-800 mb-4">Quick Links</h3>
             <div className="space-y-2">
-              <Link to="/how-to-play" className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 transition-colors">
+              <Link
+                to="/how-to-play"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 transition-colors"
+              >
                 <BookOpen className="h-5 w-5 text-neutral-400" />
                 <span className="text-sm text-neutral-700">How to Play</span>
                 <ChevronRight className="h-4 w-4 text-neutral-300 ml-auto" />
               </Link>
-              <Link to="/scoring" className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 transition-colors">
+              <Link
+                to="/scoring"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 transition-colors"
+              >
                 <Target className="h-5 w-5 text-neutral-400" />
                 <span className="text-sm text-neutral-700">Scoring Rules</span>
                 <ChevronRight className="h-4 w-4 text-neutral-300 ml-auto" />
               </Link>
-              <Link to="/castaways" className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 transition-colors">
+              <Link
+                to="/castaways"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 transition-colors"
+              >
                 <Flame className="h-5 w-5 text-neutral-400" />
                 <span className="text-sm text-neutral-700">View Castaways</span>
                 <ChevronRight className="h-4 w-4 text-neutral-300 ml-auto" />

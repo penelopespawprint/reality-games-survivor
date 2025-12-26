@@ -63,7 +63,9 @@ export function Navigation() {
                 <Shield className="h-4 w-4" />
                 <span className="font-bold text-sm tracking-wide">ADMIN CONTROL PANEL</span>
               </div>
-              <span className="text-white/80 text-sm hidden sm:inline">Full system access enabled</span>
+              <span className="text-white/80 text-sm hidden sm:inline">
+                Full system access enabled
+              </span>
             </div>
             <button
               onClick={() => setViewMode('player')}
@@ -81,7 +83,9 @@ export function Navigation() {
                 <img src="/logo.png" alt="RGFL" className="h-8 w-auto" />
                 <div className="flex items-center gap-2">
                   <span className="text-neutral-800 font-bold">RGFL</span>
-                  <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded">ADMIN</span>
+                  <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+                    ADMIN
+                  </span>
                 </div>
               </Link>
 
@@ -217,17 +221,28 @@ export function Navigation() {
                 </button>
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-float border border-cream-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   <div className="p-4 border-b border-cream-100">
-                    <p className="font-semibold text-neutral-800">{profile?.display_name || 'Survivor'}</p>
+                    <p className="font-semibold text-neutral-800">
+                      {profile?.display_name || 'Survivor'}
+                    </p>
                     <p className="text-sm text-neutral-400">Fantasy Player</p>
                   </div>
                   <div className="p-2">
-                    <Link to="/profile" className="block px-3 py-2 text-sm text-neutral-600 hover:bg-burgundy-50 rounded-lg">
+                    <Link
+                      to="/profile"
+                      className="block px-3 py-2 text-sm text-neutral-600 hover:bg-burgundy-50 rounded-lg"
+                    >
                       Profile Settings
                     </Link>
-                    <Link to="/profile/notifications" className="block px-3 py-2 text-sm text-neutral-600 hover:bg-burgundy-50 rounded-lg">
+                    <Link
+                      to="/profile/notifications"
+                      className="block px-3 py-2 text-sm text-neutral-600 hover:bg-burgundy-50 rounded-lg"
+                    >
                       Notifications
                     </Link>
-                    <Link to="/profile/payments" className="block px-3 py-2 text-sm text-neutral-600 hover:bg-burgundy-50 rounded-lg">
+                    <Link
+                      to="/profile/payments"
+                      className="block px-3 py-2 text-sm text-neutral-600 hover:bg-burgundy-50 rounded-lg"
+                    >
                       Payment History
                     </Link>
                     <hr className="my-2 border-cream-100" />
@@ -292,7 +307,10 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link to="/login" className="text-neutral-600 hover:text-burgundy-600 font-semibold text-sm uppercase tracking-wide">
+            <Link
+              to="/login"
+              className="text-neutral-600 hover:text-burgundy-600 font-semibold text-sm uppercase tracking-wide"
+            >
               Login
             </Link>
             <Link to="/signup" className="btn btn-primary shadow-elevated">

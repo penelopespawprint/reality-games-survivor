@@ -47,7 +47,16 @@ export function AdminCastaways() {
     previous_seasons: string;
     best_placement: string;
     fun_fact: string;
-  }>({ name: '', age: '', hometown: '', occupation: '', photo_url: '', previous_seasons: '', best_placement: '', fun_fact: '' });
+  }>({
+    name: '',
+    age: '',
+    hometown: '',
+    occupation: '',
+    photo_url: '',
+    previous_seasons: '',
+    best_placement: '',
+    fun_fact: '',
+  });
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -107,7 +116,15 @@ export function AdminCastaways() {
   });
 
   const eliminateMutation = useMutation({
-    mutationFn: async ({ castawayId, episodeId, placement }: { castawayId: string; episodeId: string; placement?: number }) => {
+    mutationFn: async ({
+      castawayId,
+      episodeId,
+      placement,
+    }: {
+      castawayId: string;
+      episodeId: string;
+      placement?: number;
+    }) => {
       const { error } = await supabase
         .from('castaways')
         .update({
@@ -144,10 +161,7 @@ export function AdminCastaways() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ castawayId, data }: { castawayId: string; data: Partial<Castaway> }) => {
-      const { error } = await supabase
-        .from('castaways')
-        .update(data)
-        .eq('id', castawayId);
+      const { error } = await supabase.from('castaways').update(data).eq('id', castawayId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -173,7 +187,10 @@ export function AdminCastaways() {
   const saveEdit = () => {
     if (!editingId) return;
     const previousSeasons = editForm.previous_seasons
-      ? editForm.previous_seasons.split(',').map(s => s.trim()).filter(s => s)
+      ? editForm.previous_seasons
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s)
       : null;
     updateMutation.mutate({
       castawayId: editingId,
@@ -204,8 +221,8 @@ export function AdminCastaways() {
       if (!castaways) return { updated: 0 };
 
       const updates = castaways
-        .filter(c => !c.photo_url)
-        .map(c => ({
+        .filter((c) => !c.photo_url)
+        .map((c) => ({
           id: c.id,
           photo_url: generatePhotoUrl(c.name),
         }));
@@ -225,10 +242,10 @@ export function AdminCastaways() {
     },
   });
 
-  const missingPhotosCount = castaways?.filter(c => !c.photo_url).length || 0;
+  const missingPhotosCount = castaways?.filter((c) => !c.photo_url).length || 0;
 
-  const activeCastaways = castaways?.filter(c => c.status === 'active') || [];
-  const eliminatedCastaways = castaways?.filter(c => c.status === 'eliminated') || [];
+  const activeCastaways = castaways?.filter((c) => c.status === 'active') || [];
+  const eliminatedCastaways = castaways?.filter((c) => c.status === 'eliminated') || [];
 
   if (profile && profile.role !== 'admin') {
     return (
@@ -237,7 +254,9 @@ export function AdminCastaways() {
         <main className="max-w-4xl mx-auto px-4 py-16 text-center">
           <div className="bg-white rounded-2xl shadow-elevated p-12">
             <h1 className="text-2xl font-display text-neutral-800 mb-3">Access Denied</h1>
-            <Link to="/dashboard" className="btn btn-primary">Back to Dashboard</Link>
+            <Link to="/dashboard" className="btn btn-primary">
+              Back to Dashboard
+            </Link>
           </div>
         </main>
       </div>
@@ -253,9 +272,17 @@ export function AdminCastaways() {
         <div className="flex items-center justify-between mb-8 animate-fade-in">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <Link to="/admin" className="text-neutral-400 hover:text-neutral-600 transition-colors">
+              <Link
+                to="/admin"
+                className="text-neutral-400 hover:text-neutral-600 transition-colors"
+              >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </Link>
               <h1 className="text-2xl font-display text-neutral-800">Manage Castaways</h1>
@@ -288,7 +315,9 @@ export function AdminCastaways() {
         {/* Active Castaways */}
         <div className="bg-white rounded-2xl shadow-elevated overflow-hidden mb-8 animate-slide-up">
           <div className="p-6 border-b border-cream-100 bg-green-50">
-            <h2 className="font-semibold text-green-800">Active Castaways ({activeCastaways.length})</h2>
+            <h2 className="font-semibold text-green-800">
+              Active Castaways ({activeCastaways.length})
+            </h2>
           </div>
 
           {isLoading ? (
@@ -298,12 +327,21 @@ export function AdminCastaways() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
               {activeCastaways.map((castaway) => (
-                <div key={castaway.id} className={`rounded-xl p-4 flex items-center gap-4 ${hasWonBefore(castaway) ? 'bg-yellow-50 border border-yellow-200' : 'bg-cream-50'}`}>
+                <div
+                  key={castaway.id}
+                  className={`rounded-xl p-4 flex items-center gap-4 ${hasWonBefore(castaway) ? 'bg-yellow-50 border border-yellow-200' : 'bg-cream-50'}`}
+                >
                   <div className="relative w-14 h-14 bg-cream-200 rounded-xl flex items-center justify-center overflow-hidden">
                     {castaway.photo_url ? (
-                      <img src={castaway.photo_url} alt={castaway.name} className="w-14 h-14 object-cover" />
+                      <img
+                        src={castaway.photo_url}
+                        alt={castaway.name}
+                        className="w-14 h-14 object-cover"
+                      />
                     ) : (
-                      <span className="text-xl font-bold text-neutral-400">{castaway.name.charAt(0)}</span>
+                      <span className="text-xl font-bold text-neutral-400">
+                        {castaway.name.charAt(0)}
+                      </span>
                     )}
                     {hasWonBefore(castaway) && (
                       <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center">
@@ -321,7 +359,9 @@ export function AdminCastaways() {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-neutral-500">{castaway.occupation || 'No occupation'}</p>
+                    <p className="text-sm text-neutral-500">
+                      {castaway.occupation || 'No occupation'}
+                    </p>
                     {!castaway.photo_url && (
                       <p className="text-xs text-orange-500">Missing photo</p>
                     )}
@@ -348,19 +388,33 @@ export function AdminCastaways() {
 
         {/* Eliminated Castaways */}
         {eliminatedCastaways.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-elevated overflow-hidden animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <div
+            className="bg-white rounded-2xl shadow-elevated overflow-hidden animate-slide-up"
+            style={{ animationDelay: '0.1s' }}
+          >
             <div className="p-6 border-b border-cream-100 bg-neutral-50">
-              <h2 className="font-semibold text-neutral-600">Eliminated ({eliminatedCastaways.length})</h2>
+              <h2 className="font-semibold text-neutral-600">
+                Eliminated ({eliminatedCastaways.length})
+              </h2>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
               {eliminatedCastaways.map((castaway) => (
-                <div key={castaway.id} className="bg-neutral-50 rounded-xl p-4 flex items-center gap-4 opacity-75">
+                <div
+                  key={castaway.id}
+                  className="bg-neutral-50 rounded-xl p-4 flex items-center gap-4 opacity-75"
+                >
                   <div className="relative w-14 h-14 bg-neutral-200 rounded-xl flex items-center justify-center overflow-hidden grayscale">
                     {castaway.photo_url ? (
-                      <img src={castaway.photo_url} alt={castaway.name} className="w-14 h-14 object-cover" />
+                      <img
+                        src={castaway.photo_url}
+                        alt={castaway.name}
+                        className="w-14 h-14 object-cover"
+                      />
                     ) : (
-                      <span className="text-xl font-bold text-neutral-400">{castaway.name.charAt(0)}</span>
+                      <span className="text-xl font-bold text-neutral-400">
+                        {castaway.name.charAt(0)}
+                      </span>
                     )}
                     {hasWonBefore(castaway) && (
                       <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center">
@@ -409,7 +463,8 @@ export function AdminCastaways() {
             <div className="bg-white rounded-2xl shadow-elevated max-w-md w-full p-6 animate-slide-up">
               <h3 className="text-xl font-display text-neutral-800 mb-4">Eliminate Castaway</h3>
               <p className="text-neutral-500 mb-6">
-                Select the episode when {castaways?.find(c => c.id === showEliminateModal)?.name} was eliminated.
+                Select the episode when {castaways?.find((c) => c.id === showEliminateModal)?.name}{' '}
+                was eliminated.
               </p>
 
               <select
@@ -463,7 +518,9 @@ export function AdminCastaways() {
               <div className="space-y-4">
                 {/* Photo URL */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Photo URL</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                    Photo URL
+                  </label>
                   <input
                     type="url"
                     value={editForm.photo_url}
@@ -509,7 +566,9 @@ export function AdminCastaways() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-1">Hometown</label>
+                    <label className="block text-sm font-medium text-neutral-700 mb-1">
+                      Hometown
+                    </label>
                     <input
                       type="text"
                       value={editForm.hometown}
@@ -521,7 +580,9 @@ export function AdminCastaways() {
 
                 {/* Occupation */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Occupation</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                    Occupation
+                  </label>
                   <input
                     type="text"
                     value={editForm.occupation}
@@ -540,12 +601,15 @@ export function AdminCastaways() {
                   {/* Previous Seasons */}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-neutral-700 mb-1">
-                      Previous Seasons <span className="text-neutral-400 font-normal">(comma-separated)</span>
+                      Previous Seasons{' '}
+                      <span className="text-neutral-400 font-normal">(comma-separated)</span>
                     </label>
                     <input
                       type="text"
                       value={editForm.previous_seasons}
-                      onChange={(e) => setEditForm({ ...editForm, previous_seasons: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, previous_seasons: e.target.value })
+                      }
                       placeholder="Heroes vs. Villains, Winners at War"
                       className="w-full p-3 border border-cream-200 rounded-xl focus:ring-2 focus:ring-burgundy-500"
                     />
@@ -554,7 +618,8 @@ export function AdminCastaways() {
                   {/* Best Placement */}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-neutral-700 mb-1">
-                      Best Placement <span className="text-neutral-400 font-normal">(1 = winner)</span>
+                      Best Placement{' '}
+                      <span className="text-neutral-400 font-normal">(1 = winner)</span>
                     </label>
                     <input
                       type="number"
@@ -574,7 +639,9 @@ export function AdminCastaways() {
 
                 {/* Fun Fact */}
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">Fun Fact</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                    Fun Fact
+                  </label>
                   <textarea
                     value={editForm.fun_fact}
                     onChange={(e) => setEditForm({ ...editForm, fun_fact: e.target.value })}

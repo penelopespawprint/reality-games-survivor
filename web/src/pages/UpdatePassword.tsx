@@ -16,7 +16,9 @@ export default function UpdatePassword() {
   useEffect(() => {
     // Check if user arrived via password reset link (has recovery session)
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       // User should have a session from the recovery link
       setIsValidSession(!!session);
     };
@@ -73,10 +75,7 @@ export default function UpdatePassword() {
             <p className="text-neutral-500 mb-6">
               This password reset link has expired or is invalid.
             </p>
-            <Link
-              to="/reset-password"
-              className="btn btn-primary inline-block"
-            >
+            <Link to="/reset-password" className="btn btn-primary inline-block">
               Request New Link
             </Link>
           </div>
@@ -94,7 +93,9 @@ export default function UpdatePassword() {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="h-8 w-8 text-green-600" />
             </div>
-            <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">Password Updated</h1>
+            <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
+              Password Updated
+            </h1>
             <p className="text-neutral-500 mb-6">
               Your password has been successfully updated. Redirecting to dashboard...
             </p>
@@ -118,10 +119,10 @@ export default function UpdatePassword() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-elevated p-8 border border-cream-200">
-          <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">Set New Password</h1>
-          <p className="text-neutral-500 mb-6">
-            Enter your new password below.
-          </p>
+          <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
+            Set New Password
+          </h1>
+          <p className="text-neutral-500 mb-6">Enter your new password below.</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="block">
@@ -173,11 +174,7 @@ export default function UpdatePassword() {
               disabled={isLoading || !password || !confirmPassword}
               className="w-full btn btn-primary flex items-center justify-center gap-2"
             >
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                'Update Password'
-              )}
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Update Password'}
             </button>
           </form>
         </div>

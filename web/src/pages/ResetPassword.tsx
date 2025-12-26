@@ -35,14 +35,14 @@ export default function ResetPassword() {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="h-8 w-8 text-green-600" />
             </div>
-            <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">Check Your Email</h1>
+            <h1 className="text-2xl font-display font-bold text-neutral-800 mb-2">
+              Check Your Email
+            </h1>
             <p className="text-neutral-500 mb-6">
-              We've sent a password reset link to <strong className="text-neutral-700">{email}</strong>
+              We've sent a password reset link to{' '}
+              <strong className="text-neutral-700">{email}</strong>
             </p>
-            <Link
-              to="/login"
-              className="text-burgundy-500 hover:text-burgundy-600 font-medium"
-            >
+            <Link to="/login" className="text-burgundy-500 hover:text-burgundy-600 font-medium">
               Back to Login
             </Link>
           </div>
@@ -97,11 +97,7 @@ export default function ResetPassword() {
               disabled={isLoading || !email}
               className="w-full btn btn-primary flex items-center justify-center gap-2"
             >
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                'Send Reset Link'
-              )}
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Send Reset Link'}
             </button>
           </form>
         </div>

@@ -12,7 +12,6 @@ import {
   FileText,
   Globe,
   X,
-  Share2,
   MessageCircle,
   Mail,
   Twitter,
@@ -55,7 +54,9 @@ export default function CreateLeague() {
   const { data: currentUser } = useQuery({
     queryKey: ['current-user'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       return user;
     },
   });
@@ -66,7 +67,9 @@ export default function CreateLeague() {
       if (!currentUser || !activeSeason) throw new Error('Missing data');
 
       // Get session for API calls
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
       // Use Express API which properly hashes passwords and adds creator as member
@@ -74,7 +77,7 @@ export default function CreateLeague() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           name,
@@ -99,7 +102,7 @@ export default function CreateLeague() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${session.access_token}`,
           },
         });
 
@@ -139,12 +142,18 @@ export default function CreateLeague() {
   const shareViaTwitter = () => {
     const text = `Join my Survivor Fantasy League "${createdLeague?.name}"! 🏝️🔥`;
     const url = getInviteLink();
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      '_blank'
+    );
   };
 
   const shareViaFacebook = () => {
     const url = getInviteLink();
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      '_blank'
+    );
   };
 
   const shareViaSMS = () => {
@@ -155,7 +164,10 @@ export default function CreateLeague() {
   const shareViaEmail = () => {
     const subject = `Join my Survivor Fantasy League: ${createdLeague?.name}`;
     const body = `Hey!\n\nI created a Survivor Fantasy League and want you to join!\n\nLeague: ${createdLeague?.name}\nJoin here: ${getInviteLink()}\n\nLet's see who can outwit, outplay, and outlast! 🏝️`;
-    window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+    window.open(
+      `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+      '_blank'
+    );
   };
 
   // Show share modal after navigation (if coming back)
@@ -179,7 +191,9 @@ export default function CreateLeague() {
           </button>
           <div>
             <h1 className="text-2xl font-display font-bold text-neutral-800">Create League</h1>
-            <p className="text-neutral-500">Season {activeSeason?.number}: {activeSeason?.name}</p>
+            <p className="text-neutral-500">
+              Season {activeSeason?.number}: {activeSeason?.name}
+            </p>
           </div>
         </div>
 
@@ -256,8 +270,14 @@ export default function CreateLeague() {
                     : 'border-cream-200 bg-white hover:border-cream-300'
                 }`}
               >
-                <Globe className={`h-6 w-6 mx-auto mb-2 ${!isPrivate ? 'text-burgundy-500' : 'text-neutral-400'}`} />
-                <p className={`font-medium text-sm ${!isPrivate ? 'text-burgundy-700' : 'text-neutral-600'}`}>Public</p>
+                <Globe
+                  className={`h-6 w-6 mx-auto mb-2 ${!isPrivate ? 'text-burgundy-500' : 'text-neutral-400'}`}
+                />
+                <p
+                  className={`font-medium text-sm ${!isPrivate ? 'text-burgundy-700' : 'text-neutral-600'}`}
+                >
+                  Public
+                </p>
                 <p className="text-xs text-neutral-400 mt-1">Anyone can join</p>
               </button>
 
@@ -270,8 +290,14 @@ export default function CreateLeague() {
                     : 'border-cream-200 bg-white hover:border-cream-300'
                 }`}
               >
-                <Lock className={`h-6 w-6 mx-auto mb-2 ${isPrivate ? 'text-burgundy-500' : 'text-neutral-400'}`} />
-                <p className={`font-medium text-sm ${isPrivate ? 'text-burgundy-700' : 'text-neutral-600'}`}>Private</p>
+                <Lock
+                  className={`h-6 w-6 mx-auto mb-2 ${isPrivate ? 'text-burgundy-500' : 'text-neutral-400'}`}
+                />
+                <p
+                  className={`font-medium text-sm ${isPrivate ? 'text-burgundy-700' : 'text-neutral-600'}`}
+                >
+                  Private
+                </p>
                 <p className="text-xs text-neutral-400 mt-1">Requires code</p>
               </button>
             </div>
@@ -325,11 +351,16 @@ export default function CreateLeague() {
               <div className="mt-6 pt-4 border-t border-cream-200 animate-fade-in">
                 <div className="bg-gradient-to-br from-burgundy-50 to-cream-50 rounded-xl p-4 mb-4 border border-burgundy-100">
                   <p className="text-neutral-700 text-sm leading-relaxed">
-                    <span className="font-semibold text-burgundy-600">The winner of your league will recommend a charity</span> of their choice for the full donation pool. Outwit, outplay, outlast — for good.
+                    <span className="font-semibold text-burgundy-600">
+                      The winner of your league will recommend a charity
+                    </span>{' '}
+                    of their choice for the full donation pool. Outwit, outplay, outlast — for good.
                   </p>
                 </div>
 
-                <p className="text-neutral-500 text-sm mb-3 font-medium">Entry fee per player (minimum $10):</p>
+                <p className="text-neutral-500 text-sm mb-3 font-medium">
+                  Entry fee per player (minimum $10):
+                </p>
                 <div className="grid grid-cols-4 gap-2">
                   {DONATION_AMOUNTS.map((amount) => (
                     <button
@@ -397,9 +428,7 @@ export default function CreateLeague() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-white rounded-2xl shadow-elevated max-w-md w-full p-6 animate-slide-up">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-display font-bold text-neutral-800">
-                Share Your League
-              </h2>
+              <h2 className="text-xl font-display font-bold text-neutral-800">Share Your League</h2>
               <button
                 onClick={() => {
                   setShowShareModal(false);

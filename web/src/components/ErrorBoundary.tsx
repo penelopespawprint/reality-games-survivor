@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 interface Props {
@@ -60,14 +60,13 @@ export class ErrorBoundary extends Component<Props, State> {
             </h1>
 
             <p className="text-neutral-500 mb-6">
-              We're sorry, but something unexpected happened. Please try refreshing the page or going back to the home page.
+              We're sorry, but something unexpected happened. Please try refreshing the page or
+              going back to the home page.
             </p>
 
             {process.env.NODE_ENV !== 'production' && this.state.error && (
               <div className="bg-red-50 rounded-xl p-4 mb-6 text-left overflow-auto max-h-40">
-                <p className="text-red-700 font-mono text-sm">
-                  {this.state.error.toString()}
-                </p>
+                <p className="text-red-700 font-mono text-sm">{this.state.error.toString()}</p>
                 {this.state.errorInfo && (
                   <pre className="text-red-600 font-mono text-xs mt-2 whitespace-pre-wrap">
                     {this.state.errorInfo.componentStack}

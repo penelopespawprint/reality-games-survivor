@@ -5,7 +5,17 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
 import { getAvatarUrl } from '@/lib/avatar';
-import { Loader2, CheckCircle, AlertCircle, Lock, Clock, ArrowLeft, Trophy, Target, Shield, TrendingUp } from 'lucide-react';
+import {
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Lock,
+  Clock,
+  ArrowLeft,
+  Trophy,
+  Target,
+  TrendingUp,
+} from 'lucide-react';
 
 interface Castaway {
   id: string;
@@ -157,7 +167,9 @@ export function WeeklyPick() {
       if (!leagueId || !user?.id) throw new Error('Missing data');
       const { data, error } = await supabase
         .from('weekly_picks')
-        .select('id, episode_id, castaway_id, status, points_earned, episodes(number, title), castaways(*)')
+        .select(
+          'id, episode_id, castaway_id, status, points_earned, episodes(number, title), castaways(*)'
+        )
         .eq('league_id', leagueId)
         .eq('user_id', user.id)
         .neq('status', 'pending')
@@ -174,7 +186,7 @@ export function WeeklyPick() {
     queryKey: ['castawayStats', leagueId, user?.id],
     queryFn: async () => {
       if (!leagueId || !user?.id || !roster) throw new Error('Missing data');
-      const castawayIds = roster.map(r => r.castaway_id);
+      const castawayIds = roster.map((r) => r.castaway_id);
 
       // Get all picks for these castaways in this league
       const { data, error } = await supabase
@@ -189,17 +201,18 @@ export function WeeklyPick() {
 
       // Aggregate stats per castaway
       const statsMap = new Map<string, CastawayStats>();
-      castawayIds.forEach(id => {
+      castawayIds.forEach((id) => {
         statsMap.set(id, { castaway_id: id, total_points: 0, times_picked: 0, avg_points: 0 });
       });
 
-      data?.forEach(pick => {
+      data?.forEach((pick) => {
         if (pick.castaway_id) {
           const stat = statsMap.get(pick.castaway_id);
           if (stat) {
             stat.total_points += pick.points_earned || 0;
             stat.times_picked += 1;
-            stat.avg_points = stat.times_picked > 0 ? Math.round(stat.total_points / stat.times_picked) : 0;
+            stat.avg_points =
+              stat.times_picked > 0 ? Math.round(stat.total_points / stat.times_picked) : 0;
           }
         }
       });
@@ -247,7 +260,9 @@ export function WeeklyPick() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentPick', leagueId, currentEpisode?.id, user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['currentPick', leagueId, currentEpisode?.id, user?.id],
+      });
       setShowSuccess(true);
       setMutationError(null);
       // Auto-dismiss success after 3 seconds
@@ -296,18 +311,19 @@ export function WeeklyPick() {
 
   const pickSubmitted = !!currentPick?.castaway_id;
   // Check both status AND if time has expired
-  const timeExpired = currentEpisode?.picks_lock_at && new Date(currentEpisode.picks_lock_at) <= new Date();
+  const timeExpired =
+    currentEpisode?.picks_lock_at && new Date(currentEpisode.picks_lock_at) <= new Date();
   const isLocked = currentPick?.status === 'locked' || timeExpired;
-  const activeCastaways = roster?.filter(r => r.castaways?.status === 'active') || [];
+  const activeCastaways = roster?.filter((r) => r.castaways?.status === 'active') || [];
   const isLoading = !league || rosterLoading;
 
   // Draft and league status checks
   const draftCompleted = draftStatus?.draft_status === 'completed';
-  const leagueActive = draftStatus?.status === 'active';
+  const _leagueActive = draftStatus?.status === 'active';
 
   // Helper to get stats for a castaway
   const getStatsForCastaway = (castawayId: string): CastawayStats | undefined => {
-    return castawayStats?.find(s => s.castaway_id === castawayId);
+    return castawayStats?.find((s) => s.castaway_id === castawayId);
   };
 
   // Urgency calculations
@@ -342,12 +358,11 @@ export function WeeklyPick() {
               >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
-              <h1 className="text-2xl font-display text-neutral-800">
-                Weekly Pick
-              </h1>
+              <h1 className="text-2xl font-display text-neutral-800">Weekly Pick</h1>
             </div>
             <p className="text-neutral-500">
-              {currentEpisode ? `Episode ${currentEpisode.number}` : 'Loading...'} • {league?.name || 'Select your castaway'}
+              {currentEpisode ? `Episode ${currentEpisode.number}` : 'Loading...'} •{' '}
+              {league?.name || 'Select your castaway'}
             </p>
           </div>
         </div>
@@ -358,10 +373,12 @@ export function WeeklyPick() {
             <div className="w-20 h-20 mx-auto mb-6 bg-amber-100 rounded-full flex items-center justify-center">
               <AlertCircle className="w-10 h-10 text-amber-600" />
             </div>
-            <h2 className="text-2xl font-display text-neutral-800 mb-3">Complete Your Draft First</h2>
+            <h2 className="text-2xl font-display text-neutral-800 mb-3">
+              Complete Your Draft First
+            </h2>
             <p className="text-neutral-500 mb-8">
-              You need to complete the draft before you can make weekly picks.
-              Head to the draft room to select your castaways!
+              You need to complete the draft before you can make weekly picks. Head to the draft
+              room to select your castaways!
             </p>
             <Link to={`/leagues/${leagueId}/draft`} className="btn btn-primary shadow-card">
               Go to Draft Room
@@ -391,7 +408,8 @@ export function WeeklyPick() {
             </p>
             {currentPick?.castaway_id ? (
               <p className="text-lg font-semibold text-burgundy-600 mb-8">
-                {roster?.find(r => r.castaway_id === currentPick?.castaway_id)?.castaways?.name || 'Unknown'}
+                {roster?.find((r) => r.castaway_id === currentPick?.castaway_id)?.castaways?.name ||
+                  'Unknown'}
               </p>
             ) : (
               <p className="text-lg font-semibold text-orange-600 mb-8">
@@ -408,40 +426,52 @@ export function WeeklyPick() {
             {(() => {
               const isUrgent = timeLeft.days === 0 && timeLeft.hours < 2;
               return (
-                <div className={`rounded-2xl p-6 text-white shadow-elevated animate-slide-up ${
-                  isUrgent
-                    ? 'bg-gradient-to-r from-orange-500 to-red-500'
-                    : 'bg-gradient-to-r from-burgundy-500 to-burgundy-600'
-                }`}>
+                <div
+                  className={`rounded-2xl p-6 text-white shadow-elevated animate-slide-up ${
+                    isUrgent
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500'
+                      : 'bg-gradient-to-r from-burgundy-500 to-burgundy-600'
+                  }`}
+                >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className={`text-sm font-medium ${isUrgent ? 'text-orange-100' : 'text-burgundy-100'}`}>
+                      <p
+                        className={`text-sm font-medium ${isUrgent ? 'text-orange-100' : 'text-burgundy-100'}`}
+                      >
                         {isUrgent ? 'HURRY! Picks Lock In' : 'Picks Lock In'}
                       </p>
                       <div className="flex items-baseline gap-2 sm:gap-3 mt-2">
                         {timeLeft.days > 0 && (
                           <>
                             <div className="text-center">
-                              <span className="text-3xl sm:text-4xl font-display">{timeLeft.days}</span>
+                              <span className="text-3xl sm:text-4xl font-display">
+                                {timeLeft.days}
+                              </span>
                               <p className="text-xs text-burgundy-200 mt-1">days</p>
                             </div>
                             <span className="text-xl sm:text-2xl text-burgundy-200">:</span>
                           </>
                         )}
                         <div className="text-center">
-                          <span className="text-3xl sm:text-4xl font-display">{timeLeft.hours}</span>
+                          <span className="text-3xl sm:text-4xl font-display">
+                            {timeLeft.hours}
+                          </span>
                           <p className="text-xs text-burgundy-200 mt-1">hours</p>
                         </div>
                         <span className="text-xl sm:text-2xl text-burgundy-200">:</span>
                         <div className="text-center">
-                          <span className="text-3xl sm:text-4xl font-display">{timeLeft.minutes}</span>
+                          <span className="text-3xl sm:text-4xl font-display">
+                            {timeLeft.minutes}
+                          </span>
                           <p className="text-xs text-burgundy-200 mt-1">min</p>
                         </div>
                         {isUrgent && (
                           <>
                             <span className="text-xl sm:text-2xl text-burgundy-200">:</span>
                             <div className="text-center">
-                              <span className="text-3xl sm:text-4xl font-display">{timeLeft.seconds}</span>
+                              <span className="text-3xl sm:text-4xl font-display">
+                                {timeLeft.seconds}
+                              </span>
                               <p className="text-xs text-burgundy-200 mt-1">sec</p>
                             </div>
                           </>
@@ -449,7 +479,11 @@ export function WeeklyPick() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm ${isUrgent ? 'text-orange-100' : 'text-burgundy-100'}`}>Episode airs</p>
+                      <p
+                        className={`text-sm ${isUrgent ? 'text-orange-100' : 'text-burgundy-100'}`}
+                      >
+                        Episode airs
+                      </p>
                       <p className="font-semibold text-lg">
                         {new Date(currentEpisode.air_date).toLocaleDateString('en-US', {
                           weekday: 'short',
@@ -467,12 +501,16 @@ export function WeeklyPick() {
 
             {/* Auto-Pick Warning */}
             {wasAutoPicked && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 animate-slide-up" style={{ animationDelay: '0.05s' }}>
+              <div
+                className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 animate-slide-up"
+                style={{ animationDelay: '0.05s' }}
+              >
                 <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-amber-800">You were auto-picked last episode</p>
                   <p className="text-sm text-amber-700">
-                    You didn't submit a pick in time, so the system picked for you. Make sure to submit your pick before the deadline!
+                    You didn't submit a pick in time, so the system picked for you. Make sure to
+                    submit your pick before the deadline!
                   </p>
                 </div>
               </div>
@@ -480,12 +518,16 @@ export function WeeklyPick() {
 
             {/* No Pick Warning */}
             {!pickSubmitted && !isVeryUrgent && isUrgent && (
-              <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3 animate-slide-up" style={{ animationDelay: '0.05s' }}>
+              <div
+                className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3 animate-slide-up"
+                style={{ animationDelay: '0.05s' }}
+              >
                 <Clock className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-orange-800">Don't forget to pick!</p>
                   <p className="text-sm text-orange-700">
-                    If you don't submit a pick, the system will auto-select your highest-ranked active castaway.
+                    If you don't submit a pick, the system will auto-select your highest-ranked
+                    active castaway.
                   </p>
                 </div>
               </div>
@@ -505,7 +547,10 @@ export function WeeklyPick() {
             )}
 
             {/* Pick Selection */}
-            <div className="bg-white rounded-2xl shadow-elevated overflow-hidden animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            <div
+              className="bg-white rounded-2xl shadow-elevated overflow-hidden animate-slide-up"
+              style={{ animationDelay: '0.1s' }}
+            >
               <div className="p-6 border-b border-cream-100">
                 <h2 className="font-semibold text-neutral-800">Select Your Castaway</h2>
                 <p className="text-sm text-neutral-500 mt-1">
@@ -519,10 +564,12 @@ export function WeeklyPick() {
                     <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
                       <AlertCircle className="w-8 h-8 text-orange-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-neutral-800 mb-2">No Active Castaways</h3>
+                    <h3 className="text-lg font-semibold text-neutral-800 mb-2">
+                      No Active Castaways
+                    </h3>
                     <p className="text-neutral-500 mb-4">
                       {roster && roster.length > 0
-                        ? "All your castaways have been eliminated. Your season has ended."
+                        ? 'All your castaways have been eliminated. Your season has ended.'
                         : "Your roster is empty. This shouldn't happen - please contact support."}
                     </p>
                   </div>
@@ -541,7 +588,10 @@ export function WeeklyPick() {
                       >
                         {/* Photo */}
                         <img
-                          src={getAvatarUrl(entry.castaways?.name || 'Unknown', entry.castaways?.photo_url)}
+                          src={getAvatarUrl(
+                            entry.castaways?.name || 'Unknown',
+                            entry.castaways?.photo_url
+                          )}
                           alt={entry.castaways?.name || 'Castaway'}
                           className="w-16 h-16 rounded-xl object-cover"
                         />
@@ -549,14 +599,22 @@ export function WeeklyPick() {
                         {/* Info */}
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className={`font-semibold text-lg ${
-                              selectedCastaway === entry.castaway_id ? 'text-burgundy-700' : 'text-neutral-800'
-                            }`}>
+                            <h3
+                              className={`font-semibold text-lg ${
+                                selectedCastaway === entry.castaway_id
+                                  ? 'text-burgundy-700'
+                                  : 'text-neutral-800'
+                              }`}
+                            >
                               {entry.castaways?.name}
                             </h3>
-                            <span className={`badge text-xs ${
-                              entry.castaways?.status === 'active' ? 'badge-success' : 'bg-neutral-100 text-neutral-500'
-                            }`}>
+                            <span
+                              className={`badge text-xs ${
+                                entry.castaways?.status === 'active'
+                                  ? 'badge-success'
+                                  : 'bg-neutral-100 text-neutral-500'
+                              }`}
+                            >
                               {entry.castaways?.status?.toUpperCase()}
                             </span>
                           </div>
@@ -584,14 +642,26 @@ export function WeeklyPick() {
                         </div>
 
                         {/* Selection indicator */}
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                          selectedCastaway === entry.castaway_id
-                            ? 'border-burgundy-500 bg-burgundy-500'
-                            : 'border-cream-300'
-                        }`}>
+                        <div
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            selectedCastaway === entry.castaway_id
+                              ? 'border-burgundy-500 bg-burgundy-500'
+                              : 'border-cream-300'
+                          }`}
+                        >
                           {selectedCastaway === entry.castaway_id && (
-                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            <svg
+                              className="w-4 h-4 text-white"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                              />
                             </svg>
                           )}
                         </div>
@@ -649,7 +719,13 @@ export function WeeklyPick() {
                 </button>
                 {pickSubmitted && !showSuccess && (
                   <p className="text-center text-sm text-neutral-500 mt-3">
-                    Current pick: <span className="font-medium text-neutral-700">{roster?.find(r => r.castaway_id === currentPick?.castaway_id)?.castaways?.name}</span>
+                    Current pick:{' '}
+                    <span className="font-medium text-neutral-700">
+                      {
+                        roster?.find((r) => r.castaway_id === currentPick?.castaway_id)?.castaways
+                          ?.name
+                      }
+                    </span>
                   </p>
                 )}
               </div>
@@ -657,11 +733,17 @@ export function WeeklyPick() {
 
             {/* Previous Picks */}
             {previousPicks && previousPicks.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-elevated p-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <div
+                className="bg-white rounded-2xl shadow-elevated p-6 animate-slide-up"
+                style={{ animationDelay: '0.2s' }}
+              >
                 <h3 className="font-semibold text-neutral-800 mb-4">Previous Picks</h3>
                 <div className="space-y-3">
                   {previousPicks.map((pick) => (
-                    <div key={pick.id} className="flex items-center justify-between p-3 bg-cream-50 rounded-xl">
+                    <div
+                      key={pick.id}
+                      className="flex items-center justify-between p-3 bg-cream-50 rounded-xl"
+                    >
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium text-neutral-500">
                           Ep {pick.episodes?.number}
@@ -670,8 +752,11 @@ export function WeeklyPick() {
                           {pick.castaways?.name || 'Unknown'}
                         </span>
                       </div>
-                      <span className={`badge ${pick.points_earned >= 0 ? 'badge-success' : 'bg-red-100 text-red-700'}`}>
-                        {pick.points_earned >= 0 ? '+' : ''}{pick.points_earned} pts
+                      <span
+                        className={`badge ${pick.points_earned >= 0 ? 'badge-success' : 'bg-red-100 text-red-700'}`}
+                      >
+                        {pick.points_earned >= 0 ? '+' : ''}
+                        {pick.points_earned} pts
                       </span>
                     </div>
                   ))}

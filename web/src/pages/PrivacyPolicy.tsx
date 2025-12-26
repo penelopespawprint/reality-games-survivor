@@ -20,9 +20,7 @@ export default function PrivacyPolicy() {
           </Link>
           <div className="flex items-center gap-3">
             <Shield className="h-8 w-8 text-burgundy-500" />
-            <h1 className="text-3xl font-display font-bold text-neutral-800">
-              Privacy Policy
-            </h1>
+            <h1 className="text-3xl font-display font-bold text-neutral-800">Privacy Policy</h1>
           </div>
           <p className="text-neutral-500 mt-2">Last updated: December 26, 2025</p>
         </div>
@@ -49,9 +47,7 @@ export default function PrivacyPolicy() {
             <h2 className="text-xl font-display font-bold text-neutral-800 mb-3">
               2. How We Use Your Information
             </h2>
-            <p className="text-neutral-600 mb-3">
-              We use the information we collect to:
-            </p>
+            <p className="text-neutral-600 mb-3">We use the information we collect to:</p>
             <ul className="list-disc list-inside text-neutral-600 space-y-2 ml-4">
               <li>Provide, maintain, and improve our services</li>
               <li>Process transactions and send related information</li>
@@ -66,11 +62,15 @@ export default function PrivacyPolicy() {
               3. Information Sharing
             </h2>
             <p className="text-neutral-600 mb-3">
-              We do not sell, trade, or rent your personal information to third parties. We may share your information in the following circumstances:
+              We do not sell, trade, or rent your personal information to third parties. We may
+              share your information in the following circumstances:
             </p>
             <ul className="list-disc list-inside text-neutral-600 space-y-2 ml-4">
               <li>With other league members (display name, picks, scores)</li>
-              <li>With service providers who assist in our operations (Stripe for payments, Twilio for SMS)</li>
+              <li>
+                With service providers who assist in our operations (Stripe for payments, Twilio for
+                SMS)
+              </li>
               <li>If required by law or to protect our rights</li>
             </ul>
           </section>
@@ -80,7 +80,9 @@ export default function PrivacyPolicy() {
               4. Data Security
             </h2>
             <p className="text-neutral-600">
-              We take reasonable measures to help protect your personal information from loss, theft, misuse, unauthorized access, disclosure, alteration, and destruction. Your data is stored securely using industry-standard encryption and access controls.
+              We take reasonable measures to help protect your personal information from loss,
+              theft, misuse, unauthorized access, disclosure, alteration, and destruction. Your data
+              is stored securely using industry-standard encryption and access controls.
             </p>
           </section>
 
@@ -88,9 +90,7 @@ export default function PrivacyPolicy() {
             <h2 className="text-xl font-display font-bold text-neutral-800 mb-3">
               5. Your Choices
             </h2>
-            <p className="text-neutral-600 mb-3">
-              You may:
-            </p>
+            <p className="text-neutral-600 mb-3">You may:</p>
             <ul className="list-disc list-inside text-neutral-600 space-y-2 ml-4">
               <li>Update your account information at any time in your Profile</li>
               <li>Opt out of promotional communications</li>
@@ -104,7 +104,9 @@ export default function PrivacyPolicy() {
               6. Cookies and Tracking
             </h2>
             <p className="text-neutral-600">
-              We use cookies and similar technologies to maintain your session, remember your preferences, and understand how you interact with our service. You can control cookies through your browser settings.
+              We use cookies and similar technologies to maintain your session, remember your
+              preferences, and understand how you interact with our service. You can control cookies
+              through your browser settings.
             </p>
           </section>
 
@@ -113,7 +115,9 @@ export default function PrivacyPolicy() {
               7. Children's Privacy
             </h2>
             <p className="text-neutral-600">
-              Our service is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe we have collected information from a child under 13, please contact us.
+              Our service is not directed to children under 13. We do not knowingly collect personal
+              information from children under 13. If you believe we have collected information from
+              a child under 13, please contact us.
             </p>
           </section>
 
@@ -122,19 +126,19 @@ export default function PrivacyPolicy() {
               8. Changes to This Policy
             </h2>
             <p className="text-neutral-600">
-              We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
+              We may update this Privacy Policy from time to time. We will notify you of any changes
+              by posting the new Privacy Policy on this page and updating the "Last updated" date.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-display font-bold text-neutral-800 mb-3">
-              9. Contact Us
-            </h2>
+            <h2 className="text-xl font-display font-bold text-neutral-800 mb-3">9. Contact Us</h2>
             <p className="text-neutral-600">
               If you have any questions about this Privacy Policy, please contact us at{' '}
               <Link to="/contact" className="text-burgundy-600 hover:text-burgundy-700 underline">
                 our contact page
-              </Link>.
+              </Link>
+              .
             </p>
           </section>
         </div>

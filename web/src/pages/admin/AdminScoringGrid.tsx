@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
@@ -139,7 +139,7 @@ export function AdminScoringGrid() {
     enabled: !!activeSeason?.id,
   });
 
-  const { data: existingScores, refetch: refetchScores } = useQuery({
+  const { data: existingScores, refetch: _refetchScores } = useQuery({
     queryKey: ['episodeScores', selectedEpisodeId],
     queryFn: async () => {
       if (!selectedEpisodeId) return [];
@@ -155,14 +155,14 @@ export function AdminScoringGrid() {
 
   // Get unique categories
   const categories = useMemo(() => {
-    const cats = new Set(scoringRules?.map(r => r.category || 'Other'));
+    const cats = new Set(scoringRules?.map((r) => r.category || 'Other'));
     return Array.from(cats);
   }, [scoringRules]);
 
   // Filter rules by selected category
   const filteredRules = useMemo(() => {
     if (!selectedCategory) return scoringRules || [];
-    return scoringRules?.filter(r => (r.category || 'Other') === selectedCategory) || [];
+    return scoringRules?.filter((r) => (r.category || 'Other') === selectedCategory) || [];
   }, [scoringRules, selectedCategory]);
 
   // Initialize grid scores from existing data
@@ -171,10 +171,10 @@ export function AdminScoringGrid() {
 
     if (existingScores && castaways) {
       const newGridScores: GridScores = {};
-      castaways.forEach(c => {
+      castaways.forEach((c) => {
         newGridScores[c.id] = {};
       });
-      existingScores.forEach(score => {
+      existingScores.forEach((score) => {
         if (!newGridScores[score.castaway_id]) {
           newGridScores[score.castaway_id] = {};
         }
@@ -192,17 +192,14 @@ export function AdminScoringGrid() {
     setIsSaving(true);
     try {
       // Delete all existing scores for this episode
-      await supabase
-        .from('episode_scores')
-        .delete()
-        .eq('episode_id', selectedEpisodeId);
+      await supabase.from('episode_scores').delete().eq('episode_id', selectedEpisodeId);
 
       // Insert all new scores
       const scoresToInsert: any[] = [];
       Object.entries(gridScores).forEach(([castawayId, castawayScores]) => {
         Object.entries(castawayScores).forEach(([ruleId, quantity]) => {
           if (quantity > 0) {
-            const rule = scoringRules.find(r => r.id === ruleId);
+            const rule = scoringRules.find((r) => r.id === ruleId);
             scoresToInsert.push({
               episode_id: selectedEpisodeId,
               castaway_id: castawayId,
@@ -216,9 +213,7 @@ export function AdminScoringGrid() {
       });
 
       if (scoresToInsert.length > 0) {
-        const { error } = await supabase
-          .from('episode_scores')
-          .insert(scoresToInsert);
+        const { error } = await supabase.from('episode_scores').insert(scoresToInsert);
         if (error) throw error;
       }
 
@@ -250,7 +245,7 @@ export function AdminScoringGrid() {
   }, [gridScores, isDirty, selectedEpisodeId, saveAllScores]);
 
   const updateGridScore = (castawayId: string, ruleId: string, value: number) => {
-    setGridScores(prev => ({
+    setGridScores((prev) => ({
       ...prev,
       [castawayId]: {
         ...prev[castawayId],
@@ -264,12 +259,12 @@ export function AdminScoringGrid() {
   const getCastawayTotal = (castawayId: string) => {
     const castawayScores = gridScores[castawayId] || {};
     return Object.entries(castawayScores).reduce((sum, [ruleId, qty]) => {
-      const rule = scoringRules?.find(r => r.id === ruleId);
+      const rule = scoringRules?.find((r) => r.id === ruleId);
       return sum + (rule?.points || 0) * qty;
     }, 0);
   };
 
-  const selectedEpisode = episodes?.find(e => e.id === selectedEpisodeId);
+  const _selectedEpisode = episodes?.find((e) => e.id === selectedEpisodeId);
 
   if (profile && profile.role !== 'admin') {
     return (
@@ -279,7 +274,9 @@ export function AdminScoringGrid() {
           <div className="bg-white rounded-2xl shadow-elevated p-12">
             <h1 className="text-2xl font-display text-neutral-800 mb-3">Access Denied</h1>
             <p className="text-neutral-500 mb-8">You don't have permission to access this page.</p>
-            <Link to="/dashboard" className="btn btn-primary">Back to Dashboard</Link>
+            <Link to="/dashboard" className="btn btn-primary">
+              Back to Dashboard
+            </Link>
           </div>
         </main>
       </div>
@@ -296,7 +293,12 @@ export function AdminScoringGrid() {
           <div className="flex items-center gap-4">
             <Link to="/admin" className="text-neutral-400 hover:text-neutral-600 transition-colors">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </Link>
             <div>
@@ -321,7 +323,11 @@ export function AdminScoringGrid() {
                 disabled={isSaving}
                 className="btn btn-primary flex items-center gap-2"
               >
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
                 Save All
               </button>
             )}
@@ -355,7 +361,9 @@ export function AdminScoringGrid() {
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
             </div>
@@ -393,7 +401,10 @@ export function AdminScoringGrid() {
                       Rule ({filteredRules.length})
                     </th>
                     {castaways?.map((castaway) => (
-                      <th key={castaway.id} className="p-2 text-center border-b border-cream-200 min-w-[80px]">
+                      <th
+                        key={castaway.id}
+                        className="p-2 text-center border-b border-cream-200 min-w-[80px]"
+                      >
                         <div className="flex flex-col items-center gap-1">
                           {castaway.photo_url ? (
                             <img
@@ -421,10 +432,15 @@ export function AdminScoringGrid() {
                     <tr key={rule.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-cream-50/50'}>
                       <td className="sticky left-0 bg-inherit z-10 p-3 border-r border-cream-200">
                         <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                            rule.is_negative ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                          }`}>
-                            {rule.points >= 0 ? '+' : ''}{rule.points}
+                          <span
+                            className={`px-2 py-0.5 rounded text-xs font-bold ${
+                              rule.is_negative
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-green-100 text-green-700'
+                            }`}
+                          >
+                            {rule.points >= 0 ? '+' : ''}
+                            {rule.points}
                           </span>
                           <span className="text-sm font-medium text-neutral-800">{rule.name}</span>
                         </div>
@@ -437,9 +453,13 @@ export function AdminScoringGrid() {
                               type="number"
                               min="0"
                               value={value || ''}
-                              onChange={(e) => updateGridScore(castaway.id, rule.id, parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                updateGridScore(castaway.id, rule.id, parseInt(e.target.value) || 0)
+                              }
                               className={`w-12 h-8 text-center text-sm border rounded focus:ring-2 focus:ring-burgundy-500 focus:border-burgundy-500 ${
-                                value > 0 ? 'border-burgundy-300 bg-burgundy-50' : 'border-cream-200'
+                                value > 0
+                                  ? 'border-burgundy-300 bg-burgundy-50'
+                                  : 'border-cream-200'
                               }`}
                               placeholder="0"
                             />
@@ -457,9 +477,15 @@ export function AdminScoringGrid() {
                       const total = getCastawayTotal(castaway.id);
                       return (
                         <td key={castaway.id} className="p-2 text-center">
-                          <span className={`font-bold text-lg ${
-                            total > 0 ? 'text-green-600' : total < 0 ? 'text-red-600' : 'text-neutral-400'
-                          }`}>
+                          <span
+                            className={`font-bold text-lg ${
+                              total > 0
+                                ? 'text-green-600'
+                                : total < 0
+                                  ? 'text-red-600'
+                                  : 'text-neutral-400'
+                            }`}
+                          >
                             {total !== 0 ? (total > 0 ? '+' : '') + total : '–'}
                           </span>
                         </td>

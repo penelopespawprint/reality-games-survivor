@@ -55,8 +55,18 @@ export function CastawayCard({
         )}
         {selected && (
           <div className="absolute top-2 right-2 w-6 h-6 bg-burgundy-500 rounded-full flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-4 h-4 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
         )}
@@ -91,9 +101,7 @@ export function CastawayCard({
             onClick={() => onSelect?.(id)}
             disabled={disabled}
             className={`w-full mt-3 btn btn-sm ${
-              selected
-                ? 'bg-neutral-100 text-neutral-600'
-                : 'btn-primary'
+              selected ? 'bg-neutral-100 text-neutral-600' : 'btn-primary'
             }`}
           >
             {selected ? 'Selected' : buttonText}
