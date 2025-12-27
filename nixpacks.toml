@@ -1,18 +1,22 @@
-# Railway nixpacks configuration
-# IMPORTANT: You MUST set Service Root Directory to "/server" in Railway dashboard
-# Go to: Railway Dashboard → Service → Settings → Root Directory → Set to "/server"
+# Railway nixpacks configuration (root level - backup)
+# PREFERRED: Set Service Root Directory to "server" in Railway dashboard
+# Then Railway will use /server/nixpacks.toml instead
 
 [phases.setup]
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = ["cd server && npm ci --include=dev"]
+cmds = [
+  "cd server && npm ci --include=dev",
+  "cd server && npm list typescript || cd server && npm install typescript --save-dev"
+]
 
 [phases.build]
 cmds = [
+  "cd server && echo 'Starting build from root nixpacks.toml...'",
   "cd server && npm run build",
-  "cd server && ls -la dist/ || (echo 'ERROR: dist directory not found' && exit 1)",
-  "cd server && test -f dist/server.js || (echo 'ERROR: server.js not found after build' && exit 1)",
+  "cd server && ls -la dist/",
+  "cd server && test -f dist/server.js || (echo 'ERROR: dist/server.js not found' && exit 1)",
   "echo '✓ Build successful: dist/server.js exists'"
 ]
 

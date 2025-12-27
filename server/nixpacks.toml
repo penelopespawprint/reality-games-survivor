@@ -1,15 +1,23 @@
 # Railway nixpacks config for server directory
+# This file is used when Railway service root directory is set to "/server"
+
 [phases.setup]
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = ["npm ci --include=dev"]
+# Force install dev dependencies (TypeScript is in devDependencies)
+cmds = [
+  "npm ci --include=dev",
+  "npm list typescript || npm install typescript --save-dev"
+]
 
 [phases.build]
 cmds = [
+  "echo 'Starting build...'",
   "npm run build",
-  "ls -la dist/ || (echo 'ERROR: dist directory not found' && exit 1)",
-  "test -f dist/server.js || (echo 'ERROR: server.js not found after build' && exit 1)",
+  "echo 'Build complete, verifying...'",
+  "ls -la dist/",
+  "test -f dist/server.js || (echo 'ERROR: dist/server.js not found' && exit 1)",
   "echo '✓ Build successful: dist/server.js exists'"
 ]
 
