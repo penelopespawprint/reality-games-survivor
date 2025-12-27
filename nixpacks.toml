@@ -10,4 +10,3 @@ cmds = ["cd server && npm run build"]
 
 [start]
 cmd = "cd server && npm start"
-workDir = "/app/server"
