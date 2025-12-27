@@ -4,13 +4,19 @@ nixPkgs = ["nodejs_20"]
 
 [phases.install]
 cmds = [
-  "cd server && npm ci --include=dev"
+  "echo '=== Installing dependencies ==='",
+  "cd server && npm ci --include=dev",
+  "cd server && npm list typescript"
 ]
 
 [phases.build]
 cmds = [
-  "cd server && npm run build",
-  "ls -la server/dist || echo 'dist folder not created'"
+  "echo '=== Starting TypeScript build ==='",
+  "cd server && npx tsc --version",
+  "cd server && npx tsc",
+  "echo '=== Build complete, checking output ==='",
+  "ls -la server/dist/",
+  "test -f server/dist/server.js || (echo 'ERROR: server.js not found!' && exit 1)"
 ]
 
 [start]

@@ -25,7 +25,7 @@ const CATEGORIES = [
     name: 'Survival',
     icon: Flame,
     color: 'orange',
-    description: 'Points for staying in the game',
+    description: 'How to score points by staying in the game',
     examples: [
       { text: 'Survive the episode without being voted out', positive: true },
       { text: 'Make it to the merge', positive: true },
@@ -37,7 +37,7 @@ const CATEGORIES = [
     name: 'Tribal Council',
     icon: Users,
     color: 'blue',
-    description: 'Voting and surviving votes',
+    description: 'How to score points through voting and surviving votes',
     examples: [
       { text: 'Vote for the person who gets eliminated', positive: true },
       { text: 'Receive votes but survive', positive: true },
@@ -49,7 +49,7 @@ const CATEGORIES = [
     name: 'Pre-Merge Challenges',
     icon: Trophy,
     color: 'green',
-    description: 'Tribal immunity and reward challenges',
+    description: 'How to score points in tribal immunity and reward challenges',
     examples: [
       { text: 'Tribe wins immunity challenge', positive: true },
       { text: 'Tribe wins reward challenge', positive: true },
@@ -61,7 +61,7 @@ const CATEGORIES = [
     name: 'Post-Merge Challenges',
     icon: Award,
     color: 'purple',
-    description: 'Individual immunity and reward challenges',
+    description: 'How to score points in individual immunity and reward challenges',
     examples: [
       { text: 'Win individual immunity', positive: true },
       { text: 'Win individual reward', positive: true },
@@ -73,7 +73,7 @@ const CATEGORIES = [
     name: 'Strategic Play',
     icon: Target,
     color: 'red',
-    description: 'Big moves and game manipulation',
+    description: 'How to score points through big moves and game manipulation',
     examples: [
       { text: 'Orchestrate a blindside', positive: true },
       { text: 'Successfully flip on your alliance', positive: true },
@@ -85,7 +85,7 @@ const CATEGORIES = [
     name: 'Social Game',
     icon: MessageCircle,
     color: 'teal',
-    description: 'Relationships and jury management',
+    description: 'How to score points through relationships and jury management',
     examples: [
       { text: 'Shown building a strong alliance', positive: true },
       { text: 'Mediate conflict between other players', positive: true },
@@ -97,7 +97,7 @@ const CATEGORIES = [
     name: 'Idols & Advantages',
     icon: Gem,
     color: 'yellow',
-    description: 'Finding and playing advantages',
+    description: 'How to score points by finding and playing advantages',
     examples: [
       { text: 'Find a hidden immunity idol', positive: true },
       { text: 'Successfully play an idol to save yourself', positive: true },
@@ -110,7 +110,7 @@ const CATEGORIES = [
     name: 'Confessionals & Screen Time',
     icon: MessageCircle,
     color: 'indigo',
-    description: 'On-screen presence and memorable moments',
+    description: 'How to score points through on-screen presence and memorable moments',
     examples: [
       { text: 'Have a confessional during the episode', positive: true },
       { text: 'Deliver a memorable or viral moment', positive: true },
@@ -122,7 +122,7 @@ const CATEGORIES = [
     name: 'Bonus & Special',
     icon: Star,
     color: 'gold',
-    description: 'Special achievements and milestones',
+    description: 'How to score points through special achievements and milestones',
     examples: [
       { text: 'Win fan favorite / Sprint Player of the Season', positive: true },
       { text: 'Make a move that significantly changes the game', positive: true },
@@ -133,7 +133,7 @@ const CATEGORIES = [
     name: 'Penalties',
     icon: X,
     color: 'red',
-    description: 'Actions that cost you points',
+    description: 'How to lose points through certain actions',
     examples: [
       { text: 'Get voted out', positive: false },
       { text: 'Quit the game', positive: false },
@@ -156,14 +156,6 @@ export default function ScoringRules() {
     }));
   };
 
-  const expandAll = () => {
-    setExpandedCategories(CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.name]: true }), {}));
-  };
-
-  const collapseAll = () => {
-    setExpandedCategories(CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.name]: false }), {}));
-  };
-
   return (
     <div className="min-h-screen bg-cream-50 flex flex-col">
       <Navigation />
@@ -172,63 +164,75 @@ export default function ScoringRules() {
       <div className="px-6 py-12 text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <BookOpen className="h-10 w-10 text-burgundy-500" />
-          <h1 className="text-4xl font-display font-bold text-neutral-800">Scoring Rules</h1>
+          <h1 className="text-4xl font-display font-bold text-neutral-800">
+            How to Score (or lose) Points throughout the season
+          </h1>
         </div>
-        <p className="text-neutral-500 text-lg max-w-2xl mx-auto">
-          Earn and lose points based on what your castaways do each episode. Here are examples from
-          each category.
-        </p>
       </div>
 
-      {/* How Scoring Works */}
-      <div className="max-w-4xl mx-auto px-6 mb-8">
-        <div className="bg-white rounded-2xl shadow-card p-6 border border-cream-200">
-          <h2 className="text-xl font-display font-bold text-neutral-800 mb-4">
-            How Scoring Works
-          </h2>
-          <div className="space-y-3 text-neutral-600">
-            <p>
-              <strong>1. Draft your team:</strong> You'll draft 2 castaways before the season
-              premiere.
-            </p>
-            <p>
-              <strong>2. Make weekly picks:</strong> Each week, choose which of your 2 castaways to
-              "play" for that episode.
-            </p>
-            <p>
-              <strong>3. Earn points:</strong> Your picked castaway earns (or loses) points based on
-              what happens during the episode.
-            </p>
-            <p>
-              <strong>4. Compete:</strong> The player with the most total points at the end of the
-              season wins!
-            </p>
+      {/* How to Play and Score - Combined */}
+      <div className="max-w-4xl mx-auto px-6 mb-12">
+        <div className="bg-white rounded-2xl shadow-card p-8 border border-cream-200">
+          <div className="space-y-6 text-neutral-700">
+            <div>
+              <h2 className="text-2xl font-display font-bold text-neutral-800 mb-3">
+                1. Rank your top castaways
+              </h2>
+              <p className="text-lg mb-4">
+                Rank each castaway from 1-24 not on if you think they'll win, but if you think
+                they'll score the most points. Lock in your choices by March 3, 2026 at 5pm PST
+                (after the first episode airs).
+              </p>
+              <div className="p-4 bg-burgundy-50 rounded-xl border border-burgundy-200 mt-4">
+                <p className="text-burgundy-800 font-medium">
+                  Each player will receive two players in snake draft order with a random turn
+                  order.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-display font-bold text-neutral-800 mb-3">
+                2. Make weekly picks
+              </h2>
+              <p className="text-lg">
+                Each week, choose which of your 2 castaways to "play" for that episode.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-display font-bold text-neutral-800 mb-3">
+                3. Earn points
+              </h2>
+              <p className="text-lg">
+                Your picked castaway earns (or loses) points based on what happens during the
+                episode.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-display font-bold text-neutral-800 mb-3">4. Compete</h2>
+              <p className="text-lg">
+                The player with the most total points at the end of the season wins!
+              </p>
+            </div>
+
+            <div className="pt-4 border-t border-cream-200">
+              <p className="text-neutral-600">
+                Earn and lose points based on what your castaways do each episode. Study
+                confessional counts, challenge performance, and edit visibility when making your
+                weekly picks. A castaway with a lot of screen time often earns more points! With
+                over 100+ rules and a decade of survivor knowledge our rules are unmatched to any
+                other survivor league out there.
+              </p>
+            </div>
           </div>
-          <div className="mt-4 p-4 bg-burgundy-50 rounded-xl border border-burgundy-100">
-            <p className="text-burgundy-700 text-sm">
-              <strong>Pro tip:</strong> Study confessional counts, challenge performance, and edit
-              visibility when making your weekly picks. A castaway with a lot of screen time often
-              earns more points!
-            </p>
-          </div>
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="max-w-4xl mx-auto px-6 mb-6">
-        <div className="flex justify-end gap-2">
-          <button onClick={expandAll} className="btn btn-secondary text-sm">
-            Expand All
-          </button>
-          <button onClick={collapseAll} className="btn btn-secondary text-sm">
-            Collapse All
-          </button>
-        </div>
-      </div>
-
-      {/* Categories */}
-      <div className="max-w-4xl mx-auto px-6 pb-12">
-        <div className="space-y-4">
+      {/* Categories - 3 per line */}
+      <div className="max-w-6xl mx-auto px-6 pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {CATEGORIES.map((category) => {
             const Icon = category.icon;
             const isExpanded = expandedCategories[category.name];
@@ -292,11 +296,6 @@ export default function ScoringRules() {
                         </div>
                       ))}
                     </div>
-                    <div className="px-6 py-3 bg-cream-50 border-t border-cream-200">
-                      <p className="text-neutral-500 text-sm italic">
-                        + more rules in this category...
-                      </p>
-                    </div>
                   </div>
                 )}
               </div>
@@ -305,7 +304,7 @@ export default function ScoringRules() {
         </div>
       </div>
 
-      {/* Why We Don't Show Points */}
+      {/* FAQ Section */}
       <div className="max-w-4xl mx-auto px-6 pb-8">
         <div className="bg-cream-100 rounded-2xl p-6 border border-cream-200">
           <h3 className="font-display font-bold text-neutral-800 mb-2">

@@ -763,68 +763,108 @@ function ConceptF() {
 }
 
 // ============================================================================
-// SPLASH PAGE (Main Domain)
+// SPLASH PAGE (Main Domain) - Parchment with Parallax
 // ============================================================================
 
 function SplashPage() {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-cream-50 flex flex-col">
-      <main className="flex-1 flex items-center justify-center px-6 py-16">
-        <div className="max-w-2xl mx-auto text-center">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Parchment background texture */}
+      <div
+        className="fixed inset-0 z-0"
+        style={{
+          background: `
+            linear-gradient(90deg, rgba(139, 69, 19, 0.03) 0%, transparent 50%, rgba(139, 69, 19, 0.03) 100%),
+            repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 69, 19, 0.05) 2px, rgba(139, 69, 19, 0.05) 4px),
+            radial-gradient(circle at 20% 50%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 50%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+            #f5f1e8
+          `,
+          backgroundSize: '100% 100%, 100% 8px, 100% 100%, 100% 100%, 100% 100%',
+        }}
+      />
+
+      {/* Parallax layers */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          transform: `translateY(${scrollY * 0.3}px)`,
+          background:
+            'radial-gradient(circle at 30% 40%, rgba(184, 134, 11, 0.15) 0%, transparent 50%)',
+        }}
+      />
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          transform: `translateY(${scrollY * 0.5}px)`,
+          background:
+            'radial-gradient(circle at 70% 60%, rgba(139, 69, 19, 0.1) 0%, transparent 50%)',
+        }}
+      />
+
+      <main className="relative z-10 min-h-screen flex items-center justify-center px-6 py-16">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Big Logo */}
           <img
             src="/logo.png"
             alt="Reality Games Fantasy League"
-            className="h-32 sm:h-40 mx-auto mb-10"
+            className="h-64 sm:h-80 lg:h-96 mx-auto mb-8 drop-shadow-lg"
           />
 
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-neutral-800 leading-tight mb-8">
-            SURVIVOR FANTASY LEAGUE
-          </h1>
-
-          <div className="space-y-6 text-lg text-neutral-600 leading-relaxed mb-12">
-            <p>
-              Bored of the same old fantasy leagues where you pick one Survivor and pray for luck?
-            </p>
-            <p>
-              We've created a scoring system with{' '}
-              <span className="text-burgundy-600 font-semibold">100+ game-tested rules</span> that
-              reward real strategy. Every vote, idol play, alliance move, and blindside counts.
-            </p>
+          {/* Scroll indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+            <p className="text-burgundy-700 text-sm italic mb-2">Scroll to learn more</p>
+            <div className="w-6 h-6 border-r-2 border-b-2 border-burgundy-700 rotate-45 mx-auto" />
           </div>
+        </div>
+      </main>
 
+      {/* Content sections that appear on scroll */}
+      <div className="relative z-10 bg-[#f5f1e8]/80 backdrop-blur-sm">
+        <section className="max-w-4xl mx-auto px-6 py-16 text-center">
+          <h2 className="text-4xl font-display font-bold text-burgundy-800 mb-6">
+            Season 50: In the Hands of the Fans
+          </h2>
+          <p className="text-xl text-neutral-700 leading-relaxed mb-8">
+            Fantasy Survivor for people who actually watch Survivor. 100+ scoring rules. Real
+            strategy. No luck required.
+          </p>
           <a
             href={`${SURVIVOR_APP_URL}/signup`}
-            className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all"
+            className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all shadow-lg"
           >
             Join Now
             <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </a>
+        </section>
+      </div>
 
-          <p className="text-neutral-400 text-sm mt-6">
-            Already have an account?{' '}
-            <a href={`${SURVIVOR_APP_URL}/login`} className="text-burgundy-600 hover:underline">
-              Log in
-            </a>
-          </p>
-        </div>
-      </main>
-
-      <footer className="py-6 border-t border-cream-200">
-        <div className="max-w-4xl mx-auto px-6 text-center text-sm text-neutral-500">
+      <footer className="relative z-10 py-6 border-t border-burgundy-200/30 bg-[#f5f1e8]/80">
+        <div className="max-w-4xl mx-auto px-6 text-center text-sm text-neutral-600">
           <div className="flex items-center justify-center gap-4 mb-3">
             <a href={`${SURVIVOR_APP_URL}/privacy`} className="hover:text-burgundy-600">
               Privacy
             </a>
-            <span className="text-neutral-300">|</span>
+            <span className="text-neutral-400">|</span>
             <a href={`${SURVIVOR_APP_URL}/terms`} className="hover:text-burgundy-600">
               Terms
             </a>
-            <span className="text-neutral-300">|</span>
+            <span className="text-neutral-400">|</span>
             <a href={`${SURVIVOR_APP_URL}/contact`} className="hover:text-burgundy-600">
               Contact
             </a>
           </div>
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs text-neutral-500">
             2025 Reality Games Fantasy League. Not affiliated with CBS or Survivor.
           </p>
         </div>

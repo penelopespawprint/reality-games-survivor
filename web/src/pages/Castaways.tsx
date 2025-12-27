@@ -224,9 +224,10 @@ export default function Castaways() {
           <Flame className="h-8 w-8 text-orange-500" />
           <h1 className="text-3xl font-display font-bold text-neutral-800">Castaways</h1>
         </div>
-        <p className="text-neutral-500">
-          Season {season?.number}: {season?.name} - {castaways?.length || 0} castaways
-        </p>
+        <h2 className="text-2xl font-display font-bold text-burgundy-600 mb-2">
+          Season 50: In the Hands of the Fans
+        </h2>
+        <p className="text-neutral-500">{castaways?.length || 0} castaways competing this season</p>
       </div>
 
       {/* Stats Cards */}

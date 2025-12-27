@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { MessageSquare, Phone, CheckCircle } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
+import { Footer } from '@/components/Footer';
 
 export default function SMSCommands() {
   const commands = [
@@ -53,9 +54,12 @@ export default function SMSCommands() {
             <Phone className="h-6 w-6 text-burgundy-500" />
             <h2 className="text-lg font-display font-bold text-neutral-800">Text Us</h2>
           </div>
-          <p className="text-3xl font-mono font-bold text-burgundy-500 mb-2">(918) 213-3311</p>
-          <p className="text-neutral-600 text-sm">
+          <p className="text-3xl font-mono font-bold text-burgundy-500 mb-2">(YOUR_NUMBER_HERE)</p>
+          <p className="text-neutral-600 text-sm mb-4">
             Save this number to your contacts for easy access during episodes!
+          </p>
+          <p className="text-neutral-600 text-sm font-medium">
+            Make weekly picks and check the leaderboard with just a simple text command.
           </p>
         </div>
 
@@ -118,6 +122,21 @@ export default function SMSCommands() {
           </div>
         </div>
 
+        {/* Weekly Pick Reminder Feature */}
+        <div className="mt-6 bg-gradient-to-r from-burgundy-50 to-amber-50 rounded-2xl shadow-card p-6 border border-burgundy-200">
+          <h2 className="text-lg font-display font-bold text-neutral-800 mb-3">
+            Weekly Pick Reminders
+          </h2>
+          <p className="text-neutral-700 mb-4">
+            We can text everyone each week asking who their weekly pick is. All you have to do is
+            text <strong>1</strong> or <strong>2</strong> to confirm your pick for that week!
+          </p>
+          <p className="text-neutral-600 text-sm">
+            This feature makes it super easy to make your picks without even opening the app. Just
+            reply with the number of your castaway (1 for your first pick, 2 for your second pick).
+          </p>
+        </div>
+
         {/* Tips */}
         <div className="mt-6 bg-white rounded-2xl shadow-card p-6 border border-cream-200">
           <h2 className="text-lg font-display font-bold text-neutral-800 mb-4">Tips</h2>
@@ -141,6 +160,8 @@ export default function SMSCommands() {
           </ul>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }
