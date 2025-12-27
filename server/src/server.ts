@@ -17,6 +17,18 @@ import webhookRoutes from './routes/webhooks.js';
 // Jobs scheduler
 import { startScheduler } from './jobs/index.js';
 
+// Environment validation
+import { validateEnvironment, printValidationReport } from './config/validateEnv.js';
+
+// Validate environment before starting server
+const envValidation = validateEnvironment();
+printValidationReport(envValidation);
+
+if (!envValidation.valid) {
+  console.error('Environment validation failed, exiting...');
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 

@@ -28,35 +28,25 @@ router.post('/stripe', async (req: Request, res: Response) => {
         if (session.metadata?.type === 'league_donation') {
           const { league_id, user_id } = session.metadata;
 
-          // Check not already added
-          const { data: existing } = await supabaseAdmin
-            .from('league_members')
-            .select('id')
-            .eq('league_id', league_id)
-            .eq('user_id', user_id)
-            .single();
-
-          if (!existing) {
-            // Add user to league
-            await supabaseAdmin.from('league_members').insert({
-              league_id,
-              user_id,
-            });
-          }
-
-          // Record payment
+          // Use atomic database function to ensure both membership and payment are recorded together
+          // This prevents race conditions where payment succeeds but membership fails
           const amount = (session.amount_total || 0) / 100;
-          await supabaseAdmin.from('payments').insert({
-            user_id,
-            league_id,
-            amount,
-            currency: session.currency || 'usd',
-            stripe_session_id: session.id,
-            stripe_payment_intent_id: session.payment_intent as string,
-            status: 'completed',
+
+          const { data: result, error } = await supabaseAdmin.rpc('process_league_payment', {
+            p_user_id: user_id,
+            p_league_id: league_id,
+            p_amount: amount,
+            p_currency: session.currency || 'usd',
+            p_session_id: session.id,
+            p_payment_intent_id: session.payment_intent as string,
           });
 
-          console.log(`User ${user_id} joined league ${league_id} via payment`);
+          if (error) {
+            console.error('Failed to process league payment:', error);
+            throw error;
+          }
+
+          console.log(`User ${user_id} joined league ${league_id} via payment (atomic)`);
 
           // Send payment confirmation email
           const { data: user } = await supabaseAdmin

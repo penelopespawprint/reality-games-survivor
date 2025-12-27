@@ -3,8 +3,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 
 export function Signup() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, signInWithMagicLink } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showMagicLink, setShowMagicLink] = useState(false);
+  const [email, setEmail] = useState('');
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleGoogleSignIn = async () => {
@@ -15,6 +19,19 @@ export function Signup() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
       setGoogleLoading(false);
+    }
+  };
+
+  const handleMagicLink = async () => {
+    setError('');
+    setMagicLinkLoading(true);
+    try {
+      await signInWithMagicLink(email);
+      setMagicLinkSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send magic link');
+    } finally {
+      setMagicLinkLoading(false);
     }
   };
 
@@ -74,6 +91,66 @@ export function Signup() {
             </svg>
             {googleLoading ? 'Connecting...' : 'Continue with Google'}
           </button>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-neutral-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-neutral-400">OR</span>
+            </div>
+          </div>
+
+          {/* Magic Link Toggle/Form */}
+          {!showMagicLink && !magicLinkSent && (
+            <button
+              type="button"
+              onClick={() => setShowMagicLink(true)}
+              className="text-sm text-neutral-500 hover:text-burgundy-500 transition-colors underline"
+            >
+              Sign up with email instead
+            </button>
+          )}
+
+          {showMagicLink && !magicLinkSent && (
+            <div className="space-y-3 animate-slide-up">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="input w-full"
+                disabled={magicLinkLoading}
+              />
+              <button
+                type="button"
+                onClick={handleMagicLink}
+                disabled={!email || magicLinkLoading}
+                className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {magicLinkLoading ? 'Sending...' : 'Send Magic Link'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowMagicLink(false)}
+                className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
+              >
+                ← Back to Google Sign Up
+              </button>
+            </div>
+          )}
+
+          {magicLinkSent && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <p className="text-green-700 text-sm text-center">
+                ✉️ Check your email! We sent a magic link to <strong>{email}</strong>
+              </p>
+              <p className="text-green-600 text-xs text-center mt-2">
+                Click the link to complete signup (check spam if you don't see it)
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="mt-8 text-center">

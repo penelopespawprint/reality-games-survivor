@@ -259,26 +259,37 @@ router.post('/:id/join/checkout', authenticate, checkoutLimiter, async (req: Aut
       .eq('status', 'pending')
       .single();
 
-    // If there's a pending session, try to reuse it or expire it
+    // If there's a pending session, handle all possible payment states
     if (existingPending?.stripe_session_id) {
-      try {
-        const existingSession = await stripe.checkout.sessions.retrieve(existingPending.stripe_session_id);
-        if (existingSession.status === 'open') {
-          // Existing session still valid, return it
-          return res.json({ checkout_url: existingSession.url, session_id: existingSession.id });
-        }
-        // Session expired, mark as failed
-        await supabaseAdmin
-          .from('payments')
-          .update({ status: 'failed' })
-          .eq('stripe_session_id', existingPending.stripe_session_id);
-      } catch (e) {
-        // Session doesn't exist anymore, mark as failed
-        await supabaseAdmin
-          .from('payments')
-          .update({ status: 'failed' })
-          .eq('stripe_session_id', existingPending.stripe_session_id);
+      const { handleExistingSession } = await import('../lib/stripe-helpers.js');
+      const sessionResult = await handleExistingSession(
+        stripe,
+        existingPending.stripe_session_id,
+        userId,
+        leagueId
+      );
+
+      if (sessionResult.action === 'reuse') {
+        // Session still valid, return existing checkout URL
+        return res.json({
+          checkout_url: sessionResult.url,
+          session_id: existingPending.stripe_session_id,
+          message: sessionResult.message
+        });
       }
+
+      if (sessionResult.action === 'wait') {
+        // Payment is processing (3D Secure or in-flight)
+        // DO NOT create new session - this would double-charge the user
+        return res.json({
+          checkout_url: sessionResult.url,
+          session_id: existingPending.stripe_session_id,
+          message: sessionResult.message,
+          processing: true
+        });
+      }
+
+      // action === 'expire': Session expired/completed, continue to create new one
     }
 
     const session = await stripe.checkout.sessions.create({
