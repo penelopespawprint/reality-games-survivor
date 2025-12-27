@@ -8,9 +8,10 @@ cmds = ["cd server && npm ci --include=dev"]
 [phases.build]
 cmds = [
   "cd server && npm run build",
-  "ls -la server/dist || echo 'Build failed - dist directory not found'",
-  "test -f server/dist/server.js || (echo 'ERROR: server.js not found after build' && exit 1)"
+  "cd server && ls -la dist/ || (echo 'ERROR: dist directory not found' && exit 1)",
+  "cd server && test -f dist/server.js || (echo 'ERROR: server.js not found after build' && exit 1)",
+  "echo 'Build verification: dist/server.js exists'"
 ]
 
 [start]
-cmd = "cd /app/server && npm start"
+cmd = "cd /app/server && node dist/server.js"
