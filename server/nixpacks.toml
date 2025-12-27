@@ -1,0 +1,17 @@
+# Railway nixpacks config for server directory
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm ci --include=dev"]
+
+[phases.build]
+cmds = [
+  "npm run build",
+  "ls -la dist/ || (echo 'ERROR: dist directory not found' && exit 1)",
+  "test -f dist/server.js || (echo 'ERROR: server.js not found after build' && exit 1)",
+  "echo '✓ Build successful: dist/server.js exists'"
+]
+
+[start]
+cmd = "node dist/server.js"

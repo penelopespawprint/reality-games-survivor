@@ -1,6 +1,6 @@
-# Railway builds from repo root, so we need to handle the server subdirectory
-# IMPORTANT: In Railway dashboard, set Service Root Directory to "/server" 
-# OR ensure this nixpacks.toml is at the repo root (which it is)
+# Railway nixpacks configuration
+# IMPORTANT: You MUST set Service Root Directory to "/server" in Railway dashboard
+# Go to: Railway Dashboard → Service → Settings → Root Directory → Set to "/server"
 
 [phases.setup]
 nixPkgs = ["nodejs_20"]
