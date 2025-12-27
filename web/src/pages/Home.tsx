@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 
 // Check if we're on the main domain (splash page) or survivor subdomain (full app)
@@ -20,6 +20,58 @@ const isShortlink = () => {
 };
 
 const SURVIVOR_APP_URL = 'https://survivor.realitygamesfantasyleague.com';
+
+// ============================================================================
+// PARALLAX UTILITIES
+// ============================================================================
+
+// Detect touch device for parallax fallback
+function useIsTouchDevice() {
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    const checkTouch = () => {
+      setIsTouch(
+        'ontouchstart' in window ||
+          navigator.maxTouchPoints > 0 ||
+          window.matchMedia('(hover: none)').matches
+      );
+    };
+    checkTouch();
+    window.addEventListener('resize', checkTouch);
+    return () => window.removeEventListener('resize', checkTouch);
+  }, []);
+
+  return isTouch;
+}
+
+// RAF-optimized scroll position hook
+function useScrollPosition() {
+  const [scrollY, setScrollY] = useState(0);
+  const rafRef = useRef<number>();
+  const isTouch = useIsTouchDevice();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (rafRef.current) return;
+
+      rafRef.current = requestAnimationFrame(() => {
+        setScrollY(window.scrollY);
+        rafRef.current = undefined;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  return { scrollY, isTouch };
+}
 
 // Intersection observer hook for scroll animations
 function useInView(threshold = 0.1) {
@@ -51,8 +103,11 @@ function useParallax(speed = 0.5) {
   const [offset, setOffset] = useState(0);
   const elementRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number>();
+  const isTouch = useIsTouchDevice();
 
   useEffect(() => {
+    if (isTouch) return;
+
     const handleScroll = () => {
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
@@ -73,10 +128,92 @@ function useParallax(speed = 0.5) {
         cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [speed]);
+  }, [speed, isTouch]);
 
-  return { elementRef, offset };
+  return { elementRef, offset: isTouch ? 0 : offset };
 }
+
+// ============================================================================
+// PARALLAX COMPONENTS
+// ============================================================================
+
+// GPU-accelerated parallax layer component
+function ParallaxLayer({
+  children,
+  speed = 0,
+  className = '',
+  style = {},
+}: {
+  children?: React.ReactNode;
+  speed: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const { scrollY, isTouch } = useScrollPosition();
+
+  const transform = useMemo(() => {
+    if (isTouch) return 'translate3d(0, 0, 0)';
+    return `translate3d(0, ${scrollY * speed}px, 0)`;
+  }, [scrollY, speed, isTouch]);
+
+  return (
+    <div
+      className={className}
+      style={{
+        ...style,
+        transform,
+        willChange: isTouch ? 'auto' : 'transform',
+        backfaceVisibility: 'hidden',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// Scroll-triggered fade-in animation component
+function FadeInOnScroll({
+  children,
+  direction = 'up',
+  delay = 0,
+  duration = 700,
+  className = '',
+}: {
+  children: React.ReactNode;
+  direction?: 'up' | 'down' | 'left' | 'right';
+  delay?: number;
+  duration?: number;
+  className?: string;
+}) {
+  const { ref, isInView } = useInView(0.1);
+
+  const transforms: Record<string, string> = {
+    up: 'translateY(40px)',
+    down: 'translateY(-40px)',
+    left: 'translateX(40px)',
+    right: 'translateX(-40px)',
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: isInView ? 1 : 0,
+        transform: isInView ? 'translate3d(0, 0, 0)' : transforms[direction],
+        transition: `opacity ${duration}ms ease-out, transform ${duration}ms ease-out`,
+        transitionDelay: `${delay}ms`,
+        willChange: 'opacity, transform',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ============================================================================
+// VISUAL COMPONENTS
+// ============================================================================
 
 // Realistic Tiki Torch SVG matching the logo
 function TikiTorch({ className, showEmbers = true }: { className?: string; showEmbers?: boolean }) {
@@ -254,37 +391,47 @@ function TikiTorch({ className, showEmbers = true }: { className?: string; showE
   );
 }
 
-// Premium Hero Section with Parallax Layers
+// ============================================================================
+// SURVIVOR APP SECTIONS
+// ============================================================================
+
+// Premium Hero Section with Multi-Layer Parallax
 function PremiumHero() {
   const { user } = useAuth();
-  const layer1 = useParallax(0.1);
-  const layer2 = useParallax(0.2);
-  const layer3 = useParallax(0.35);
-  const layer4 = useParallax(-0.05);
+  const { scrollY, isTouch } = useScrollPosition();
   const { ref: heroRef, isInView } = useInView(0.1);
+
+  // Different speeds for each layer - creates depth
+  const bgLayerOffset = isTouch ? 0 : scrollY * 0.15;
+  const midLayerOffset = isTouch ? 0 : scrollY * 0.25;
+  const decorLayerOffset = isTouch ? 0 : scrollY * 0.4;
+  const torchLayerOffset = isTouch ? 0 : scrollY * -0.08;
 
   return (
     <section
       ref={heroRef}
       className="relative min-h-screen overflow-hidden bg-gradient-to-b from-cream-50 via-cream-100 to-cream-200"
     >
-      {/* Parallax Layer 1 - Deep Background (slowest) */}
+      {/* Background Layer (slowest) - Large ambient orbs */}
       <div
-        ref={layer1.elementRef}
         className="absolute inset-0 pointer-events-none"
-        style={{ transform: `translateY(${layer1.offset}px)` }}
+        style={{
+          transform: `translate3d(0, ${bgLayerOffset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
       >
         <div className="absolute top-1/4 -right-32 w-[600px] h-[600px] bg-burgundy-500/[0.03] rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 -left-32 w-[500px] h-[500px] bg-amber-500/[0.04] rounded-full blur-3xl" />
       </div>
 
-      {/* Parallax Layer 2 - Mid Background */}
+      {/* Midground Layer - Tribal pattern overlay */}
       <div
-        ref={layer2.elementRef}
         className="absolute inset-0 pointer-events-none"
-        style={{ transform: `translateY(${layer2.offset}px)` }}
+        style={{
+          transform: `translate3d(0, ${midLayerOffset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
       >
-        {/* Subtle tribal pattern overlay */}
         <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
@@ -294,78 +441,82 @@ function PremiumHero() {
         />
       </div>
 
-      {/* Parallax Layer 3 - Decorative Elements (faster) */}
+      {/* Foreground Decorative Layer (fastest) - Small accents */}
       <div
-        ref={layer3.elementRef}
         className="absolute inset-0 pointer-events-none"
-        style={{ transform: `translateY(${layer3.offset}px)` }}
+        style={{
+          transform: `translate3d(0, ${decorLayerOffset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
       >
         <div className="absolute top-20 right-20 w-2 h-2 bg-burgundy-400/30 rounded-full" />
         <div className="absolute top-40 right-40 w-1 h-1 bg-amber-400/40 rounded-full" />
         <div className="absolute bottom-40 left-20 w-1.5 h-1.5 bg-burgundy-300/25 rounded-full" />
+        <div className="absolute top-1/3 left-1/4 w-1 h-1 bg-orange-400/30 rounded-full" />
+        <div className="absolute bottom-1/3 right-1/3 w-2 h-2 bg-amber-300/20 rounded-full" />
       </div>
 
       {/* Content Layer - Static relative to viewport */}
       <div className="relative max-w-7xl mx-auto px-6 pt-32 pb-24 lg:pt-40 lg:pb-32">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center min-h-[70vh]">
-          {/* Left: Content */}
-          <div
-            className={`transition-all duration-1000 ${
-              isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-            }`}
-          >
-            {/* Minimal badge */}
-            <div className="inline-flex items-center gap-3 mb-8">
-              <span className="w-12 h-px bg-burgundy-400" />
-              <span className="text-burgundy-600 text-sm font-medium tracking-widest uppercase">
-                Season 50
-              </span>
-            </div>
+          {/* Left: Content with fade-in */}
+          <FadeInOnScroll direction="up" duration={1000}>
+            <div>
+              {/* Minimal badge */}
+              <div className="inline-flex items-center gap-3 mb-8">
+                <span className="w-12 h-px bg-burgundy-400" />
+                <span className="text-burgundy-600 text-sm font-medium tracking-widest uppercase">
+                  Season 50
+                </span>
+              </div>
 
-            <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl text-neutral-900 leading-[0.95] tracking-tight mb-8">
-              Fantasy Survivor
-              <br />
-              <span className="text-burgundy-600">for strategists.</span>
-            </h1>
+              <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl text-neutral-900 leading-[0.95] tracking-tight mb-8">
+                Fantasy Survivor
+                <br />
+                <span className="text-burgundy-600">for strategists.</span>
+              </h1>
 
-            <p className="text-xl lg:text-2xl text-neutral-600 leading-relaxed mb-12 max-w-xl font-light">
-              Draft your team. Make weekly picks. Compete in the most comprehensive Survivor fantasy
-              experience ever built.
-            </p>
+              <p className="text-xl lg:text-2xl text-neutral-600 leading-relaxed mb-12 max-w-xl font-light">
+                Draft your team. Make weekly picks. Compete in the most comprehensive Survivor
+                fantasy experience ever built.
+              </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                to={user ? '/dashboard' : '/signup'}
-                className="group inline-flex items-center justify-center gap-3 bg-burgundy-600 text-white px-10 py-5 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all duration-300 hover:shadow-xl"
-              >
-                {user ? 'Go to Dashboard' : 'Join Free'}
-                <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              {!user && (
+              <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  to="/how-to-play"
-                  className="inline-flex items-center justify-center gap-2 text-neutral-700 px-8 py-5 font-medium text-lg hover:text-burgundy-600 transition-colors"
+                  to={user ? '/dashboard' : '/signup'}
+                  className="group inline-flex items-center justify-center gap-3 bg-burgundy-600 text-white px-10 py-5 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
                 >
-                  How It Works
+                  {user ? 'Go to Dashboard' : 'Join Free'}
+                  <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
-              )}
+                {!user && (
+                  <Link
+                    to="/how-to-play"
+                    className="inline-flex items-center justify-center gap-2 text-neutral-700 px-8 py-5 font-medium text-lg hover:text-burgundy-600 transition-colors"
+                  >
+                    How It Works
+                  </Link>
+                )}
+              </div>
             </div>
-          </div>
+          </FadeInOnScroll>
 
-          {/* Right: Torch with parallax */}
+          {/* Right: Torch with inverse parallax (moves up as you scroll down) */}
           <div
-            ref={layer4.elementRef}
-            className={`flex justify-center lg:justify-end transition-all duration-1000 delay-300 ${
-              isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-            style={{ transform: `translateY(${layer4.offset}px)` }}
+            className="flex justify-center lg:justify-end"
+            style={{
+              transform: `translate3d(0, ${torchLayerOffset}px, 0)`,
+              willChange: isTouch ? 'auto' : 'transform',
+            }}
           >
-            <div className="relative">
-              {/* Ambient glow */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-gradient-radial from-orange-400/20 via-orange-400/5 to-transparent rounded-full blur-2xl" />
+            <FadeInOnScroll direction="right" delay={300} duration={1000}>
+              <div className="relative">
+                {/* Ambient glow */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-gradient-radial from-orange-400/20 via-orange-400/5 to-transparent rounded-full blur-2xl" />
 
-              <TikiTorch className="h-[400px] lg:h-[500px] relative z-10" />
-            </div>
+                <TikiTorch className="h-[400px] lg:h-[500px] relative z-10" />
+              </div>
+            </FadeInOnScroll>
           </div>
         </div>
       </div>
@@ -379,11 +530,13 @@ function PremiumHero() {
   );
 }
 
-// Value Proposition Section - Clean, No Stats
+// Value Proposition Section with Parallax Background
 function ValueSection() {
-  const layer1 = useParallax(0.08);
-  const layer2 = useParallax(-0.05);
+  const { scrollY, isTouch } = useScrollPosition();
   const { ref, isInView } = useInView(0.15);
+
+  const bgOffset = isTouch ? 0 : scrollY * 0.08;
+  const accentOffset = isTouch ? 0 : scrollY * -0.05;
 
   const values = [
     {
@@ -410,63 +563,61 @@ function ValueSection() {
 
   return (
     <section ref={ref} className="relative py-32 lg:py-40 bg-white overflow-hidden">
-      {/* Parallax decorative layers */}
+      {/* Parallax background gradient */}
       <div
-        ref={layer1.elementRef}
         className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-cream-50/50 to-transparent pointer-events-none"
-        style={{ transform: `translateY(${layer1.offset}px)` }}
+        style={{
+          transform: `translate3d(0, ${bgOffset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
       />
+
+      {/* Parallax accent orb */}
       <div
-        ref={layer2.elementRef}
         className="absolute -bottom-20 -left-20 w-80 h-80 bg-burgundy-500/[0.02] rounded-full blur-3xl pointer-events-none"
-        style={{ transform: `translateY(${layer2.offset}px)` }}
+        style={{
+          transform: `translate3d(0, ${accentOffset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
       />
 
       <div className="relative max-w-6xl mx-auto px-6">
         {/* Section header */}
-        <div
-          className={`max-w-2xl mb-20 transition-all duration-1000 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <div className="inline-flex items-center gap-3 mb-6">
-            <span className="w-8 h-px bg-burgundy-400" />
-            <span className="text-burgundy-600 text-sm font-medium tracking-widest uppercase">
-              The Experience
-            </span>
+        <FadeInOnScroll direction="up">
+          <div className="max-w-2xl mb-20">
+            <div className="inline-flex items-center gap-3 mb-6">
+              <span className="w-8 h-px bg-burgundy-400" />
+              <span className="text-burgundy-600 text-sm font-medium tracking-widest uppercase">
+                The Experience
+              </span>
+            </div>
+            <h2 className="font-display text-4xl lg:text-5xl text-neutral-900 leading-tight mb-6">
+              Built for players who
+              <br />
+              <span className="text-burgundy-600">live and breathe Survivor.</span>
+            </h2>
+            <p className="text-lg text-neutral-600 leading-relaxed">
+              No luck required. Real strategy rewarded.
+            </p>
           </div>
-          <h2 className="font-display text-4xl lg:text-5xl text-neutral-900 leading-tight mb-6">
-            Built for players who
-            <br />
-            <span className="text-burgundy-600">live and breathe Survivor.</span>
-          </h2>
-          <p className="text-lg text-neutral-600 leading-relaxed">
-            No luck required. Real strategy rewarded.
-          </p>
-        </div>
+        </FadeInOnScroll>
 
-        {/* Value grid */}
+        {/* Value grid with staggered fade-in */}
         <div className="grid md:grid-cols-2 gap-x-16 gap-y-16">
           {values.map((value, i) => (
-            <div
-              key={i}
-              className={`group transition-all duration-700 ${
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-              style={{ transitionDelay: `${150 + i * 100}ms` }}
-            >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-cream-100 flex items-center justify-center group-hover:bg-burgundy-50 transition-colors">
+            <FadeInOnScroll key={i} direction="up" delay={150 + i * 100}>
+              <div className="group flex items-start gap-6">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-cream-100 flex items-center justify-center group-hover:bg-burgundy-50 transition-colors duration-300">
                   <span className="text-burgundy-600 font-display text-xl">{i + 1}</span>
                 </div>
                 <div>
-                  <h3 className="font-display text-xl text-neutral-900 mb-3 group-hover:text-burgundy-600 transition-colors">
+                  <h3 className="font-display text-xl text-neutral-900 mb-3 group-hover:text-burgundy-600 transition-colors duration-300">
                     {value.title}
                   </h3>
                   <p className="text-neutral-600 leading-relaxed">{value.description}</p>
                 </div>
               </div>
-            </div>
+            </FadeInOnScroll>
           ))}
         </div>
       </div>
@@ -474,160 +625,160 @@ function ValueSection() {
   );
 }
 
-// Season Spotlight Section with Parallax
+// Season Spotlight Section with Multi-Layer Parallax
 function SeasonSpotlight() {
-  const layer1 = useParallax(0.15);
-  const layer2 = useParallax(-0.1);
-  const layer3 = useParallax(0.05);
+  const { scrollY, isTouch } = useScrollPosition();
   const { ref, isInView } = useInView(0.2);
+
+  const bgOrb1Offset = isTouch ? 0 : scrollY * 0.15;
+  const bgOrb2Offset = isTouch ? 0 : scrollY * -0.1;
+  const gridOffset = isTouch ? 0 : scrollY * 0.05;
 
   return (
     <section ref={ref} className="relative py-32 lg:py-40 bg-neutral-900 overflow-hidden">
-      {/* Parallax background layers */}
+      {/* Parallax background orbs */}
       <div
-        ref={layer1.elementRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ transform: `translateY(${layer1.offset}px)` }}
-      >
-        <div className="absolute top-1/4 -right-20 w-96 h-96 bg-burgundy-500/10 rounded-full blur-3xl" />
-      </div>
+        className="absolute top-1/4 -right-20 w-96 h-96 bg-burgundy-500/10 rounded-full blur-3xl pointer-events-none"
+        style={{
+          transform: `translate3d(0, ${bgOrb1Offset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
+      />
       <div
-        ref={layer2.elementRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ transform: `translateY(${layer2.offset}px)` }}
-      >
-        <div className="absolute bottom-1/4 -left-20 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl" />
-      </div>
+        className="absolute bottom-1/4 -left-20 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"
+        style={{
+          transform: `translate3d(0, ${bgOrb2Offset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
+      />
 
-      {/* Subtle grid pattern */}
+      {/* Subtle parallax grid pattern */}
       <div
-        ref={layer3.elementRef}
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
           backgroundSize: '60px 60px',
-          transform: `translateY(${layer3.offset}px)`,
+          transform: `translate3d(0, ${gridOffset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
         }}
       />
 
       <div className="relative max-w-6xl mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-          {/* Left: Visual */}
-          <div
-            className={`relative transition-all duration-1000 ${
-              isInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
-            }`}
-          >
-            <div className="aspect-square rounded-3xl bg-gradient-to-br from-neutral-800 to-neutral-900 p-12 flex items-center justify-center border border-white/5">
-              <TikiTorch className="h-80 max-w-full" showEmbers={true} />
-            </div>
-            {/* Decorative accent */}
-            <div className="absolute -bottom-4 -right-4 w-32 h-32 rounded-2xl bg-burgundy-600/20 -z-10" />
-          </div>
-
-          {/* Right: Content */}
-          <div
-            className={`transition-all duration-1000 delay-150 ${
-              isInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
-            }`}
-          >
-            <div className="inline-flex items-center gap-3 mb-6">
-              <span className="w-8 h-px bg-burgundy-400" />
-              <span className="text-burgundy-400 text-sm font-medium tracking-widest uppercase">
-                Now Open
-              </span>
-            </div>
-
-            <h2 className="font-display text-4xl lg:text-5xl text-white leading-tight mb-6">
-              Season 50
-              <br />
-              <span className="text-burgundy-400">In the Hands of the Fans</span>
-            </h2>
-
-            <p className="text-lg text-neutral-400 leading-relaxed mb-8">
-              24 legendary castaways return. The greatest collection of players in Survivor history.
-              Who will you draft?
-            </p>
-
-            <div className="space-y-4 mb-10">
-              <div className="flex items-center gap-4 text-neutral-300">
-                <span className="w-2 h-2 bg-burgundy-500 rounded-full" />
-                <span>Premiere: February 25, 2026</span>
+          {/* Left: Visual with slide-in */}
+          <FadeInOnScroll direction="left" duration={1000}>
+            <div className="relative">
+              <div className="aspect-square rounded-3xl bg-gradient-to-br from-neutral-800 to-neutral-900 p-12 flex items-center justify-center border border-white/5">
+                <TikiTorch className="h-80 max-w-full" showEmbers={true} />
               </div>
-              <div className="flex items-center gap-4 text-neutral-300">
-                <span className="w-2 h-2 bg-burgundy-500 rounded-full" />
-                <span>Draft Deadline: March 2, 2026</span>
-              </div>
-              <div className="flex items-center gap-4 text-neutral-300">
-                <span className="w-2 h-2 bg-burgundy-500 rounded-full" />
-                <span>Registration now open</span>
-              </div>
+              {/* Decorative accent */}
+              <div className="absolute -bottom-4 -right-4 w-32 h-32 rounded-2xl bg-burgundy-600/20 -z-10" />
             </div>
+          </FadeInOnScroll>
 
-            <Link
-              to="/signup"
-              className="group inline-flex items-center gap-3 bg-white text-neutral-900 px-8 py-4 rounded-xl font-semibold hover:bg-cream-50 transition-all duration-300"
-            >
-              Join Season 50
-              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
+          {/* Right: Content with slide-in */}
+          <FadeInOnScroll direction="right" delay={150} duration={1000}>
+            <div>
+              <div className="inline-flex items-center gap-3 mb-6">
+                <span className="w-8 h-px bg-burgundy-400" />
+                <span className="text-burgundy-400 text-sm font-medium tracking-widest uppercase">
+                  Now Open
+                </span>
+              </div>
+
+              <h2 className="font-display text-4xl lg:text-5xl text-white leading-tight mb-6">
+                Season 50
+                <br />
+                <span className="text-burgundy-400">In the Hands of the Fans</span>
+              </h2>
+
+              <p className="text-lg text-neutral-400 leading-relaxed mb-8">
+                24 legendary castaways return. The greatest collection of players in Survivor
+                history. Who will you draft?
+              </p>
+
+              <div className="space-y-4 mb-10">
+                <div className="flex items-center gap-4 text-neutral-300">
+                  <span className="w-2 h-2 bg-burgundy-500 rounded-full" />
+                  <span>Premiere: February 25, 2026</span>
+                </div>
+                <div className="flex items-center gap-4 text-neutral-300">
+                  <span className="w-2 h-2 bg-burgundy-500 rounded-full" />
+                  <span>Draft Deadline: March 2, 2026</span>
+                </div>
+                <div className="flex items-center gap-4 text-neutral-300">
+                  <span className="w-2 h-2 bg-burgundy-500 rounded-full" />
+                  <span>Registration now open</span>
+                </div>
+              </div>
+
+              <Link
+                to="/signup"
+                className="group inline-flex items-center gap-3 bg-white text-neutral-900 px-8 py-4 rounded-xl font-semibold hover:bg-cream-50 transition-all duration-300 hover:-translate-y-0.5"
+              >
+                Join Season 50
+                <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </FadeInOnScroll>
         </div>
       </div>
     </section>
   );
 }
 
-// Premium CTA Section
+// Premium CTA Section with Parallax
 function PremiumCTA() {
   const { user } = useAuth();
-  const layer1 = useParallax(0.1);
-  const layer2 = useParallax(-0.08);
+  const { scrollY, isTouch } = useScrollPosition();
   const { ref, isInView } = useInView(0.3);
+
+  const orb1Offset = isTouch ? 0 : scrollY * 0.1;
+  const orb2Offset = isTouch ? 0 : scrollY * -0.08;
 
   return (
     <section
       ref={ref}
       className="relative py-32 lg:py-40 bg-gradient-to-br from-burgundy-600 via-burgundy-700 to-burgundy-800 overflow-hidden"
     >
-      {/* Parallax layers */}
+      {/* Parallax decorative orbs */}
       <div
-        ref={layer1.elementRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ transform: `translateY(${layer1.offset}px)` }}
-      >
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-      </div>
+        className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"
+        style={{
+          transform: `translate3d(33%, calc(-50% + ${orb1Offset}px), 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
+      />
       <div
-        ref={layer2.elementRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ transform: `translateY(${layer2.offset}px)` }}
-      >
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3" />
-      </div>
+        className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none"
+        style={{
+          transform: `translate3d(-33%, calc(50% + ${orb2Offset}px), 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
+      />
 
       <div className="relative max-w-4xl mx-auto px-6 text-center">
-        <div
-          className={`transition-all duration-1000 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
+        <FadeInOnScroll direction="up">
           <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-8">
             The fantasy league
             <br />
             Survivor deserves.
           </h2>
+        </FadeInOnScroll>
 
+        <FadeInOnScroll direction="up" delay={100}>
           <p className="text-xl text-white/70 mb-12 max-w-2xl mx-auto">
             Free to play. Built for strategy. Join thousands of superfans competing in the ultimate
             Survivor fantasy experience.
           </p>
+        </FadeInOnScroll>
 
+        <FadeInOnScroll direction="up" delay={200}>
           {user ? (
             <Link
               to="/dashboard"
-              className="group inline-flex items-center gap-3 bg-white text-burgundy-700 px-12 py-5 rounded-xl font-semibold text-lg hover:bg-cream-50 transition-all duration-300 hover:shadow-xl"
+              className="group inline-flex items-center gap-3 bg-white text-burgundy-700 px-12 py-5 rounded-xl font-semibold text-lg hover:bg-cream-50 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
             >
               View Your Leagues
               <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -635,44 +786,31 @@ function PremiumCTA() {
           ) : (
             <Link
               to="/signup"
-              className="group inline-flex items-center gap-3 bg-white text-burgundy-700 px-12 py-5 rounded-xl font-semibold text-lg hover:bg-cream-50 transition-all duration-300 hover:shadow-xl"
+              className="group inline-flex items-center gap-3 bg-white text-burgundy-700 px-12 py-5 rounded-xl font-semibold text-lg hover:bg-cream-50 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
             >
               Join Free
               <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           )}
-        </div>
+        </FadeInOnScroll>
       </div>
     </section>
   );
 }
 
-// Splash page for main domain (realitygamesfantasyleague.com)
+// ============================================================================
+// SPLASH PAGE (Main Domain)
+// ============================================================================
+
 function SplashPage() {
-  const [scrollY, setScrollY] = useState(0);
-  const rafRef = useRef<number>();
+  const { scrollY, isTouch } = useScrollPosition();
 
-  // Track scroll position for parallax with RAF
-  useEffect(() => {
-    const handleScroll = () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-      rafRef.current = requestAnimationFrame(() => {
-        setScrollY(window.scrollY);
-      });
-    };
+  // Background parallax layers
+  const bgLayer1Offset = isTouch ? 0 : scrollY * 0.1;
+  const bgLayer2Offset = isTouch ? 0 : scrollY * -0.08;
+  const bgLayer3Offset = isTouch ? 0 : scrollY * 0.15;
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, []);
-
-  // Calculate section visibility
+  // Calculate section visibility with smooth transitions
   const getOpacity = (start: number, fadeIn: number, hold: number, fadeOut: number) => {
     if (scrollY < start) return 0;
     if (scrollY < start + fadeIn) return (scrollY - start) / fadeIn;
@@ -682,16 +820,43 @@ function SplashPage() {
     return 0;
   };
 
+  // Active section for progress indicator
+  const activeSection = useMemo(() => {
+    if (scrollY < 400) return 0;
+    if (scrollY < 800) return 1;
+    if (scrollY < 1200) return 2;
+    if (scrollY < 1600) return 3;
+    if (scrollY < 2000) return 4;
+    return 5;
+  }, [scrollY]);
+
   return (
     <div className="min-h-[500vh] bg-cream-50 overflow-x-hidden relative">
-      {/* Parallax background orbs */}
+      {/* Background Layer 1 - Slowest, largest orbs */}
       <div
         className="fixed top-0 right-0 w-[50vw] h-[50vh] bg-gradient-radial from-burgundy-500/[0.03] to-transparent pointer-events-none"
-        style={{ transform: `translateY(${scrollY * 0.1}px)` }}
+        style={{
+          transform: `translate3d(0, ${bgLayer1Offset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
       />
+
+      {/* Background Layer 2 - Medium speed */}
       <div
         className="fixed bottom-0 left-0 w-[40vw] h-[40vh] bg-gradient-radial from-amber-500/[0.04] to-transparent pointer-events-none"
-        style={{ transform: `translateY(${-scrollY * 0.08}px)` }}
+        style={{
+          transform: `translate3d(0, ${bgLayer2Offset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
+      />
+
+      {/* Background Layer 3 - Fastest, smallest accents */}
+      <div
+        className="fixed top-1/3 left-1/4 w-[20vw] h-[20vh] bg-gradient-radial from-burgundy-400/[0.02] to-transparent pointer-events-none"
+        style={{
+          transform: `translate3d(0, ${bgLayer3Offset}px, 0)`,
+          willChange: isTouch ? 'auto' : 'transform',
+        }}
       />
 
       {/* Fixed container for scroll-based story */}
@@ -699,10 +864,11 @@ function SplashPage() {
         <div className="max-w-4xl mx-auto px-8 text-center pointer-events-auto">
           {/* Section 1: Logo & Brand */}
           <div
-            className="transition-all duration-300"
+            className="transition-opacity duration-300"
             style={{
               opacity: getOpacity(0, 100, 300, 200),
-              transform: `translateY(${-scrollY * 0.15}px) scale(${Math.max(0.9, 1 - scrollY / 3000)})`,
+              transform: `translate3d(0, ${-scrollY * 0.15}px, 0) scale(${Math.max(0.9, 1 - scrollY / 3000)})`,
+              willChange: isTouch ? 'auto' : 'transform, opacity',
             }}
           >
             <img
@@ -722,7 +888,8 @@ function SplashPage() {
             className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-8"
             style={{
               opacity: getOpacity(400, 150, 250, 150),
-              transform: `translateY(${Math.max(0, 30 - (scrollY - 400) * 0.05)}px)`,
+              transform: `translate3d(0, ${Math.max(0, 30 - (scrollY - 400) * 0.05)}px, 0)`,
+              willChange: isTouch ? 'auto' : 'transform, opacity',
             }}
           >
             <p className="font-display text-2xl sm:text-3xl lg:text-4xl text-neutral-700 leading-relaxed max-w-3xl mx-auto">
@@ -735,7 +902,8 @@ function SplashPage() {
             className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-8"
             style={{
               opacity: getOpacity(800, 150, 250, 150),
-              transform: `translateY(${Math.max(0, 30 - (scrollY - 800) * 0.05)}px)`,
+              transform: `translate3d(0, ${Math.max(0, 30 - (scrollY - 800) * 0.05)}px, 0)`,
+              willChange: isTouch ? 'auto' : 'transform, opacity',
             }}
           >
             <p className="text-xl sm:text-2xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
@@ -753,7 +921,8 @@ function SplashPage() {
             className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-8"
             style={{
               opacity: getOpacity(1200, 150, 250, 150),
-              transform: `translateY(${Math.max(0, 30 - (scrollY - 1200) * 0.05)}px)`,
+              transform: `translate3d(0, ${Math.max(0, 30 - (scrollY - 1200) * 0.05)}px, 0)`,
+              willChange: isTouch ? 'auto' : 'transform, opacity',
             }}
           >
             <p className="text-xl sm:text-2xl text-neutral-600 leading-relaxed max-w-3xl mx-auto mb-6">
@@ -769,7 +938,8 @@ function SplashPage() {
             className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-8"
             style={{
               opacity: getOpacity(1600, 150, 250, 150),
-              transform: `translateY(${Math.max(0, 30 - (scrollY - 1600) * 0.05)}px)`,
+              transform: `translate3d(0, ${Math.max(0, 30 - (scrollY - 1600) * 0.05)}px, 0)`,
+              willChange: isTouch ? 'auto' : 'transform, opacity',
             }}
           >
             <div className="inline-flex items-center gap-3 mb-4">
@@ -790,14 +960,15 @@ function SplashPage() {
             className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-8"
             style={{
               opacity: getOpacity(2000, 150, 1000, 0),
-              transform: `translateY(${Math.max(0, 30 - (scrollY - 2000) * 0.05)}px)`,
+              transform: `translate3d(0, ${Math.max(0, 30 - (scrollY - 2000) * 0.05)}px, 0)`,
+              willChange: isTouch ? 'auto' : 'transform, opacity',
             }}
           >
             <p className="text-neutral-500 mb-8">Premiere: February 25, 2026</p>
 
             <a
               href={`${SURVIVOR_APP_URL}/signup`}
-              className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all duration-300"
+              className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all duration-300 hover:-translate-y-0.5"
             >
               Join Season 50
               <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -824,18 +995,18 @@ function SplashPage() {
 
       {/* Progress indicator */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-50">
-        {[0, 400, 800, 1200, 1600, 2000].map((threshold, i) => {
-          const isActive = scrollY >= threshold && scrollY < threshold + 400;
-          const isPast = scrollY >= threshold + 400;
-          return (
-            <div
-              key={i}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                isActive ? 'bg-burgundy-500 scale-125' : isPast ? 'bg-burgundy-300' : 'bg-neutral-300'
-              }`}
-            />
-          );
-        })}
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <div
+            key={i}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              i === activeSection
+                ? 'bg-burgundy-500 scale-125'
+                : i < activeSection
+                  ? 'bg-burgundy-300'
+                  : 'bg-neutral-300'
+            }`}
+          />
+        ))}
       </div>
 
       {/* Footer - at the very bottom */}
@@ -872,28 +1043,35 @@ function SplashPage() {
   );
 }
 
-// Full app home page for survivor subdomain
+// ============================================================================
+// SURVIVOR APP HOME PAGE
+// ============================================================================
+
 function SurvivorHome() {
   return (
     <div className="min-h-screen bg-cream-50">
       <Navigation />
 
-      {/* Premium Hero with Parallax */}
+      {/* Premium Hero with Multi-Layer Parallax */}
       <PremiumHero />
 
-      {/* Value Props - Clean, No Stats */}
+      {/* Value Props with Parallax Background */}
       <ValueSection />
 
-      {/* Season Spotlight */}
+      {/* Season Spotlight with Parallax */}
       <SeasonSpotlight />
 
-      {/* Premium CTA */}
+      {/* Premium CTA with Parallax */}
       <PremiumCTA />
 
       <Footer />
     </div>
   );
 }
+
+// ============================================================================
+// MAIN EXPORT
+// ============================================================================
 
 export function Home() {
   // Redirect shortlink to survivor app (preserves path)

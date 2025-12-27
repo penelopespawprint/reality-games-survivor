@@ -334,7 +334,7 @@ router.post('/:id/draft/pick', authenticate, async (req: AuthenticatedRequest, r
       roster_entry: roster,
       draft_complete: isDraftComplete,
       next_pick: isDraftComplete ? null : {
-        pick_number: nextPickNumber,
+        pick_number: newTotalPicks + 1,
         round: nextRound,
         user_id: nextPickUserId,
       },
