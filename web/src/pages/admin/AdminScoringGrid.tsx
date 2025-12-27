@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
-import { Loader2, Save, Grid3X3, List } from 'lucide-react';
+import { Loader2, Save, Grid3X3, List, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface Episode {
   id: string;
@@ -46,6 +46,15 @@ interface UserProfile {
   id: string;
   display_name: string;
   role: string;
+}
+
+interface ScoringStatus {
+  is_complete: boolean;
+  total_castaways: number;
+  scored_castaways: number;
+  unscored_castaway_ids: string[];
+  unscored_castaway_names: string[];
+  is_finalized: boolean;
 }
 
 // Grid scores map: { [castawayId]: { [ruleId]: quantity } }
@@ -153,6 +162,35 @@ export function AdminScoringGrid() {
     enabled: !!selectedEpisodeId,
   });
 
+  // Get scoring status (completeness)
+  const { data: scoringStatus } = useQuery({
+    queryKey: ['scoringStatus', selectedEpisodeId],
+    queryFn: async () => {
+      if (!selectedEpisodeId) return null;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app'}/api/episodes/${selectedEpisodeId}/scoring/status`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch scoring status');
+      }
+
+      return (await response.json()) as ScoringStatus;
+    },
+    enabled: !!selectedEpisodeId,
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
+
   // Get unique categories
   const categories = useMemo(() => {
     const cats = new Set(scoringRules?.map((r) => r.category || 'Other'));
@@ -220,6 +258,7 @@ export function AdminScoringGrid() {
       setLastSavedAt(new Date());
       setIsDirty(false);
       queryClient.invalidateQueries({ queryKey: ['episodeScores', selectedEpisodeId] });
+      queryClient.invalidateQueries({ queryKey: ['scoringStatus', selectedEpisodeId] });
     } finally {
       setIsSaving(false);
     }
@@ -310,6 +349,24 @@ export function AdminScoringGrid() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            {scoringStatus && selectedEpisodeId && !scoringStatus.is_finalized && (
+              <div
+                className={`px-4 py-2 rounded-xl flex items-center gap-2 ${
+                  scoringStatus.is_complete
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-amber-100 text-amber-700'
+                }`}
+              >
+                {scoringStatus.is_complete ? (
+                  <CheckCircle className="h-5 w-5" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5" />
+                )}
+                <span className="font-medium">
+                  {scoringStatus.scored_castaways}/{scoringStatus.total_castaways} castaways scored
+                </span>
+              </div>
+            )}
             <Link
               to={`/admin/scoring${selectedEpisodeId ? `?episode=${selectedEpisodeId}` : ''}`}
               className="btn btn-secondary flex items-center gap-2"

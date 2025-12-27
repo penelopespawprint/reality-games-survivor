@@ -172,6 +172,48 @@ router.post('/:id/scoring/save', requireAdmin, async (req: AuthenticatedRequest,
   }
 });
 
+// GET /api/episodes/:id/scoring/status - Get scoring completeness status
+router.get('/:id/scoring/status', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const episodeId = req.params.id;
+
+    // Check if episode exists
+    const { data: episode } = await supabase
+      .from('episodes')
+      .select('id, is_scored')
+      .eq('id', episodeId)
+      .single();
+
+    if (!episode) {
+      return res.status(404).json({ error: 'Episode not found' });
+    }
+
+    // Get completeness status using the database function
+    const { data: completeness, error: rpcError } = await supabaseAdmin.rpc('check_scoring_completeness', {
+      p_episode_id: episodeId,
+    });
+
+    if (rpcError) {
+      console.error('Check completeness RPC error:', rpcError);
+      return res.status(500).json({ error: 'Failed to check scoring status' });
+    }
+
+    const status = Array.isArray(completeness) ? completeness[0] : completeness;
+
+    res.json({
+      is_complete: status.is_complete,
+      total_castaways: status.total_castaways,
+      scored_castaways: status.scored_castaways,
+      unscored_castaway_ids: status.unscored_castaway_ids || [],
+      unscored_castaway_names: status.unscored_castaway_names || [],
+      is_finalized: episode.is_scored,
+    });
+  } catch (err) {
+    console.error('GET /api/episodes/:id/scoring/status error:', err);
+    res.status(500).json({ error: 'Failed to get scoring status' });
+  }
+});
+
 // POST /api/episodes/:id/scoring/finalize - Finalize scores
 router.post('/:id/scoring/finalize', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -194,7 +236,10 @@ router.post('/:id/scoring/finalize', requireAdmin, async (req: AuthenticatedRequ
 
     if (finalizeResult?.error_code) {
       const statusCode = finalizeResult.error_code === 'SESSION_NOT_FOUND' ? 404 : 400;
-      return res.status(statusCode).json({ error: finalizeResult.error_message });
+      return res.status(statusCode).json({
+        error: finalizeResult.error_message,
+        error_code: finalizeResult.error_code
+      });
     }
 
     res.json({

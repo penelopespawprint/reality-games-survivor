@@ -49,14 +49,17 @@ router.post('/', authenticate, validate(createLeagueSchema), async (req: Authent
       return res.status(400).json({ error: error.message });
     }
 
-    // Add commissioner as first member
-    await supabaseAdmin
-      .from('league_members')
-      .insert({
-        league_id: league.id,
-        user_id: userId,
-        draft_position: 1,
-      });
+    // SECURITY: Only add commissioner to free leagues immediately
+    // For paid leagues, commissioner is added after payment via webhook
+    if (!league.require_donation) {
+      await supabaseAdmin
+        .from('league_members')
+        .insert({
+          league_id: league.id,
+          user_id: userId,
+          draft_position: 1,
+        });
+    }
 
     // Send league created email
     try {
@@ -87,6 +90,54 @@ router.post('/', authenticate, validate(createLeagueSchema), async (req: Authent
     } catch (emailErr) {
       console.error('Failed to send league created email:', emailErr);
       // Don't fail the request if email fails
+    }
+
+    // SECURITY: For paid leagues, redirect to checkout before adding commissioner
+    if (league.require_donation) {
+      const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+
+      // Create Stripe checkout session for commissioner
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [{
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `${league.name} - League Entry`,
+              description: league.donation_notes || 'League entry fee',
+            },
+            unit_amount: Math.round(league.donation_amount * 100),
+          },
+          quantity: 1,
+        }],
+        metadata: {
+          league_id: league.id,
+          user_id: userId,
+          type: 'league_donation',
+        },
+        success_url: `${baseUrl}/leagues/${league.id}?joined=true`,
+        cancel_url: `${baseUrl}/leagues/${league.id}?cancelled=true`,
+        expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 min expiration
+      });
+
+      // Record pending payment
+      await supabaseAdmin.from('payments').insert({
+        user_id: userId,
+        league_id: league.id,
+        amount: league.donation_amount,
+        currency: 'usd',
+        stripe_session_id: session.id,
+        status: 'pending',
+      });
+
+      return res.status(201).json({
+        league,
+        invite_code: league.code,
+        requires_payment: true,
+        checkout_url: session.url,
+        session_id: session.id
+      });
     }
 
     res.status(201).json({ league, invite_code: league.code });
@@ -812,95 +863,46 @@ router.get('/global-leaderboard', async (req, res: Response) => {
     // With C=1, players at 1 league get 50% weight, 2 leagues get 67%, 3 leagues get 75%
     const CONFIDENCE_FACTOR = 1;
 
-    // Get all league members with user info
-    const { data: members, error } = await supabaseAdmin
-      .from('league_members')
-      .select(`
-        user_id,
-        total_points,
-        league_id,
-        users (id, display_name, avatar_url)
-      `);
+    // OPTIMIZED: Single SQL query using CTEs to eliminate N+1 queries
+    // This replaces multiple separate queries with one efficient query
+    const { data: rawStats, error } = await supabaseAdmin.rpc('get_global_leaderboard_stats');
 
-    if (error) throw error;
+    if (error) {
+      console.error('RPC error:', error);
+      throw error;
+    }
 
-    // Get rosters to check for eliminated castaways
-    const { data: rosters } = await supabaseAdmin
-      .from('rosters')
-      .select(`
-        user_id,
-        castaway:castaways (id, status)
-      `)
-      .is('dropped_at', null);
-
-    // Get active season
+    // Get active season (independent query, can run in parallel if needed)
     const { data: activeSeason } = await supabaseAdmin
       .from('seasons')
       .select('id, number, name')
       .eq('is_active', true)
       .single();
 
-    // Build player stats map
-    const playerMap = new Map<string, {
-      displayName: string;
-      avatarUrl: string | null;
-      totalPoints: number;
-      leagueCount: number;
-      hasEliminatedCastaway: boolean;
-    }>();
-
-    // Aggregate member data
-    members?.forEach((member: any) => {
-      const userId = member.user_id;
-      const existing = playerMap.get(userId);
-
-      if (existing) {
-        existing.totalPoints += member.total_points || 0;
-        existing.leagueCount += 1;
-      } else {
-        playerMap.set(userId, {
-          displayName: member.users?.display_name || 'Unknown',
-          avatarUrl: member.users?.avatar_url || null,
-          totalPoints: member.total_points || 0,
-          leagueCount: 1,
-          hasEliminatedCastaway: false,
-        });
-      }
-    });
-
-    // Check for eliminated castaways per user
-    rosters?.forEach((roster: any) => {
-      const userId = roster.user_id;
-      const player = playerMap.get(userId);
-      if (player && roster.castaway?.status === 'eliminated') {
-        player.hasEliminatedCastaway = true;
-      }
-    });
-
-    // Convert to array and calculate averages
-    const statsRaw = Array.from(playerMap.entries()).map(([userId, data]) => ({
-      userId,
-      displayName: data.displayName,
-      avatarUrl: data.avatarUrl,
-      totalPoints: data.totalPoints,
-      leagueCount: data.leagueCount,
-      averagePoints: data.leagueCount > 0 ? Math.round(data.totalPoints / data.leagueCount) : 0,
-      hasEliminatedCastaway: data.hasEliminatedCastaway,
+    // Process stats from single query result
+    const statsRaw = (rawStats || []).map((row: any) => ({
+      userId: row.user_id,
+      displayName: row.display_name || 'Unknown',
+      avatarUrl: row.avatar_url,
+      totalPoints: row.total_points || 0,
+      leagueCount: row.league_count || 0,
+      averagePoints: row.average_points || 0,
+      hasEliminatedCastaway: row.has_eliminated_castaway || false,
     }));
 
     // Calculate global average for Bayesian weighting
-    const totalAllPoints = statsRaw.reduce((sum, p) => sum + p.totalPoints, 0);
-    const totalAllLeagues = statsRaw.reduce((sum, p) => sum + p.leagueCount, 0);
+    const totalAllPoints = statsRaw.reduce((sum: number, p: any) => sum + p.totalPoints, 0);
+    const totalAllLeagues = statsRaw.reduce((sum: number, p: any) => sum + p.leagueCount, 0);
     const globalAverage = totalAllLeagues > 0 ? totalAllPoints / totalAllLeagues : 0;
 
     // Apply Bayesian weighted average and sort
-    const allStats = statsRaw.map(p => ({
+    const allStats = statsRaw.map((p: any) => ({
       ...p,
       weightedScore: Math.round(
         (p.averagePoints * p.leagueCount + globalAverage * CONFIDENCE_FACTOR) /
         (p.leagueCount + CONFIDENCE_FACTOR)
       ),
-    })).sort((a, b) => b.weightedScore - a.weightedScore);
+    })).sort((a: any, b: any) => b.weightedScore - a.weightedScore);
 
     // Apply pagination
     const paginatedStats = allStats.slice(offset, offset + limit);
@@ -908,7 +910,7 @@ router.get('/global-leaderboard', async (req, res: Response) => {
     // Summary stats
     const totalPlayers = allStats.length;
     const topScore = allStats.length > 0 ? allStats[0].weightedScore : 0;
-    const activeTorches = allStats.filter(p => !p.hasEliminatedCastaway).length;
+    const activeTorches = allStats.filter((p: any) => !p.hasEliminatedCastaway).length;
 
     res.json({
       leaderboard: paginatedStats,

@@ -6,8 +6,11 @@ import { autoRandomizeRankings } from './autoRandomizeRankings.js';
 import { sendPickReminders, sendDraftReminders } from './sendReminders.js';
 import { sendEpisodeResults } from './sendResults.js';
 import { sendWeeklySummary } from './weeklySummary.js';
+import { releaseWeeklyResults } from './releaseResults.js';
 import { processEmailQueue } from '../lib/email-queue.js';
 import { pstToCron, formatCronWithTimezone } from '../lib/timezone-utils.js';
+import { monitoredJobExecution } from './jobMonitor.js';
+import { seasonConfig } from '../lib/season-config.js';
 
 interface ScheduledJob {
   name: string;
@@ -61,6 +64,14 @@ const jobs: ScheduledJob[] = [
     enabled: true,
   },
   {
+    name: 'release-results',
+    // Fri 2pm PST (auto-adjusts for DST)
+    schedule: pstToCron(14, 0, 5),
+    description: 'Release spoiler-safe results notifications',
+    handler: releaseWeeklyResults,
+    enabled: true,
+  },
+  {
     name: 'weekly-summary',
     // Sun 10am PST (auto-adjusts for DST)
     schedule: pstToCron(10, 0, 0),
@@ -83,10 +94,24 @@ const oneTimeJobs: Map<string, NodeJS.Timeout> = new Map();
 
 /**
  * Schedule auto-randomize rankings one-time job
- * Jan 5, 2026 12pm PST (draft order deadline)
+ * Uses draft_order_deadline from active season in database
  */
-export function scheduleAutoRandomizeRankings(targetDate?: Date): void {
-  const target = targetDate || new Date('2026-01-05T20:00:00Z'); // Jan 5 12pm PST = Jan 5 8pm UTC
+export async function scheduleAutoRandomizeRankings(targetDate?: Date): Promise<void> {
+  let target: Date;
+
+  if (targetDate) {
+    // Allow manual override for testing
+    target = targetDate;
+  } else {
+    // Load from database
+    const draftOrderDeadline = await seasonConfig.getDraftOrderDeadline();
+    if (!draftOrderDeadline) {
+      console.log('No active season or draft order deadline configured, skipping auto-randomize scheduling');
+      return;
+    }
+    target = draftOrderDeadline.toJSDate();
+  }
+
   const now = new Date();
 
   if (target <= now) {
@@ -103,7 +128,7 @@ export function scheduleAutoRandomizeRankings(targetDate?: Date): void {
   const timeoutId = setTimeout(async () => {
     console.log('Running scheduled auto-randomize rankings');
     try {
-      const result = await autoRandomizeRankings();
+      const result = await monitoredJobExecution('auto-randomize-rankings', autoRandomizeRankings);
       console.log('Auto-randomize rankings result:', result);
     } catch (err) {
       console.error('Auto-randomize rankings failed:', err);
@@ -115,10 +140,24 @@ export function scheduleAutoRandomizeRankings(targetDate?: Date): void {
 
 /**
  * Schedule the draft finalization one-time job
- * Mar 2, 2026 8pm PST
+ * Uses draft_deadline from active season in database
  */
-export function scheduleDraftFinalize(targetDate?: Date): void {
-  const target = targetDate || new Date('2026-03-03T04:00:00Z'); // Mar 2 8pm PST = Mar 3 4am UTC
+export async function scheduleDraftFinalize(targetDate?: Date): Promise<void> {
+  let target: Date;
+
+  if (targetDate) {
+    // Allow manual override for testing
+    target = targetDate;
+  } else {
+    // Load from database
+    const draftDeadline = await seasonConfig.getDraftDeadline();
+    if (!draftDeadline) {
+      console.log('No active season or draft deadline configured, skipping draft finalize scheduling');
+      return;
+    }
+    target = draftDeadline.toJSDate();
+  }
+
   const now = new Date();
 
   if (target <= now) {
@@ -135,7 +174,7 @@ export function scheduleDraftFinalize(targetDate?: Date): void {
   const timeoutId = setTimeout(async () => {
     console.log('Running scheduled draft finalization');
     try {
-      const result = await finalizeDrafts();
+      const result = await monitoredJobExecution('draft-finalize', finalizeDrafts);
       console.log('Draft finalization result:', result);
     } catch (err) {
       console.error('Draft finalization failed:', err);
@@ -148,8 +187,19 @@ export function scheduleDraftFinalize(targetDate?: Date): void {
 /**
  * Start all scheduled jobs
  */
-export function startScheduler(): void {
+export async function startScheduler(): Promise<void> {
   console.log('Starting RGFL job scheduler...');
+
+  // Load season info for logging
+  const seasonInfo = await seasonConfig.getSeasonInfo();
+  if (seasonInfo) {
+    console.log(`Active Season: ${seasonInfo.name} (Season ${seasonInfo.number})`);
+    console.log(`  Draft Order Deadline: ${seasonInfo.draftOrderDeadline || 'Not set'}`);
+    console.log(`  Draft Deadline: ${seasonInfo.draftDeadline || 'Not set'}`);
+    console.log(`  Registration Close: ${seasonInfo.registrationClose || 'Not set'}`);
+  } else {
+    console.log('No active season found - one-time jobs will be skipped');
+  }
 
   for (const job of jobs) {
     if (!job.enabled) {
@@ -167,7 +217,8 @@ export function startScheduler(): void {
       const startTime = Date.now();
 
       try {
-        const result = await job.handler();
+        // Wrap job handler with monitoring
+        const result = await monitoredJobExecution(job.name, job.handler);
         job.lastRun = new Date();
         job.lastResult = result;
         console.log(
@@ -187,9 +238,9 @@ export function startScheduler(): void {
     console.log(`Scheduled job: ${job.name} (${scheduleInfo})`);
   }
 
-  // Schedule one-time jobs
-  scheduleAutoRandomizeRankings();
-  scheduleDraftFinalize();
+  // Schedule one-time jobs (these are async now)
+  await scheduleAutoRandomizeRankings();
+  await scheduleDraftFinalize();
 
   console.log(`Scheduler started with ${jobs.filter((j) => j.enabled).length} jobs`);
 }
@@ -215,12 +266,12 @@ export function stopScheduler(): void {
  * Run a job manually by name
  */
 export async function runJob(jobName: string): Promise<any> {
-  // Check one-time jobs
+  // Check one-time jobs - wrap with monitoring
   if (jobName === 'draft-finalize') {
-    return finalizeDrafts();
+    return monitoredJobExecution('draft-finalize', finalizeDrafts);
   }
   if (jobName === 'auto-randomize-rankings') {
-    return autoRandomizeRankings();
+    return monitoredJobExecution('auto-randomize-rankings', autoRandomizeRankings);
   }
 
   const job = jobs.find((j) => j.name === jobName);
@@ -232,7 +283,8 @@ export async function runJob(jobName: string): Promise<any> {
   const startTime = Date.now();
 
   try {
-    const result = await job.handler();
+    // Wrap job handler with monitoring
+    const result = await monitoredJobExecution(job.name, job.handler);
     job.lastRun = new Date();
     job.lastResult = result;
     console.log(`Job ${jobName} completed in ${Date.now() - startTime}ms:`, result);
@@ -263,10 +315,10 @@ export function getJobStatus(): Array<{
     lastResult: j.lastResult,
   }));
 
-  // Add one-time jobs
+  // Add one-time jobs (schedule shown from database)
   status.push({
     name: 'auto-randomize-rankings',
-    schedule: 'One-time: Jan 5, 2026 12pm PST',
+    schedule: 'One-time: From database (draft_order_deadline)',
     description: 'Auto-generate random rankings for users who haven\'t submitted',
     enabled: oneTimeJobs.has('auto-randomize-rankings'),
     lastRun: undefined,
@@ -275,7 +327,7 @@ export function getJobStatus(): Array<{
 
   status.push({
     name: 'draft-finalize',
-    schedule: 'One-time: Mar 2, 2026 8pm PST',
+    schedule: 'One-time: From database (draft_deadline)',
     description: 'Auto-complete incomplete drafts',
     enabled: oneTimeJobs.has('draft-finalize'),
     lastRun: undefined,

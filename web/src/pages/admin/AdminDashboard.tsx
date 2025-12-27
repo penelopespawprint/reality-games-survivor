@@ -3,30 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
+import { TimelineFeed } from '@/components/admin/TimelineFeed';
+import { StatsGrid } from '@/components/admin/StatsGrid';
+import { SystemHealthBanner } from '@/components/admin/SystemHealthBanner';
+import { ActivityFeed } from '@/components/admin/ActivityFeed';
+import { NotificationPrefsWidget } from '@/components/admin/NotificationPrefsWidget';
 
-interface Stats {
-  users: number;
-  leagues: number;
-  castaways: number;
-  episodes: number;
-  scoringRules: number;
-}
-
-interface Season {
-  id: string;
-  number: number;
-  name: string;
-  is_active: boolean;
-  premiere_at: string;
-}
-
-interface Episode {
-  id: string;
-  number: number;
-  title: string | null;
-  air_date: string;
-  is_scored: boolean;
-}
+const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
 
 interface UserProfile {
   id: string;
@@ -51,72 +34,79 @@ export function AdminDashboard() {
     enabled: !!user?.id,
   });
 
-  const { data: activeSeason } = useQuery({
-    queryKey: ['activeSeason'],
+  // Fetch dashboard data
+  const { data: timeline, isLoading: timelineLoading } = useQuery({
+    queryKey: ['adminTimeline'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('seasons')
-        .select('*')
-        .eq('is_active', true)
-        .single();
-      if (error && error.code !== 'PGRST116') throw error;
-      return data as Season | null;
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+
+      const response = await fetch(`${API_URL}/api/admin/dashboard/timeline`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch timeline');
+      const data = await response.json();
+      return data.timeline;
     },
+    enabled: !!user?.id && profile?.role === 'admin',
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const { data: upcomingEpisode } = useQuery({
-    queryKey: ['upcomingEpisode', activeSeason?.id],
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['adminStats'],
     queryFn: async () => {
-      if (!activeSeason?.id) return null;
-      const now = new Date().toISOString();
-      const { data, error } = await supabase
-        .from('episodes')
-        .select('*')
-        .eq('season_id', activeSeason.id)
-        .gte('air_date', now)
-        .order('air_date', { ascending: true })
-        .limit(1)
-        .single();
-      if (error && error.code !== 'PGRST116') throw error;
-      return data as Episode | null;
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+
+      const response = await fetch(`${API_URL}/api/admin/dashboard/stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch stats');
+      return response.json();
     },
-    enabled: !!activeSeason?.id,
+    enabled: !!user?.id && profile?.role === 'admin',
+    refetchInterval: 30000,
   });
 
-  const { data: stats } = useQuery({
-    queryKey: ['adminStats', activeSeason?.id],
+  const { data: activity, isLoading: activityLoading } = useQuery({
+    queryKey: ['adminActivity'],
     queryFn: async () => {
-      const [users, leagues, castaways, episodes, scoringRules] = await Promise.all([
-        supabase.from('users').select('id', { count: 'exact', head: true }),
-        supabase.from('leagues').select('id', { count: 'exact', head: true }),
-        activeSeason?.id
-          ? supabase
-              .from('castaways')
-              .select('id', { count: 'exact', head: true })
-              .eq('season_id', activeSeason.id)
-          : { count: 0 },
-        activeSeason?.id
-          ? supabase
-              .from('episodes')
-              .select('id', { count: 'exact', head: true })
-              .eq('season_id', activeSeason.id)
-          : { count: 0 },
-        activeSeason?.id
-          ? supabase
-              .from('scoring_rules')
-              .select('id', { count: 'exact', head: true })
-              .eq('season_id', activeSeason.id)
-          : { count: 0 },
-      ]);
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
 
-      return {
-        users: users.count || 0,
-        leagues: leagues.count || 0,
-        castaways: castaways.count || 0,
-        episodes: episodes.count || 0,
-        scoringRules: scoringRules.count || 0,
-      } as Stats;
+      const response = await fetch(`${API_URL}/api/admin/dashboard/activity`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch activity');
+      const data = await response.json();
+      return data.activity;
     },
+    enabled: !!user?.id && profile?.role === 'admin',
+    refetchInterval: 30000,
+  });
+
+  const { data: health, isLoading: healthLoading } = useQuery({
+    queryKey: ['adminHealth'],
+    queryFn: async () => {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+
+      const response = await fetch(`${API_URL}/api/admin/dashboard/system-health`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch system health');
+      return response.json();
+    },
+    enabled: !!user?.id && profile?.role === 'admin',
+    refetchInterval: 30000,
   });
 
   const adminLinks = [
@@ -124,97 +114,57 @@ export function AdminDashboard() {
       title: 'Score Episode',
       description: 'Enter scores for the latest episode',
       href: '/admin/scoring',
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
+      icon: '📝',
       color: 'bg-burgundy-500',
     },
     {
       title: 'Manage Castaways',
       description: 'Add, edit, or eliminate castaways',
       href: '/admin/castaways',
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-          />
-        </svg>
-      ),
+      icon: '👥',
       color: 'bg-blue-500',
     },
     {
       title: 'Manage Seasons',
       description: 'Manage seasons and episodes',
       href: '/admin/seasons',
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      icon: '📅',
       color: 'bg-green-500',
     },
     {
       title: 'Scoring Rules',
       description: 'View and manage scoring rules',
       href: '/admin/scoring-rules',
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-          />
-        </svg>
-      ),
+      icon: '✓',
       color: 'bg-purple-500',
     },
     {
       title: 'All Leagues',
       description: 'View and manage all leagues',
       href: '/admin/leagues',
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-          />
-        </svg>
-      ),
+      icon: '🏆',
       color: 'bg-orange-500',
     },
     {
       title: 'All Users',
       description: 'Manage user accounts',
       href: '/admin/users',
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-          />
-        </svg>
-      ),
+      icon: '👤',
       color: 'bg-teal-500',
+    },
+    {
+      title: 'Job Monitor',
+      description: 'View scheduled jobs and history',
+      href: '/admin/jobs',
+      icon: '⚙️',
+      color: 'bg-indigo-500',
+    },
+    {
+      title: 'Email Queue',
+      description: 'Monitor email queue and failed emails',
+      href: '/admin/email-queue',
+      icon: '📧',
+      color: 'bg-pink-500',
     },
   ];
 
@@ -253,20 +203,18 @@ export function AdminDashboard() {
     );
   }
 
+  const isLoading = timelineLoading || statsLoading || activityLoading || healthLoading;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
+    <div className="min-h-screen bg-[#faf8f5]">
       <Navigation />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8 animate-fade-in">
+        <div className="flex items-center justify-between mb-6 animate-fade-in">
           <div>
-            <h1 className="text-2xl font-display text-neutral-800">Admin Dashboard</h1>
-            <p className="text-neutral-500">
-              {activeSeason
-                ? `Season ${activeSeason.number}: ${activeSeason.name}`
-                : 'No active season'}
-            </p>
+            <h1 className="text-3xl font-display text-neutral-800">Admin Command Center</h1>
+            <p className="text-neutral-500 mt-1">Real-time platform monitoring and management</p>
           </div>
           <Link
             to="/dashboard"
@@ -276,80 +224,84 @@ export function AdminDashboard() {
           </Link>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8 animate-slide-up">
-          <div className="bg-white rounded-xl shadow-card p-5 text-center">
-            <p className="text-3xl font-display text-neutral-800">{stats?.users || 0}</p>
-            <p className="text-sm text-neutral-500 mt-1">Users</p>
-          </div>
-          <div className="bg-white rounded-xl shadow-card p-5 text-center">
-            <p className="text-3xl font-display text-neutral-800">{stats?.leagues || 0}</p>
-            <p className="text-sm text-neutral-500 mt-1">Leagues</p>
-          </div>
-          <div className="bg-white rounded-xl shadow-card p-5 text-center">
-            <p className="text-3xl font-display text-neutral-800">{stats?.castaways || 0}</p>
-            <p className="text-sm text-neutral-500 mt-1">Castaways</p>
-          </div>
-          <div className="bg-white rounded-xl shadow-card p-5 text-center">
-            <p className="text-3xl font-display text-neutral-800">{stats?.episodes || 0}</p>
-            <p className="text-sm text-neutral-500 mt-1">Episodes</p>
-          </div>
-          <div className="bg-white rounded-xl shadow-card p-5 text-center">
-            <p className="text-3xl font-display text-neutral-800">{stats?.scoringRules || 0}</p>
-            <p className="text-sm text-neutral-500 mt-1">Rules</p>
-          </div>
-        </div>
+        {/* System Health Banner */}
+        {health && <SystemHealthBanner health={health} />}
 
-        {/* Upcoming Episode Alert */}
-        {upcomingEpisode && (
-          <div className="bg-gradient-to-r from-burgundy-500 to-burgundy-600 rounded-2xl p-6 text-white mb-8 animate-slide-up shadow-elevated">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-burgundy-100 text-sm font-medium">Next Episode</p>
-                <p className="text-2xl font-display mt-1">
-                  Episode {upcomingEpisode.number}: {upcomingEpisode.title || 'TBD'}
-                </p>
-                <p className="text-burgundy-100 mt-2">
-                  {new Date(upcomingEpisode.air_date).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                  })}
-                </p>
+        {/* Loading state */}
+        {isLoading && (
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="md:col-span-1">
+              <div className="bg-white rounded-2xl shadow-card p-8 animate-pulse">
+                <div className="h-6 bg-cream-200 rounded w-1/2 mb-6" />
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-16 bg-cream-100 rounded" />
+                  ))}
+                </div>
               </div>
-              <Link
-                to={`/admin/scoring?episode=${upcomingEpisode.id}`}
-                className="btn bg-white text-burgundy-600 hover:bg-cream-50 shadow-lg"
-              >
-                Enter Scores
-              </Link>
+            </div>
+            <div className="md:col-span-2">
+              <div className="bg-white rounded-2xl shadow-card p-8 animate-pulse">
+                <div className="h-6 bg-cream-200 rounded w-1/3 mb-6" />
+                <div className="grid grid-cols-2 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="h-24 bg-cream-100 rounded" />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Admin Links Grid */}
-        <div
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up"
-          style={{ animationDelay: '0.1s' }}
-        >
-          {adminLinks.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className="bg-white rounded-2xl shadow-card hover:shadow-card-hover p-6 transition-all group"
-            >
-              <div
-                className={`w-14 h-14 ${link.color} rounded-xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}
-              >
-                {link.icon}
+        {/* Dashboard Content */}
+        {!isLoading && (
+          <>
+            {/* Timeline + Stats Grid */}
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              {/* Timeline Feed (Left Column) */}
+              <div className="md:col-span-1 animate-slide-up">
+                {timeline && <TimelineFeed events={timeline} />}
               </div>
-              <h3 className="font-semibold text-neutral-800 text-lg">{link.title}</h3>
-              <p className="text-sm text-neutral-500 mt-1">{link.description}</p>
-            </Link>
-          ))}
-        </div>
+
+              {/* Stats Grid + Notification Widget (Right Column) */}
+              <div className="md:col-span-2 space-y-6">
+                <div className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                  {stats && <StatsGrid stats={stats} />}
+                </div>
+                <div className="animate-slide-up" style={{ animationDelay: '0.15s' }}>
+                  <NotificationPrefsWidget />
+                </div>
+              </div>
+            </div>
+
+            {/* Activity Feed */}
+            <div className="mb-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              {activity && <ActivityFeed activities={activity} />}
+            </div>
+
+            {/* Admin Actions Grid */}
+            <div className="animate-slide-up" style={{ animationDelay: '0.3s' }}>
+              <h2 className="text-lg font-display text-neutral-800 mb-4">Quick Actions</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {adminLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className="bg-white rounded-xl shadow-card hover:shadow-card-hover p-5 transition-all group"
+                  >
+                    <div
+                      className={`w-12 h-12 ${link.color} rounded-lg flex items-center justify-center text-white text-2xl mb-3 group-hover:scale-110 transition-transform`}
+                    >
+                      {link.icon}
+                    </div>
+                    <h3 className="font-semibold text-neutral-800 text-base mb-1">{link.title}</h3>
+                    <p className="text-xs text-neutral-500">{link.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

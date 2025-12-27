@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { apiPost } from '@/lib/api';
 import { Navigation } from '@/components/Navigation';
 import { getAvatarUrl } from '@/lib/avatar';
 import {
@@ -225,39 +226,36 @@ export function WeeklyPick() {
   // Check if user was auto-picked last episode
   const wasAutoPicked = previousPicks?.[0]?.status === 'auto_picked';
 
-  // Submit pick mutation
+  // Submit pick mutation - now uses API for validation
   const submitPickMutation = useMutation({
     mutationFn: async (castawayId: string) => {
-      if (!leagueId || !user?.id || !currentEpisode?.id) {
+      if (!leagueId || !currentEpisode?.id) {
         throw new Error('Missing required data');
       }
 
-      // Check if pick already exists
-      if (currentPick) {
-        const { data, error } = await supabase
-          .from('weekly_picks')
-          .update({ castaway_id: castawayId, picked_at: new Date().toISOString() })
-          .eq('id', currentPick.id)
-          .select()
-          .single();
-        if (error) throw error;
-        return data;
-      } else {
-        const { data, error } = await supabase
-          .from('weekly_picks')
-          .insert({
-            league_id: leagueId,
-            user_id: user.id,
-            episode_id: currentEpisode.id,
-            castaway_id: castawayId,
-            status: 'pending',
-            picked_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-        if (error) throw error;
-        return data;
+      // Get session token
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Not authenticated');
       }
+
+      // Submit pick via API (enforces all validation)
+      const response = await apiPost(
+        `/leagues/${leagueId}/picks`,
+        {
+          castaway_id: castawayId,
+          episode_id: currentEpisode.id,
+        },
+        session.access_token
+      );
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

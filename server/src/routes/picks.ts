@@ -32,6 +32,18 @@ router.post('/:id/picks', authenticate, async (req: AuthenticatedRequest, res: R
       return res.status(400).json({ error: 'Picks are locked for this episode' });
     }
 
+    // Verify league membership
+    const { data: membership } = await supabase
+      .from('league_members')
+      .select('*')
+      .eq('league_id', leagueId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!membership) {
+      return res.status(403).json({ error: 'You are not a member of this league' });
+    }
+
     // Check user has this castaway on roster
     const { data: roster } = await supabase
       .from('rosters')

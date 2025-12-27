@@ -58,6 +58,15 @@ interface UserProfile {
   role: string;
 }
 
+interface ScoringStatus {
+  is_complete: boolean;
+  total_castaways: number;
+  scored_castaways: number;
+  unscored_castaway_ids: string[];
+  unscored_castaway_names: string[];
+  is_finalized: boolean;
+}
+
 export function AdminScoring() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -190,6 +199,28 @@ export function AdminScoring() {
     enabled: !!selectedEpisodeId,
   });
 
+  // Get scoring status (completeness)
+  const { data: scoringStatus, refetch: refetchStatus } = useQuery({
+    queryKey: ['scoringStatus', selectedEpisodeId],
+    queryFn: async () => {
+      if (!selectedEpisodeId) return null;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Not authenticated');
+
+      const result = await apiWithAuth<ScoringStatus>(
+        `/episodes/${selectedEpisodeId}/scoring/status`,
+        session.access_token
+      );
+
+      if (result.error) throw new Error(result.error);
+      return result.data;
+    },
+    enabled: !!selectedEpisodeId,
+    refetchInterval: 5000, // Refetch every 5 seconds to keep status current
+  });
+
   // Get most common rules
   const mostCommonRules = useMemo(() => {
     if (!scoringRules) return [];
@@ -309,8 +340,9 @@ export function AdminScoring() {
       // Skip the next score reset to prevent the query invalidation from resetting local state
       setSkipNextScoreReset(true);
       queryClient.invalidateQueries({ queryKey: ['episodeScores', selectedEpisodeId] });
+      refetchStatus(); // Update completion status after saving
     },
-    [selectedEpisodeId, user?.id, scoringRules, queryClient]
+    [selectedEpisodeId, user?.id, scoringRules, queryClient, refetchStatus]
   );
 
   const _saveScoresMutation = useMutation({
@@ -338,6 +370,8 @@ export function AdminScoring() {
         finalized: boolean;
         eliminated: string[];
         standings_updated: boolean;
+        error?: string;
+        error_code?: string;
       }>(`/episodes/${selectedEpisodeId}/scoring/finalize`, session.access_token, {
         method: 'POST',
       });
@@ -351,9 +385,12 @@ export function AdminScoring() {
       queryClient.invalidateQueries({ queryKey: ['episodes'] });
       queryClient.invalidateQueries({ queryKey: ['episodeScores'] });
       queryClient.invalidateQueries({ queryKey: ['castaways'] });
+      queryClient.invalidateQueries({ queryKey: ['scoringStatus'] });
+      refetchStatus();
     },
     onError: (error: Error) => {
       setFinalizeResult({ success: false, eliminated: [] });
+      setShowFinalizeModal(false);
       console.error('Finalize error:', error);
     },
   });
@@ -476,6 +513,24 @@ export function AdminScoring() {
             <p className="text-neutral-500">Enter scores for each castaway</p>
           </div>
           <div className="flex items-center gap-3">
+            {scoringStatus && selectedEpisodeId && !selectedEpisode?.is_scored && (
+              <div
+                className={`px-4 py-2 rounded-xl flex items-center gap-2 ${
+                  scoringStatus.is_complete
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-amber-100 text-amber-700'
+                }`}
+              >
+                {scoringStatus.is_complete ? (
+                  <CheckCircle className="h-5 w-5" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5" />
+                )}
+                <span className="font-medium">
+                  {scoringStatus.scored_castaways}/{scoringStatus.total_castaways} castaways scored
+                </span>
+              </div>
+            )}
             <Link
               to={`/admin/scoring/grid${selectedEpisodeId ? `?episode=${selectedEpisodeId}` : ''}`}
               className="btn btn-secondary flex items-center gap-2"
@@ -487,7 +542,12 @@ export function AdminScoring() {
               <button
                 onClick={() => setShowFinalizeModal(true)}
                 className="btn btn-primary flex items-center gap-2"
-                disabled={finalizeMutation.isPending}
+                disabled={finalizeMutation.isPending || !scoringStatus?.is_complete}
+                title={
+                  !scoringStatus?.is_complete
+                    ? `Score all ${scoringStatus?.total_castaways || 0} castaways before finalizing`
+                    : 'Finalize episode scoring'
+                }
               >
                 {finalizeMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -876,6 +936,28 @@ export function AdminScoring() {
                 </button>
               </div>
 
+              {scoringStatus && !scoringStatus.is_complete && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                  <p className="text-sm font-medium text-red-800 mb-2">
+                    Incomplete Scoring Detected
+                  </p>
+                  <p className="text-sm text-red-700 mb-2">
+                    {scoringStatus.scored_castaways} of {scoringStatus.total_castaways} castaways
+                    scored. Missing:
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {scoringStatus.unscored_castaway_names.map((name) => (
+                      <span
+                        key={name}
+                        className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
                 <p className="text-sm text-amber-800">
                   <strong>Warning:</strong> Finalizing will:
@@ -899,7 +981,7 @@ export function AdminScoring() {
                 <button
                   onClick={() => finalizeMutation.mutate()}
                   className="flex-1 btn btn-primary flex items-center justify-center gap-2"
-                  disabled={finalizeMutation.isPending}
+                  disabled={finalizeMutation.isPending || !scoringStatus?.is_complete}
                 >
                   {finalizeMutation.isPending ? (
                     <>

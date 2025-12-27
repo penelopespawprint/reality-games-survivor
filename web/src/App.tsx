@@ -22,6 +22,7 @@ import Profile from './pages/Profile';
 import LeagueHome from './pages/LeagueHome';
 import MyTeam from './pages/MyTeam';
 import EpisodeResults from './pages/EpisodeResults';
+import Results from './pages/Results';
 import CreateLeague from './pages/CreateLeague';
 import LeagueSettings from './pages/LeagueSettings';
 import ResetPassword from './pages/ResetPassword';
@@ -86,6 +87,7 @@ export default function App() {
             <Route path="/castaways" element={<Castaways />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/results/:weekNumber" element={<Results />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>

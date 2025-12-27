@@ -28,14 +28,33 @@ router.post('/stripe', async (req: Request, res: Response) => {
         if (session.metadata?.type === 'league_donation') {
           const { league_id, user_id } = session.metadata;
 
+          // SECURITY: Verify payment amount matches league fee
+          const { data: league } = await supabaseAdmin
+            .from('leagues')
+            .select('name, donation_amount, require_donation')
+            .eq('id', league_id)
+            .single();
+
+          if (!league) {
+            console.error(`League ${league_id} not found during payment verification`);
+            throw new Error('League not found');
+          }
+
+          const paidAmount = (session.amount_total || 0) / 100;
+          const expectedAmount = league.donation_amount;
+
+          // Verify payment amount matches (allow 1 cent tolerance for rounding)
+          if (!expectedAmount || Math.abs(paidAmount - expectedAmount) > 0.01) {
+            console.error(`Payment amount mismatch: paid ${paidAmount}, expected ${expectedAmount}`);
+            throw new Error('Payment amount mismatch');
+          }
+
           // Use atomic database function to ensure both membership and payment are recorded together
           // This prevents race conditions where payment succeeds but membership fails
-          const amount = (session.amount_total || 0) / 100;
-
           const { data: result, error } = await supabaseAdmin.rpc('process_league_payment', {
             p_user_id: user_id,
             p_league_id: league_id,
-            p_amount: amount,
+            p_amount: paidAmount,
             p_currency: session.currency || 'usd',
             p_session_id: session.id,
             p_payment_intent_id: session.payment_intent as string,
@@ -46,19 +65,13 @@ router.post('/stripe', async (req: Request, res: Response) => {
             throw error;
           }
 
-          console.log(`User ${user_id} joined league ${league_id} via payment (atomic)`);
+          console.log(`User ${user_id} joined league ${league_id} via payment (atomic, verified $${paidAmount})`);
 
           // Send payment confirmation email
           const { data: user } = await supabaseAdmin
             .from('users')
             .select('email, display_name')
             .eq('id', user_id)
-            .single();
-
-          const { data: league } = await supabaseAdmin
-            .from('leagues')
-            .select('name')
-            .eq('id', league_id)
             .single();
 
           if (user && league) {
@@ -68,7 +81,7 @@ router.post('/stripe', async (req: Request, res: Response) => {
               email: user.email,
               leagueName: league.name,
               leagueId: league_id,
-              amount,
+              amount: paidAmount,
               date: new Date(),
             });
 
@@ -110,7 +123,7 @@ router.post('/stripe', async (req: Request, res: Response) => {
               user_id,
               'email',
               `Payment received - ${league.name}`,
-              `$${amount.toFixed(2)} payment confirmed for ${league.name}`
+              `$${paidAmount.toFixed(2)} payment confirmed for ${league.name}`
             );
           }
         }
@@ -127,20 +140,48 @@ router.post('/stripe', async (req: Request, res: Response) => {
           .update({ status: 'failed' })
           .eq('stripe_session_id', session.id);
 
-        // Send recovery email if this was a league donation
+        // SECURITY: Clean up leagues where commissioner never paid
         if (session.metadata?.type === 'league_donation') {
           const { user_id, league_id } = session.metadata;
+
+          // Check if this was the commissioner's payment
+          const { data: league } = await supabaseAdmin
+            .from('leagues')
+            .select('commissioner_id, name, code')
+            .eq('id', league_id)
+            .single();
+
+          if (league && league.commissioner_id === user_id) {
+            // Check if commissioner ever became a member
+            const { data: membership } = await supabaseAdmin
+              .from('league_members')
+              .select('id')
+              .eq('league_id', league_id)
+              .eq('user_id', user_id)
+              .single();
+
+            if (!membership) {
+              // Commissioner never paid - check if league has any members
+              const { count: memberCount } = await supabaseAdmin
+                .from('league_members')
+                .select('*', { count: 'exact', head: true })
+                .eq('league_id', league_id);
+
+              if (!memberCount || memberCount === 0) {
+                // No members - delete the abandoned league
+                console.log(`Deleting abandoned league ${league_id} - commissioner never paid`);
+                await supabaseAdmin
+                  .from('leagues')
+                  .delete()
+                  .eq('id', league_id);
+              }
+            }
+          }
 
           const { data: user } = await supabaseAdmin
             .from('users')
             .select('email, display_name')
             .eq('id', user_id)
-            .single();
-
-          const { data: league } = await supabaseAdmin
-            .from('leagues')
-            .select('name, code')
-            .eq('id', league_id)
             .single();
 
           if (user && league) {
@@ -162,10 +203,48 @@ router.post('/stripe', async (req: Request, res: Response) => {
         console.log(`Payment failed: ${paymentIntent.id}, reason: ${paymentIntent.last_payment_error?.message}`);
 
         // Find and update the payment record
-        await supabaseAdmin
+        const { data: payment } = await supabaseAdmin
           .from('payments')
           .update({ status: 'failed' })
-          .eq('stripe_payment_intent_id', paymentIntent.id);
+          .eq('stripe_payment_intent_id', paymentIntent.id)
+          .select('league_id, user_id')
+          .single();
+
+        // SECURITY: Clean up leagues where commissioner payment failed
+        if (payment) {
+          const { data: league } = await supabaseAdmin
+            .from('leagues')
+            .select('commissioner_id')
+            .eq('id', payment.league_id)
+            .single();
+
+          if (league && league.commissioner_id === payment.user_id) {
+            // Check if commissioner is a member (they shouldn't be)
+            const { data: membership } = await supabaseAdmin
+              .from('league_members')
+              .select('id')
+              .eq('league_id', payment.league_id)
+              .eq('user_id', payment.user_id)
+              .single();
+
+            if (!membership) {
+              // Check if league has any members
+              const { count: memberCount } = await supabaseAdmin
+                .from('league_members')
+                .select('*', { count: 'exact', head: true })
+                .eq('league_id', payment.league_id);
+
+              if (!memberCount || memberCount === 0) {
+                // No members - delete the abandoned league
+                console.log(`Deleting abandoned league ${payment.league_id} - commissioner payment failed`);
+                await supabaseAdmin
+                  .from('leagues')
+                  .delete()
+                  .eq('id', payment.league_id);
+              }
+            }
+          }
+        }
         break;
       }
 
@@ -226,6 +305,79 @@ router.post('/sms', async (req: Request, res: Response) => {
     let parsedData: any = { command, args: parts.slice(1) };
 
     switch (command) {
+      case 'STOP':
+      case 'UNSUBSCRIBE':
+      case 'CANCEL':
+      case 'END':
+      case 'QUIT': {
+        // FCC/TCPA compliance - must respond immediately to STOP requests
+        if (!user) {
+          // Even if user not found, acknowledge the unsubscribe request
+          response = "You've been unsubscribed from RGFL SMS. Reply START to resubscribe or visit rgfl.app to manage preferences.";
+          parsedData.compliance_action = 'unsubscribe_no_user';
+        } else {
+          // Update user's SMS notification preference
+          const { error: updateError } = await supabaseAdmin
+            .from('users')
+            .update({ notification_sms: false })
+            .eq('id', user.id);
+
+          if (updateError) {
+            console.error('Failed to update SMS preference:', updateError);
+            response = 'Error processing unsubscribe request. Please try again or contact support.';
+            parsedData.compliance_action = 'unsubscribe_failed';
+            parsedData.error = updateError.message;
+          } else {
+            response = "You've been unsubscribed from RGFL SMS. Reply START to resubscribe or visit rgfl.app to manage preferences.";
+            parsedData.compliance_action = 'unsubscribe_success';
+
+            // Log notification for compliance
+            await EmailService.logNotification(
+              user.id,
+              'sms',
+              'SMS Unsubscribe',
+              `User unsubscribed via ${command} command`
+            );
+          }
+        }
+        break;
+      }
+
+      case 'START':
+      case 'SUBSCRIBE':
+      case 'UNSTOP': {
+        // Re-enable SMS notifications
+        if (!user) {
+          response = 'Phone not registered. Visit rgfl.app to link your phone and enable SMS notifications.';
+          parsedData.compliance_action = 'subscribe_no_user';
+        } else {
+          // Update user's SMS notification preference
+          const { error: updateError } = await supabaseAdmin
+            .from('users')
+            .update({ notification_sms: true })
+            .eq('id', user.id);
+
+          if (updateError) {
+            console.error('Failed to update SMS preference:', updateError);
+            response = 'Error processing subscribe request. Please try again or contact support.';
+            parsedData.compliance_action = 'subscribe_failed';
+            parsedData.error = updateError.message;
+          } else {
+            response = "You've been subscribed to RGFL SMS notifications. Text STOP to unsubscribe anytime.";
+            parsedData.compliance_action = 'subscribe_success';
+
+            // Log notification for compliance
+            await EmailService.logNotification(
+              user.id,
+              'sms',
+              'SMS Subscribe',
+              `User subscribed via ${command} command`
+            );
+          }
+        }
+        break;
+      }
+
       case 'PICK': {
         if (!user) {
           response = 'Phone not registered. Visit rgfl.app to link your phone.';
@@ -360,7 +512,7 @@ router.post('/sms', async (req: Request, res: Response) => {
       }
 
       case 'HELP':
-        response = 'Commands:\nPICK [name] - Pick castaway\nSTATUS - View picks\nTEAM - View roster\nHELP - Show this';
+        response = 'RGFL SMS Commands:\n\nPICK [name] - Pick castaway\nSTATUS - View picks\nTEAM - View roster\nSTOP - Unsubscribe\nSTART - Resubscribe\nHELP - Show this message';
         break;
 
       default:

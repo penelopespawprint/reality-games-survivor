@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import { generalLimiter } from './config/rateLimit.js';
 
 // Routes
+import healthRoutes from './routes/health.js';
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
 import leagueRoutes from './routes/leagues.js';
@@ -13,12 +14,21 @@ import scoringRoutes from './routes/scoring.js';
 import notificationRoutes from './routes/notifications.js';
 import adminRoutes from './routes/admin.js';
 import webhookRoutes from './routes/webhooks.js';
+import resultsRoutes from './routes/results.js';
 
 // Jobs scheduler
 import { startScheduler } from './jobs/index.js';
 
+// Job alerting
+import { initializeAlerting } from './jobs/jobAlerting.js';
+
 // Environment validation
 import { validateEnvironment, printValidationReport } from './config/validateEnv.js';
+
+// Error handling utilities
+import { enqueueEmail } from './lib/email-queue.js';
+import { supabaseAdmin } from './config/supabase.js';
+import type { Server } from 'http';
 
 // Validate environment before starting server
 const envValidation = validateEnvironment();
@@ -53,10 +63,8 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // Apply general rate limit to all API routes
 app.use('/api', generalLimiter);
 
-// Health check - simple is better
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// Health check route (no rate limiting for monitoring)
+app.use('/', healthRoutes);
 
 // API Routes
 app.use('/api', authRoutes);
@@ -67,6 +75,7 @@ app.use('/api/leagues', pickRoutes);
 app.use('/api/episodes', scoringRoutes);
 app.use('/api', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/results', resultsRoutes);
 app.use('/webhooks', webhookRoutes);
 
 // Error handler
@@ -75,12 +84,166 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
+// Store server instance for graceful shutdown
+let server: Server | null = null;
+
+// Process error handlers - registered BEFORE starting server
+
+/**
+ * Handle unhandled promise rejections
+ * These indicate bugs in async code that don't have proper error handling
+ */
+process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
+  console.error('🚨 Unhandled Promise Rejection:', reason);
+  console.error('Promise:', promise);
+
+  // Log with full context
+  const errorDetails = reason instanceof Error
+    ? `${reason.message}\n${reason.stack}`
+    : JSON.stringify(reason, null, 2);
+
+  console.error('Error details:', errorDetails);
+
+  // Alert admin via email queue
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail) {
+    enqueueEmail({
+      to: adminEmail,
+      subject: '[RGFL] Unhandled Rejection',
+      html: `
+        <h2>Unhandled Promise Rejection</h2>
+        <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+        <p><strong>Environment:</strong> ${process.env.NODE_ENV || 'development'}</p>
+        <h3>Error Details:</h3>
+        <pre>${errorDetails}</pre>
+        <h3>Promise:</h3>
+        <pre>${promise}</pre>
+      `,
+      text: `Unhandled Promise Rejection\n\nTime: ${new Date().toISOString()}\nEnvironment: ${process.env.NODE_ENV || 'development'}\n\nError:\n${errorDetails}`,
+      type: 'critical'
+    }).catch((err) => {
+      console.error('Failed to enqueue error alert email:', err);
+    });
+  }
+
+  // DO NOT exit process - let it continue handling requests
+  // Production systems should stay up and continue serving traffic
+});
+
+/**
+ * Handle uncaught exceptions
+ * These are critical errors that require graceful shutdown
+ */
+process.on('uncaughtException', (error: Error) => {
+  console.error('🚨 Uncaught Exception:', error);
+  console.error('Stack:', error.stack);
+
+  // Log error with full context
+  const errorDetails = `${error.message}\n${error.stack}`;
+  console.error('Initiating graceful shutdown due to uncaught exception...');
+
+  // Alert admin via email queue
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail) {
+    enqueueEmail({
+      to: adminEmail,
+      subject: '[RGFL] Critical Error',
+      html: `
+        <h2>Uncaught Exception - Server Shutdown</h2>
+        <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+        <p><strong>Environment:</strong> ${process.env.NODE_ENV || 'development'}</p>
+        <p><strong>Status:</strong> Server is shutting down</p>
+        <h3>Error Details:</h3>
+        <pre>${errorDetails}</pre>
+      `,
+      text: `Uncaught Exception - Server Shutdown\n\nTime: ${new Date().toISOString()}\nEnvironment: ${process.env.NODE_ENV || 'development'}\n\nError:\n${errorDetails}`,
+      type: 'critical'
+    }).catch((err) => {
+      console.error('Failed to enqueue critical error email:', err);
+    });
+  }
+
+  // Gracefully shutdown
+  gracefulShutdown('uncaught exception', 1);
+});
+
+/**
+ * Handle SIGTERM signal (e.g., from Railway, Kubernetes, Docker)
+ */
+process.on('SIGTERM', () => {
+  console.log('📡 SIGTERM signal received');
+  gracefulShutdown('SIGTERM', 0);
+});
+
+/**
+ * Handle SIGINT signal (e.g., Ctrl+C)
+ */
+process.on('SIGINT', () => {
+  console.log('📡 SIGINT signal received');
+  gracefulShutdown('SIGINT', 0);
+});
+
+/**
+ * Graceful shutdown handler
+ * Closes server and database connections before exiting
+ */
+async function gracefulShutdown(signal: string, exitCode: number): Promise<void> {
+  console.log(`🛑 Graceful shutdown initiated (${signal})...`);
+
+  // Set a timeout to force exit if graceful shutdown takes too long
+  const forceExitTimeout = setTimeout(() => {
+    console.error('⚠️  Graceful shutdown timeout exceeded, forcing exit...');
+    process.exit(1);
+  }, 30000); // 30 second timeout
+
+  try {
+    // Stop accepting new requests
+    if (server) {
+      console.log('⏸️  Closing HTTP server...');
+      await new Promise<void>((resolve, reject) => {
+        server!.close((err) => {
+          if (err) {
+            console.error('Error closing server:', err);
+            reject(err);
+          } else {
+            console.log('✓ HTTP server closed');
+            resolve();
+          }
+        });
+      });
+    }
+
+    // Close database connections
+    console.log('⏸️  Closing database connections...');
+    // Supabase client doesn't have an explicit close method,
+    // but we can give pending queries time to complete
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('✓ Database connections closed');
+
+    // Clear the force exit timeout
+    clearTimeout(forceExitTimeout);
+
+    console.log('✓ Graceful shutdown complete');
+    process.exit(exitCode);
+  } catch (err) {
+    console.error('Error during graceful shutdown:', err);
+    clearTimeout(forceExitTimeout);
+    process.exit(1);
+  }
+}
+
+server = app.listen(PORT, async () => {
   console.log(`🚀 RGFL Server running on port ${PORT}`);
+
+  // Initialize job alerting system
+  initializeAlerting({
+    adminEmail: process.env.ADMIN_EMAIL,
+    adminPhone: process.env.ADMIN_PHONE,
+  });
 
   // Start the job scheduler in production
   if (process.env.NODE_ENV === 'production' || process.env.ENABLE_SCHEDULER === 'true') {
-    startScheduler();
+    await startScheduler();
   }
 });
 

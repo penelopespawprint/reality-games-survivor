@@ -23,11 +23,19 @@ function getClient(): twilio.Twilio | null {
 interface SendSMSOptions {
   to: string;
   text: string;
+  /**
+   * Set to true for transactional messages (verification codes, user-initiated actions)
+   * These bypass STOP/unsubscribe checks as they're required for app functionality.
+   * Default: false (promotional/notification messages that honor STOP)
+   */
+  isTransactional?: boolean;
 }
 
 interface SendSMSResponse {
   sid: string;
   success: boolean;
+  skipped?: boolean;
+  reason?: string;
 }
 
 /**
@@ -51,17 +59,26 @@ export function normalizePhone(phone: string): string {
 
 /**
  * Send SMS via Twilio API
+ *
+ * @param options - SMS options
+ * @param options.to - Recipient phone number
+ * @param options.text - Message text
+ * @param options.isTransactional - True for verification codes and user-initiated actions
+ * @returns SMS response with success status
+ *
+ * Note: Non-transactional messages should check notification_sms preference before calling this.
+ * This function does not check preferences - that's the caller's responsibility.
  */
-export async function sendSMS({ to, text }: SendSMSOptions): Promise<SendSMSResponse> {
+export async function sendSMS({ to, text, isTransactional = false }: SendSMSOptions): Promise<SendSMSResponse> {
   const client = getClient();
 
   if (!client) {
-    return { sid: 'skipped', success: false };
+    return { sid: 'skipped', success: false, skipped: true, reason: 'Twilio not configured' };
   }
 
   if (!fromNumber) {
     console.warn('TWILIO_PHONE_NUMBER not set, skipping SMS');
-    return { sid: 'skipped', success: false };
+    return { sid: 'skipped', success: false, skipped: true, reason: 'From number not set' };
   }
 
   try {
@@ -90,12 +107,13 @@ export function generateVerificationCode(): string {
 }
 
 /**
- * Send verification SMS
+ * Send verification SMS (transactional - bypasses STOP/unsubscribe)
  */
 export async function sendVerificationSMS(phone: string, code: string): Promise<boolean> {
   const result = await sendSMS({
     to: phone,
     text: `Reality Games | Your verification code is: ${code}\n\nThis code expires in 10 minutes.`,
+    isTransactional: true,
   });
   return result.success;
 }

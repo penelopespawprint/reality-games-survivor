@@ -1,7 +1,18 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Tv, Plus, Check, Loader2, Edit2, Trash2, Star } from 'lucide-react';
+import {
+  ArrowLeft,
+  Tv,
+  Plus,
+  Check,
+  Loader2,
+  Edit2,
+  Trash2,
+  Star,
+  Send,
+  CheckCircle,
+} from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Navigation } from '@/components/Navigation';
 
@@ -43,7 +54,7 @@ export function AdminEpisodes() {
       if (!seasonId) throw new Error('No season ID');
       const { data, error } = await supabase
         .from('episodes')
-        .select('*')
+        .select('*, users!results_released_by(display_name)')
         .eq('season_id', seasonId)
         .order('number', { ascending: true });
       if (error) throw error;
@@ -88,6 +99,42 @@ export function AdminEpisodes() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-episodes', seasonId] });
+    },
+  });
+
+  // Release results mutation
+  const releaseResults = useMutation({
+    mutationFn: async (episodeId: string) => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app'}/api/admin/episodes/${episodeId}/release-results`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to release results');
+      }
+
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-episodes', seasonId] });
+      alert(`Results released! Sent ${data.notifications_sent} spoiler-safe notifications.`);
+    },
+    onError: (error: Error) => {
+      alert(`Error: ${error.message}`);
     },
   });
 
@@ -396,13 +443,47 @@ export function AdminEpisodes() {
                 </div>
               </div>
 
-              {!episode.is_scored && (
+              {/* Actions based on episode status */}
+              {!episode.is_scored ? (
                 <Link
                   to={`/admin/episodes/${episode.id}/scoring`}
                   className="block w-full bg-burgundy-50 hover:bg-burgundy-100 text-burgundy-600 py-2 rounded-xl text-sm font-medium text-center transition-colors"
                 >
                   Enter Scores
                 </Link>
+              ) : episode.results_released_at ? (
+                <div className="flex items-center justify-center gap-2 text-green-600 text-sm py-2">
+                  <CheckCircle className="h-4 w-4" />
+                  <span>
+                    Results Released {new Date(episode.results_released_at).toLocaleDateString()}
+                  </span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (
+                      confirm(
+                        'Release results now? This will send spoiler-safe notifications to all users.'
+                      )
+                    ) {
+                      releaseResults.mutate(episode.id);
+                    }
+                  }}
+                  disabled={releaseResults.isPending}
+                  className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {releaseResults.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Releasing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      <span>Release Results Now</span>
+                    </>
+                  )}
+                </button>
               )}
             </div>
           ))}
