@@ -2,10 +2,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ChevronRight, ChevronDown } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-// Check if we're on the main domain (splash page) or survivor subdomain (full app)
 const isMainDomain = () => {
   const hostname = window.location.hostname;
   return (
@@ -13,7 +12,6 @@ const isMainDomain = () => {
   );
 };
 
-// Check if we're on the shortlink domain - redirect to survivor app
 const isShortlink = () => {
   const hostname = window.location.hostname;
   return hostname === 'rgfl.app' || hostname === 'www.rgfl.app';
@@ -22,779 +20,745 @@ const isShortlink = () => {
 const SURVIVOR_APP_URL = 'https://survivor.realitygamesfantasyleague.com';
 
 // ============================================================================
-// PARALLAX UTILITIES
+// CONCEPT A: "Logo Hero" - Logo front and center, content below
+// Clean, logo dominates, text appears on scroll or after delay
 // ============================================================================
 
-// Detect touch device for parallax fallback
-function useIsTouchDevice() {
-  const [isTouch, setIsTouch] = useState(false);
+function ConceptA() {
+  const { user } = useAuth();
+  const [stage, setStage] = useState(0);
 
   useEffect(() => {
-    const checkTouch = () => {
-      setIsTouch(
-        'ontouchstart' in window ||
-          navigator.maxTouchPoints > 0 ||
-          window.matchMedia('(hover: none)').matches
-      );
-    };
-    checkTouch();
-    window.addEventListener('resize', checkTouch);
-    return () => window.removeEventListener('resize', checkTouch);
-  }, []);
-
-  return isTouch;
-}
-
-// RAF-optimized scroll position hook
-function useScrollPosition() {
-  const [scrollY, setScrollY] = useState(0);
-  const rafRef = useRef<number>();
-  const isTouch = useIsTouchDevice();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (rafRef.current) return;
-
-      rafRef.current = requestAnimationFrame(() => {
-        setScrollY(window.scrollY);
-        rafRef.current = undefined;
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
+    // Staggered reveal
+    const t1 = setTimeout(() => setStage(1), 300);
+    const t2 = setTimeout(() => setStage(2), 800);
+    const t3 = setTimeout(() => setStage(3), 1300);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, []);
-
-  return { scrollY, isTouch };
-}
-
-// Intersection observer hook for scroll animations
-function useInView(threshold = 0.1) {
-  const [ref, setRef] = useState<HTMLElement | null>(null);
-  const [isInView, setIsInView] = useState(false);
-
-  useEffect(() => {
-    if (!ref) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { threshold }
-    );
-
-    observer.observe(ref);
-    return () => observer.disconnect();
-  }, [ref, threshold]);
-
-  return { ref: setRef, isInView };
-}
-
-// Smooth parallax hook with requestAnimationFrame
-function useParallax(speed = 0.5) {
-  const [offset, setOffset] = useState(0);
-  const elementRef = useRef<HTMLDivElement | null>(null);
-  const rafRef = useRef<number>();
-  const isTouch = useIsTouchDevice();
-
-  useEffect(() => {
-    if (isTouch) return;
-
-    const handleScroll = () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-
-      rafRef.current = requestAnimationFrame(() => {
-        const scrolled = window.scrollY;
-        setOffset(scrolled * speed);
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, [speed, isTouch]);
-
-  return { elementRef, offset: isTouch ? 0 : offset };
-}
-
-// ============================================================================
-// PARALLAX COMPONENTS
-// ============================================================================
-
-// GPU-accelerated parallax layer component
-function ParallaxLayer({
-  children,
-  speed = 0,
-  className = '',
-  style = {},
-}: {
-  children?: React.ReactNode;
-  speed: number;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const { scrollY, isTouch } = useScrollPosition();
-
-  const transform = useMemo(() => {
-    if (isTouch) return 'translate3d(0, 0, 0)';
-    return `translate3d(0, ${scrollY * speed}px, 0)`;
-  }, [scrollY, speed, isTouch]);
 
   return (
-    <div
-      className={className}
-      style={{
-        ...style,
-        transform,
-        willChange: isTouch ? 'auto' : 'transform',
-        backfaceVisibility: 'hidden',
-      }}
-    >
-      {children}
+    <div className="min-h-screen bg-cream-50 flex flex-col">
+      <Navigation />
+
+      <main className="flex-1 flex items-center justify-center px-6 py-16">
+        <div className="text-center max-w-2xl mx-auto">
+          {/* Logo - Hero element */}
+          <div
+            className={`mb-10 transition-all duration-1000 ${
+              stage >= 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+            }`}
+          >
+            <img
+              src="/logo.png"
+              alt="Reality Games Fantasy League"
+              className="h-40 sm:h-52 lg:h-64 mx-auto"
+            />
+          </div>
+
+          {/* Tagline */}
+          <p
+            className={`font-display text-2xl sm:text-3xl text-neutral-800 mb-8 transition-all duration-700 ${
+              stage >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
+          >
+            Fantasy Survivor for <span className="text-burgundy-600">strategists.</span>
+          </p>
+
+          {/* Copy */}
+          <div
+            className={`space-y-4 text-neutral-600 leading-relaxed mb-10 transition-all duration-700 ${
+              stage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
+          >
+            {!user && (
+              <>
+                <p>100+ scoring rules. Every vote, idol, and blindside counts.</p>
+                <p className="text-neutral-500">Built by superfans, for superfans.</p>
+              </>
+            )}
+            {user && <p>Welcome back. Your leagues await.</p>}
+          </div>
+
+          {/* CTA */}
+          <div
+            className={`transition-all duration-700 delay-100 ${
+              stage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
+          >
+            <Link
+              to={user ? '/dashboard' : '/signup'}
+              className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all"
+            >
+              {user ? 'Dashboard' : 'Join Season 50'}
+              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            {!user && (
+              <p className="text-neutral-400 text-sm mt-6">
+                <Link to="/login" className="text-burgundy-600 hover:underline">
+                  Log in
+                </Link>
+                {' · '}
+                <Link to="/how-to-play" className="hover:text-neutral-600">
+                  How it works
+                </Link>
+              </p>
+            )}
+          </div>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }
 
-// Scroll-triggered fade-in animation component
-function FadeInOnScroll({
-  children,
-  direction = 'up',
-  delay = 0,
-  duration = 700,
-  className = '',
-}: {
-  children: React.ReactNode;
-  direction?: 'up' | 'down' | 'left' | 'right';
-  delay?: number;
-  duration?: number;
-  className?: string;
-}) {
-  const { ref, isInView } = useInView(0.1);
+// ============================================================================
+// CONCEPT B: "The Torch Reveal" - Animated torch that glows/pulses
+// Torch element separates and becomes the focal point with flame animation
+// ============================================================================
 
-  const transforms: Record<string, string> = {
-    up: 'translateY(40px)',
-    down: 'translateY(-40px)',
-    left: 'translateX(40px)',
-    right: 'translateX(-40px)',
+function ConceptB() {
+  const { user } = useAuth();
+  const [flameIntensity, setFlameIntensity] = useState(0);
+  const [showContent, setShowContent] = useState(false);
+
+  useEffect(() => {
+    // Torch "ignites" then content reveals
+    const t1 = setTimeout(() => setFlameIntensity(1), 500);
+    const t2 = setTimeout(() => setShowContent(true), 1200);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-neutral-900 flex flex-col overflow-hidden">
+      <Navigation />
+
+      <main className="flex-1 flex items-center justify-center px-6 py-16 relative">
+        {/* Ambient glow from torch */}
+        <div
+          className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full transition-all duration-1000"
+          style={{
+            background: `radial-gradient(circle, rgba(255, 140, 0, ${0.15 * flameIntensity}) 0%, transparent 60%)`,
+            filter: 'blur(40px)',
+          }}
+        />
+
+        <div className="relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center max-w-6xl mx-auto">
+          {/* Left: Torch visualization */}
+          <div className="flex justify-center lg:justify-end order-1 lg:order-1">
+            <div className="relative">
+              {/* Torch glow backdrop */}
+              <div
+                className={`absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full transition-all duration-1000 ${
+                  flameIntensity > 0 ? 'opacity-100' : 'opacity-0'
+                }`}
+                style={{
+                  background: 'radial-gradient(circle, rgba(255, 120, 0, 0.4) 0%, transparent 70%)',
+                  filter: 'blur(20px)',
+                  animation: flameIntensity > 0 ? 'pulse 2s ease-in-out infinite' : 'none',
+                }}
+              />
+
+              {/* Stylized torch flame */}
+              <div className="relative">
+                {/* Outer flame */}
+                <div
+                  className={`w-20 h-32 mx-auto transition-all duration-700 ${
+                    flameIntensity > 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                  }`}
+                  style={{
+                    background:
+                      'linear-gradient(to top, #B22222 0%, #FF6B00 40%, #FFD700 70%, #FFFACD 100%)',
+                    borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
+                    animation:
+                      flameIntensity > 0 ? 'flicker 0.5s ease-in-out infinite alternate' : 'none',
+                  }}
+                />
+
+                {/* Inner bright core */}
+                <div
+                  className={`absolute bottom-4 left-1/2 -translate-x-1/2 w-10 h-16 transition-all duration-700 delay-200 ${
+                    flameIntensity > 0 ? 'opacity-90 scale-100' : 'opacity-0 scale-75'
+                  }`}
+                  style={{
+                    background: 'linear-gradient(to top, #FFA500 0%, #FFD700 50%, #FFFFFF 100%)',
+                    borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
+                  }}
+                />
+
+                {/* Torch handle */}
+                <div className="w-8 h-24 mx-auto bg-gradient-to-b from-amber-700 via-amber-800 to-amber-900 rounded-b-lg" />
+              </div>
+
+              {/* Season 50 text wrapping around torch */}
+              <div
+                className={`absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap transition-all duration-700 delay-500 ${
+                  flameIntensity > 0 ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
+                <span className="text-amber-400/80 text-xs tracking-[0.3em] uppercase font-medium">
+                  Season 50
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Content */}
+          <div
+            className={`text-center lg:text-left order-2 lg:order-2 transition-all duration-700 ${
+              showContent ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+            }`}
+          >
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-6">
+              Survivor Fantasy
+              <br />
+              <span className="text-amber-400">for strategists.</span>
+            </h1>
+
+            {!user && (
+              <div className="space-y-4 text-neutral-400 leading-relaxed mb-10 max-w-md mx-auto lg:mx-0">
+                <p>Bored of picking one Survivor and praying for luck?</p>
+                <p>
+                  100+ scoring rules reward real strategy. Every vote, idol, and blindside counts.
+                </p>
+              </div>
+            )}
+
+            {user && <p className="text-xl text-neutral-400 mb-10">Your leagues are waiting.</p>}
+
+            <Link
+              to={user ? '/dashboard' : '/signup'}
+              className="group inline-flex items-center gap-3 bg-amber-500 text-neutral-900 px-8 py-4 rounded-xl font-semibold hover:bg-amber-400 transition-all"
+            >
+              {user ? 'Dashboard' : 'Join Now'}
+              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            {!user && (
+              <p className="text-neutral-500 text-sm mt-6">
+                <Link to="/login" className="text-amber-400 hover:underline">
+                  Log in
+                </Link>
+                {' · '}
+                <Link to="/how-to-play" className="hover:text-neutral-400">
+                  How it works
+                </Link>
+              </p>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* Keyframes for animations */}
+      <style>{`
+        @keyframes flicker {
+          0% { transform: scaleY(1) scaleX(1); }
+          100% { transform: scaleY(1.05) scaleX(0.97); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.6; transform: translate(-50%, 0) scale(1); }
+          50% { opacity: 0.8; transform: translate(-50%, 0) scale(1.1); }
+        }
+      `}</style>
+
+      <Footer />
+    </div>
+  );
+}
+
+// ============================================================================
+// CONCEPT C: "Type Play" - Creative typography for SURVIVOR SEASON 50
+// Letters animate in, season number has special treatment
+// ============================================================================
+
+function ConceptC() {
+  const { user } = useAuth();
+  const [stage, setStage] = useState(0);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setStage(1), 100);
+    const t2 = setTimeout(() => setStage(2), 600);
+    const t3 = setTimeout(() => setStage(3), 1100);
+    const t4 = setTimeout(() => setStage(4), 1600);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-cream-50 flex flex-col">
+      <Navigation />
+
+      <main className="flex-1 flex items-center justify-center px-6 py-16">
+        <div className="text-center max-w-4xl mx-auto">
+          {/* Typography hero */}
+          <div className="mb-12">
+            {/* SURVIVOR - staggered letter reveal */}
+            <div className="overflow-hidden mb-2">
+              <h1
+                className={`font-display text-5xl sm:text-7xl lg:text-8xl text-neutral-900 tracking-tight transition-all duration-700 ${
+                  stage >= 1 ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
+                }`}
+              >
+                SURVIVOR
+              </h1>
+            </div>
+
+            {/* SEASON 50 - special treatment */}
+            <div className="flex items-center justify-center gap-4">
+              <span
+                className={`w-12 h-px bg-burgundy-400 transition-all duration-500 ${
+                  stage >= 2 ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
+                }`}
+                style={{ transformOrigin: 'right' }}
+              />
+
+              <span
+                className={`font-display text-2xl sm:text-3xl text-burgundy-600 tracking-widest transition-all duration-700 ${
+                  stage >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                }`}
+              >
+                SEASON
+              </span>
+
+              {/* 50 with special emphasis */}
+              <span
+                className={`font-display text-4xl sm:text-5xl lg:text-6xl text-burgundy-600 transition-all duration-700 delay-100 ${
+                  stage >= 2 ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                }`}
+              >
+                50
+              </span>
+
+              <span
+                className={`w-12 h-px bg-burgundy-400 transition-all duration-500 ${
+                  stage >= 2 ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
+                }`}
+                style={{ transformOrigin: 'left' }}
+              />
+            </div>
+          </div>
+
+          {/* Subtitle */}
+          <p
+            className={`font-display text-xl sm:text-2xl text-neutral-700 mb-8 transition-all duration-700 ${
+              stage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
+          >
+            Fantasy League for <span className="text-burgundy-600">Superfans</span>
+          </p>
+
+          {/* Copy */}
+          <div
+            className={`max-w-xl mx-auto space-y-4 text-neutral-600 leading-relaxed mb-10 transition-all duration-700 ${
+              stage >= 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
+          >
+            {!user && (
+              <p>
+                100+ scoring rules that reward real strategy. Every vote, idol play, and blindside
+                can earn or cost you points.
+              </p>
+            )}
+            {user && <p>Welcome back. Your leagues are waiting.</p>}
+          </div>
+
+          {/* CTA */}
+          <div
+            className={`transition-all duration-700 ${
+              stage >= 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+            }`}
+          >
+            <Link
+              to={user ? '/dashboard' : '/signup'}
+              className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all"
+            >
+              {user ? 'Dashboard' : 'Join Now'}
+              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            {!user && (
+              <p className="text-neutral-400 text-sm mt-6">
+                <Link to="/login" className="text-burgundy-600 hover:underline">
+                  Log in
+                </Link>
+                {' · '}
+                <Link to="/how-to-play" className="hover:text-neutral-600">
+                  How it works
+                </Link>
+              </p>
+            )}
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
+
+// ============================================================================
+// CONCEPT D: "Scoreboard" - Fantasy sports scoreboard aesthetic
+// Counter animations, dark theme with accent colors, stats-forward
+// ============================================================================
+
+function ConceptD() {
+  const { user } = useAuth();
+  const [count, setCount] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    // Animate counter from 0 to 100
+    const duration = 1500;
+    const steps = 60;
+    const increment = 100 / steps;
+    let current = 0;
+
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= 100) {
+        setCount(100);
+        clearInterval(timer);
+        setTimeout(() => setRevealed(true), 300);
+      } else {
+        setCount(Math.floor(current));
+      }
+    }, duration / steps);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-neutral-950 flex flex-col">
+      <Navigation />
+
+      <main className="flex-1 flex items-center justify-center px-6 py-16">
+        <div className="text-center max-w-3xl mx-auto">
+          {/* Logo */}
+          <img
+            src="/logo.png"
+            alt="Reality Games Fantasy League"
+            className={`h-24 sm:h-32 mx-auto mb-12 transition-all duration-700 ${
+              revealed ? 'opacity-100' : 'opacity-50'
+            }`}
+          />
+
+          {/* Stats counter */}
+          <div className="mb-10">
+            <div className="inline-flex items-baseline gap-2 mb-4">
+              <span
+                className="font-display text-7xl sm:text-8xl lg:text-9xl text-burgundy-500 tabular-nums"
+                style={{ fontVariantNumeric: 'tabular-nums' }}
+              >
+                {count}+
+              </span>
+            </div>
+            <p className="text-2xl sm:text-3xl text-neutral-400 font-display tracking-wide">
+              SCORING RULES
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div
+            className={`w-32 h-px bg-gradient-to-r from-transparent via-burgundy-600 to-transparent mx-auto mb-10 transition-all duration-700 ${
+              revealed ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
+            }`}
+          />
+
+          {/* Copy */}
+          <div
+            className={`space-y-4 text-neutral-400 text-lg leading-relaxed mb-10 transition-all duration-500 ${
+              revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            {!user && (
+              <>
+                <p>Every vote, idol, and blindside counts.</p>
+                <p className="text-neutral-500">Real strategy. No luck required.</p>
+              </>
+            )}
+            {user && <p>Your leagues are waiting.</p>}
+          </div>
+
+          {/* CTA */}
+          <div
+            className={`transition-all duration-500 delay-200 ${
+              revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            <Link
+              to={user ? '/dashboard' : '/signup'}
+              className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-500 transition-all"
+            >
+              {user ? 'Dashboard' : 'Join Season 50'}
+              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            {!user && (
+              <p className="text-neutral-500 text-sm mt-6">
+                <Link to="/login" className="text-burgundy-400 hover:underline">
+                  Log in
+                </Link>
+                {' · '}
+                <Link to="/how-to-play" className="hover:text-neutral-400">
+                  How it works
+                </Link>
+              </p>
+            )}
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}
+
+// ============================================================================
+// CONCEPT E: "The Glow" - Subtle ambient fire glow effect
+// Warm gradient background that shifts, minimalist content
+// ============================================================================
+
+function ConceptE() {
+  const { user } = useAuth();
+  const [loaded, setLoaded] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+
+  useEffect(() => {
+    setTimeout(() => setLoaded(true), 200);
+  }, []);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePos({ x, y });
   };
 
   return (
     <div
-      ref={ref}
-      className={className}
+      className="min-h-screen flex flex-col relative overflow-hidden"
+      onMouseMove={handleMouseMove}
       style={{
-        opacity: isInView ? 1 : 0,
-        transform: isInView ? 'translate3d(0, 0, 0)' : transforms[direction],
-        transition: `opacity ${duration}ms ease-out, transform ${duration}ms ease-out`,
-        transitionDelay: `${delay}ms`,
-        willChange: 'opacity, transform',
+        background: `radial-gradient(ellipse at ${mousePos.x}% ${mousePos.y}%, rgba(139, 69, 19, 0.15) 0%, rgba(20, 20, 20, 1) 50%)`,
+        transition: 'background 0.3s ease-out',
       }}
     >
-      {children}
-    </div>
-  );
-}
+      <Navigation />
 
-// ============================================================================
-// VISUAL COMPONENTS
-// ============================================================================
+      {/* Ambient glow overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255, 140, 50, 0.08) 0%, transparent 40%)`,
+          transition: 'background 0.3s ease-out',
+        }}
+      />
 
-// Realistic Tiki Torch SVG matching the logo
-function TikiTorch({ className, showEmbers = true }: { className?: string; showEmbers?: boolean }) {
-  return (
-    <div className={`relative ${className}`}>
-      {/* Floating Embers */}
-      {showEmbers && (
-        <div className="absolute inset-0 overflow-visible pointer-events-none">
-          {[...Array(12)].map((_, i) => (
+      <main className="flex-1 flex items-center justify-center px-6 py-16 relative z-10">
+        <div className="text-center max-w-2xl mx-auto">
+          {/* Logo with glow */}
+          <div className="relative inline-block mb-10">
+            <img
+              src="/logo.png"
+              alt="Reality Games Fantasy League"
+              className={`h-32 sm:h-40 lg:h-48 mx-auto relative z-10 transition-all duration-1000 ${
+                loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`}
+            />
+            {/* Logo glow */}
             <div
-              key={i}
-              className="ember absolute rounded-full"
+              className={`absolute inset-0 blur-2xl transition-opacity duration-1000 ${
+                loaded ? 'opacity-40' : 'opacity-0'
+              }`}
               style={{
-                width: `${3 + Math.random() * 4}px`,
-                height: `${3 + Math.random() * 4}px`,
-                left: `${40 + Math.random() * 20}%`,
-                top: `${15 + Math.random() * 15}%`,
-                background: `radial-gradient(circle, ${
-                  Math.random() > 0.5 ? '#FFD700' : '#FF6B00'
-                } 0%, transparent 70%)`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
+                background: 'radial-gradient(circle, rgba(255, 120, 50, 0.6) 0%, transparent 70%)',
               }}
             />
-          ))}
+          </div>
+
+          {/* Title */}
+          <h1
+            className={`font-display text-3xl sm:text-4xl lg:text-5xl text-white mb-6 transition-all duration-700 delay-300 ${
+              loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            Survivor Fantasy League
+          </h1>
+
+          {/* Tagline */}
+          <p
+            className={`text-xl text-amber-200/70 mb-8 transition-all duration-700 delay-500 ${
+              loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            Season 50
+          </p>
+
+          {/* Copy */}
+          <div
+            className={`space-y-3 text-neutral-400 leading-relaxed mb-10 transition-all duration-700 delay-700 ${
+              loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            {!user && (
+              <>
+                <p>100+ scoring rules that reward real strategy.</p>
+                <p className="text-neutral-500">Built by superfans, for superfans.</p>
+              </>
+            )}
+            {user && <p>Your leagues await.</p>}
+          </div>
+
+          {/* CTA */}
+          <div
+            className={`transition-all duration-700 delay-900 ${
+              loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            <Link
+              to={user ? '/dashboard' : '/signup'}
+              className="group inline-flex items-center gap-3 bg-amber-600/90 backdrop-blur text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-amber-500 transition-all border border-amber-500/30"
+            >
+              {user ? 'Dashboard' : 'Join Now'}
+              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            {!user && (
+              <p className="text-neutral-500 text-sm mt-6">
+                <Link to="/login" className="text-amber-400/80 hover:text-amber-400">
+                  Log in
+                </Link>
+                {' · '}
+                <Link to="/how-to-play" className="hover:text-neutral-400">
+                  How it works
+                </Link>
+              </p>
+            )}
+          </div>
         </div>
-      )}
+      </main>
 
-      <svg
-        viewBox="0 0 120 320"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full"
-      >
-        {/* Outer Flame - Orange/Red */}
-        <path
-          d="M60 0C60 0 20 55 20 100C20 135 35 165 60 180C85 165 100 135 100 100C100 55 60 0 60 0Z"
-          fill="url(#flame-outer)"
-          className="animate-flame-outer"
-        />
-
-        {/* Middle Flame - Yellow/Orange */}
-        <path
-          d="M60 15C60 15 30 60 30 95C30 120 42 145 60 155C78 145 90 120 90 95C90 60 60 15 60 15Z"
-          fill="url(#flame-middle)"
-          className="animate-flame-middle"
-        />
-
-        {/* Inner Flame - Yellow/White */}
-        <path
-          d="M60 35C60 35 42 65 42 88C42 105 50 120 60 128C70 120 78 105 78 88C78 65 60 35 60 35Z"
-          fill="url(#flame-inner)"
-          className="animate-flame-inner"
-        />
-
-        {/* Core Flame - White hot */}
-        <path
-          d="M60 55C60 55 50 72 50 83C50 92 54 100 60 104C66 100 70 92 70 83C70 72 60 55 60 55Z"
-          fill="url(#flame-core)"
-          opacity="0.9"
-        />
-
-        {/* Torch Bowl/Top */}
-        <ellipse cx="60" cy="175" rx="28" ry="8" fill="#4A3728" />
-        <ellipse cx="60" cy="172" rx="25" ry="6" fill="#5C4033" />
-
-        {/* Green Leaves at base of flame (like logo) */}
-        <path
-          d="M40 168C40 168 50 155 60 168C70 155 80 168 80 168"
-          stroke="#2D5A27"
-          strokeWidth="4"
-          fill="none"
-          strokeLinecap="round"
-        />
-        <path
-          d="M45 172C50 162 55 172 60 165C65 172 70 162 75 172"
-          stroke="#3D7A37"
-          strokeWidth="3"
-          fill="none"
-          strokeLinecap="round"
-        />
-
-        {/* Torch Handle - Textured Wood */}
-        <path
-          d="M48 178L45 310C45 314 51 318 60 318C69 318 75 314 75 310L72 178"
-          fill="url(#wood-main)"
-        />
-
-        {/* Wood Grain Lines */}
-        <path d="M50 190L48 300" stroke="#3D2817" strokeWidth="1" opacity="0.4" />
-        <path d="M55 185L53 305" stroke="#3D2817" strokeWidth="1" opacity="0.3" />
-        <path d="M65 185L67 305" stroke="#3D2817" strokeWidth="1" opacity="0.3" />
-        <path d="M70 190L72 300" stroke="#3D2817" strokeWidth="1" opacity="0.4" />
-
-        {/* Rope/Binding Wraps */}
-        <ellipse cx="60" cy="195" rx="14" ry="4" fill="#8B7355" />
-        <ellipse cx="60" cy="193" rx="13" ry="3" fill="#A08060" />
-
-        <ellipse cx="60" cy="220" rx="13" ry="4" fill="#8B7355" />
-        <ellipse cx="60" cy="218" rx="12" ry="3" fill="#A08060" />
-
-        <ellipse cx="60" cy="245" rx="12" ry="4" fill="#8B7355" />
-        <ellipse cx="60" cy="243" rx="11" ry="3" fill="#A08060" />
-
-        {/* Gradients */}
-        <defs>
-          <linearGradient
-            id="flame-outer"
-            x1="60"
-            y1="0"
-            x2="60"
-            y2="180"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0%" stopColor="#FF4500" />
-            <stop offset="40%" stopColor="#FF6B00" />
-            <stop offset="100%" stopColor="#B22222" />
-          </linearGradient>
-
-          <linearGradient
-            id="flame-middle"
-            x1="60"
-            y1="15"
-            x2="60"
-            y2="155"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0%" stopColor="#FFD700" />
-            <stop offset="50%" stopColor="#FFA500" />
-            <stop offset="100%" stopColor="#FF6B00" />
-          </linearGradient>
-
-          <linearGradient
-            id="flame-inner"
-            x1="60"
-            y1="35"
-            x2="60"
-            y2="128"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0%" stopColor="#FFFACD" />
-            <stop offset="50%" stopColor="#FFD700" />
-            <stop offset="100%" stopColor="#FFA500" />
-          </linearGradient>
-
-          <linearGradient
-            id="flame-core"
-            x1="60"
-            y1="55"
-            x2="60"
-            y2="104"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="100%" stopColor="#FFFACD" />
-          </linearGradient>
-
-          <linearGradient
-            id="wood-main"
-            x1="45"
-            y1="178"
-            x2="75"
-            y2="178"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0%" stopColor="#5C4033" />
-            <stop offset="30%" stopColor="#8B6914" />
-            <stop offset="50%" stopColor="#A0522D" />
-            <stop offset="70%" stopColor="#8B6914" />
-            <stop offset="100%" stopColor="#5C4033" />
-          </linearGradient>
-        </defs>
-      </svg>
+      <Footer />
     </div>
   );
 }
 
 // ============================================================================
-// SURVIVOR APP SECTIONS
+// CONCEPT F: "Bold Statement" - Large statement typography, minimal
+// One big message, clear hierarchy, cream theme
 // ============================================================================
 
-// Premium Hero Section with Multi-Layer Parallax
-function PremiumHero() {
+function ConceptF() {
   const { user } = useAuth();
-  const { scrollY, isTouch } = useScrollPosition();
-  const { ref: heroRef, isInView } = useInView(0.1);
+  const [stage, setStage] = useState(0);
 
-  // Different speeds for each layer - creates depth
-  const bgLayerOffset = isTouch ? 0 : scrollY * 0.15;
-  const midLayerOffset = isTouch ? 0 : scrollY * 0.25;
-  const decorLayerOffset = isTouch ? 0 : scrollY * 0.4;
-  const torchLayerOffset = isTouch ? 0 : scrollY * -0.08;
-
-  return (
-    <section
-      ref={heroRef}
-      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-cream-50 via-cream-100 to-cream-200"
-    >
-      {/* Background Layer (slowest) - Large ambient orbs */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          transform: `translate3d(0, ${bgLayerOffset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      >
-        <div className="absolute top-1/4 -right-32 w-[600px] h-[600px] bg-burgundy-500/[0.03] rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -left-32 w-[500px] h-[500px] bg-amber-500/[0.04] rounded-full blur-3xl" />
-      </div>
-
-      {/* Midground Layer - Tribal pattern overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          transform: `translate3d(0, ${midLayerOffset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      >
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L55 30 L30 55 L5 30 Z' fill='none' stroke='%23A52A2A' stroke-width='0.5'/%3E%3C/svg%3E")`,
-            backgroundSize: '60px 60px',
-          }}
-        />
-      </div>
-
-      {/* Foreground Decorative Layer (fastest) - Small accents */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          transform: `translate3d(0, ${decorLayerOffset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      >
-        <div className="absolute top-20 right-20 w-2 h-2 bg-burgundy-400/30 rounded-full" />
-        <div className="absolute top-40 right-40 w-1 h-1 bg-amber-400/40 rounded-full" />
-        <div className="absolute bottom-40 left-20 w-1.5 h-1.5 bg-burgundy-300/25 rounded-full" />
-        <div className="absolute top-1/3 left-1/4 w-1 h-1 bg-orange-400/30 rounded-full" />
-        <div className="absolute bottom-1/3 right-1/3 w-2 h-2 bg-amber-300/20 rounded-full" />
-      </div>
-
-      {/* Content Layer - Static relative to viewport */}
-      <div className="relative max-w-7xl mx-auto px-6 pt-32 pb-24 lg:pt-40 lg:pb-32">
-        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center min-h-[70vh]">
-          {/* Left: Content with fade-in */}
-          <FadeInOnScroll direction="up" duration={1000}>
-            <div>
-              {/* Minimal badge */}
-              <div className="inline-flex items-center gap-3 mb-8">
-                <span className="w-12 h-px bg-burgundy-400" />
-                <span className="text-burgundy-600 text-sm font-medium tracking-widest uppercase">
-                  Season 50
-                </span>
-              </div>
-
-              <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl text-neutral-900 leading-[0.95] tracking-tight mb-8">
-                Fantasy Survivor
-                <br />
-                <span className="text-burgundy-600">for strategists.</span>
-              </h1>
-
-              <p className="text-xl lg:text-2xl text-neutral-600 leading-relaxed mb-12 max-w-xl font-light">
-                Draft your team. Make weekly picks. Compete in the most comprehensive Survivor
-                fantasy experience ever built.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  to={user ? '/dashboard' : '/signup'}
-                  className="group inline-flex items-center justify-center gap-3 bg-burgundy-600 text-white px-10 py-5 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
-                >
-                  {user ? 'Go to Dashboard' : 'Join Free'}
-                  <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                {!user && (
-                  <Link
-                    to="/how-to-play"
-                    className="inline-flex items-center justify-center gap-2 text-neutral-700 px-8 py-5 font-medium text-lg hover:text-burgundy-600 transition-colors"
-                  >
-                    How It Works
-                  </Link>
-                )}
-              </div>
-            </div>
-          </FadeInOnScroll>
-
-          {/* Right: Torch with inverse parallax (moves up as you scroll down) */}
-          <div
-            className="flex justify-center lg:justify-end"
-            style={{
-              transform: `translate3d(0, ${torchLayerOffset}px, 0)`,
-              willChange: isTouch ? 'auto' : 'transform',
-            }}
-          >
-            <FadeInOnScroll direction="right" delay={300} duration={1000}>
-              <div className="relative">
-                {/* Ambient glow */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-gradient-radial from-orange-400/20 via-orange-400/5 to-transparent rounded-full blur-2xl" />
-
-                <TikiTorch className="h-[400px] lg:h-[500px] relative z-10" />
-              </div>
-            </FadeInOnScroll>
-          </div>
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-neutral-400">
-        <span className="text-xs tracking-widest uppercase">Scroll</span>
-        <ChevronDown className="h-5 w-5 animate-bounce" />
-      </div>
-    </section>
-  );
-}
-
-// Value Proposition Section with Parallax Background
-function ValueSection() {
-  const { scrollY, isTouch } = useScrollPosition();
-  const { ref, isInView } = useInView(0.15);
-
-  const bgOffset = isTouch ? 0 : scrollY * 0.08;
-  const accentOffset = isTouch ? 0 : scrollY * -0.05;
-
-  const values = [
-    {
-      title: 'Comprehensive Scoring',
-      description:
-        'Every strategic move counts. Idols, votes, challenges, social plays. A scoring system built by superfans who obsess over the details.',
-    },
-    {
-      title: 'Snake Draft Format',
-      description:
-        'Pick two castaways in our fair async draft. Build your team with the players you believe in most.',
-    },
-    {
-      title: 'Weekly Strategy',
-      description:
-        'Choose which castaway to play each episode. Your predictions and timing determine your success.',
-    },
-    {
-      title: 'Private Leagues',
-      description:
-        'Create leagues with friends or join global rankings. Up to 12 players per league, competing for bragging rights.',
-    },
-  ];
+  useEffect(() => {
+    const t1 = setTimeout(() => setStage(1), 200);
+    const t2 = setTimeout(() => setStage(2), 600);
+    const t3 = setTimeout(() => setStage(3), 1000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, []);
 
   return (
-    <section ref={ref} className="relative py-32 lg:py-40 bg-white overflow-hidden">
-      {/* Parallax background gradient */}
-      <div
-        className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-cream-50/50 to-transparent pointer-events-none"
-        style={{
-          transform: `translate3d(0, ${bgOffset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      />
+    <div className="min-h-screen bg-cream-50 flex flex-col">
+      <Navigation />
 
-      {/* Parallax accent orb */}
-      <div
-        className="absolute -bottom-20 -left-20 w-80 h-80 bg-burgundy-500/[0.02] rounded-full blur-3xl pointer-events-none"
-        style={{
-          transform: `translate3d(0, ${accentOffset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      />
-
-      <div className="relative max-w-6xl mx-auto px-6">
-        {/* Section header */}
-        <FadeInOnScroll direction="up">
-          <div className="max-w-2xl mb-20">
-            <div className="inline-flex items-center gap-3 mb-6">
-              <span className="w-8 h-px bg-burgundy-400" />
-              <span className="text-burgundy-600 text-sm font-medium tracking-widest uppercase">
-                The Experience
-              </span>
-            </div>
-            <h2 className="font-display text-4xl lg:text-5xl text-neutral-900 leading-tight mb-6">
-              Built for players who
-              <br />
-              <span className="text-burgundy-600">live and breathe Survivor.</span>
-            </h2>
-            <p className="text-lg text-neutral-600 leading-relaxed">
-              No luck required. Real strategy rewarded.
+      <main className="flex-1 flex items-center px-6 py-16">
+        <div className="max-w-5xl mx-auto w-full">
+          {/* Left-aligned bold statement */}
+          <div className="max-w-3xl">
+            <p
+              className={`text-burgundy-600 font-medium tracking-wide uppercase text-sm mb-6 transition-all duration-500 ${
+                stage >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+              }`}
+            >
+              Season 50 · Fantasy League
             </p>
-          </div>
-        </FadeInOnScroll>
 
-        {/* Value grid with staggered fade-in */}
-        <div className="grid md:grid-cols-2 gap-x-16 gap-y-16">
-          {values.map((value, i) => (
-            <FadeInOnScroll key={i} direction="up" delay={150 + i * 100}>
-              <div className="group flex items-start gap-6">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-cream-100 flex items-center justify-center group-hover:bg-burgundy-50 transition-colors duration-300">
-                  <span className="text-burgundy-600 font-display text-xl">{i + 1}</span>
-                </div>
-                <div>
-                  <h3 className="font-display text-xl text-neutral-900 mb-3 group-hover:text-burgundy-600 transition-colors duration-300">
-                    {value.title}
-                  </h3>
-                  <p className="text-neutral-600 leading-relaxed">{value.description}</p>
-                </div>
-              </div>
-            </FadeInOnScroll>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+            <h1
+              className={`font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-neutral-900 leading-[1.1] mb-8 transition-all duration-700 ${
+                stage >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+              }`}
+            >
+              {!user ? (
+                <>
+                  Survivor Fantasy
+                  <br />
+                  for people who
+                  <br />
+                  <span className="text-burgundy-600">actually watch</span> Survivor.
+                </>
+              ) : (
+                <>
+                  Welcome back.
+                  <br />
+                  <span className="text-burgundy-600">Your move.</span>
+                </>
+              )}
+            </h1>
 
-// Season Spotlight Section with Multi-Layer Parallax
-function SeasonSpotlight() {
-  const { scrollY, isTouch } = useScrollPosition();
-  const { ref, isInView } = useInView(0.2);
+            <p
+              className={`text-lg sm:text-xl text-neutral-600 max-w-xl leading-relaxed mb-10 transition-all duration-700 delay-100 ${
+                stage >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+              }`}
+            >
+              {!user
+                ? '100+ scoring rules. Every vote, idol, and blindside counts. No luck required.'
+                : 'Your leagues are waiting.'}
+            </p>
 
-  const bgOrb1Offset = isTouch ? 0 : scrollY * 0.15;
-  const bgOrb2Offset = isTouch ? 0 : scrollY * -0.1;
-  const gridOffset = isTouch ? 0 : scrollY * 0.05;
-
-  return (
-    <section ref={ref} className="relative py-32 lg:py-40 bg-neutral-900 overflow-hidden">
-      {/* Parallax background orbs */}
-      <div
-        className="absolute top-1/4 -right-20 w-96 h-96 bg-burgundy-500/10 rounded-full blur-3xl pointer-events-none"
-        style={{
-          transform: `translate3d(0, ${bgOrb1Offset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      />
-      <div
-        className="absolute bottom-1/4 -left-20 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"
-        style={{
-          transform: `translate3d(0, ${bgOrb2Offset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      />
-
-      {/* Subtle parallax grid pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                           linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px',
-          transform: `translate3d(0, ${gridOffset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      />
-
-      <div className="relative max-w-6xl mx-auto px-6">
-        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-          {/* Left: Visual with slide-in */}
-          <FadeInOnScroll direction="left" duration={1000}>
-            <div className="relative">
-              <div className="aspect-square rounded-3xl bg-gradient-to-br from-neutral-800 to-neutral-900 p-12 flex items-center justify-center border border-white/5">
-                <TikiTorch className="h-80 max-w-full" showEmbers={true} />
-              </div>
-              {/* Decorative accent */}
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 rounded-2xl bg-burgundy-600/20 -z-10" />
-            </div>
-          </FadeInOnScroll>
-
-          {/* Right: Content with slide-in */}
-          <FadeInOnScroll direction="right" delay={150} duration={1000}>
-            <div>
-              <div className="inline-flex items-center gap-3 mb-6">
-                <span className="w-8 h-px bg-burgundy-400" />
-                <span className="text-burgundy-400 text-sm font-medium tracking-widest uppercase">
-                  Now Open
-                </span>
-              </div>
-
-              <h2 className="font-display text-4xl lg:text-5xl text-white leading-tight mb-6">
-                Season 50
-                <br />
-                <span className="text-burgundy-400">In the Hands of the Fans</span>
-              </h2>
-
-              <p className="text-lg text-neutral-400 leading-relaxed mb-8">
-                24 legendary castaways return. The greatest collection of players in Survivor
-                history. Who will you draft?
-              </p>
-
-              <div className="space-y-4 mb-10">
-                <div className="flex items-center gap-4 text-neutral-300">
-                  <span className="w-2 h-2 bg-burgundy-500 rounded-full" />
-                  <span>Premiere: February 25, 2026</span>
-                </div>
-                <div className="flex items-center gap-4 text-neutral-300">
-                  <span className="w-2 h-2 bg-burgundy-500 rounded-full" />
-                  <span>Draft Deadline: March 2, 2026</span>
-                </div>
-                <div className="flex items-center gap-4 text-neutral-300">
-                  <span className="w-2 h-2 bg-burgundy-500 rounded-full" />
-                  <span>Registration now open</span>
-                </div>
-              </div>
-
+            <div
+              className={`flex flex-wrap items-center gap-4 transition-all duration-700 delay-200 ${
+                stage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+              }`}
+            >
               <Link
-                to="/signup"
-                className="group inline-flex items-center gap-3 bg-white text-neutral-900 px-8 py-4 rounded-xl font-semibold hover:bg-cream-50 transition-all duration-300 hover:-translate-y-0.5"
+                to={user ? '/dashboard' : '/signup'}
+                className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-burgundy-700 transition-all"
               >
-                Join Season 50
+                {user ? 'Dashboard' : 'Join Now'}
                 <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
+
+              {!user && (
+                <>
+                  <Link
+                    to="/login"
+                    className="px-6 py-4 text-burgundy-600 font-medium hover:text-burgundy-700 transition-colors"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    to="/how-to-play"
+                    className="text-neutral-500 hover:text-neutral-700 transition-colors"
+                  >
+                    How it works →
+                  </Link>
+                </>
+              )}
             </div>
-          </FadeInOnScroll>
+          </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </main>
 
-// Premium CTA Section with Parallax
-function PremiumCTA() {
-  const { user } = useAuth();
-  const { scrollY, isTouch } = useScrollPosition();
-  const { ref, isInView } = useInView(0.3);
-
-  const orb1Offset = isTouch ? 0 : scrollY * 0.1;
-  const orb2Offset = isTouch ? 0 : scrollY * -0.08;
-
-  return (
-    <section
-      ref={ref}
-      className="relative py-32 lg:py-40 bg-gradient-to-br from-burgundy-600 via-burgundy-700 to-burgundy-800 overflow-hidden"
-    >
-      {/* Parallax decorative orbs */}
-      <div
-        className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"
-        style={{
-          transform: `translate3d(33%, calc(-50% + ${orb1Offset}px), 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      />
-      <div
-        className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none"
-        style={{
-          transform: `translate3d(-33%, calc(50% + ${orb2Offset}px), 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      />
-
-      <div className="relative max-w-4xl mx-auto px-6 text-center">
-        <FadeInOnScroll direction="up">
-          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-8">
-            The fantasy league
-            <br />
-            Survivor deserves.
-          </h2>
-        </FadeInOnScroll>
-
-        <FadeInOnScroll direction="up" delay={100}>
-          <p className="text-xl text-white/70 mb-12 max-w-2xl mx-auto">
-            Free to play. Built for strategy. Join thousands of superfans competing in the ultimate
-            Survivor fantasy experience.
-          </p>
-        </FadeInOnScroll>
-
-        <FadeInOnScroll direction="up" delay={200}>
-          {user ? (
-            <Link
-              to="/dashboard"
-              className="group inline-flex items-center gap-3 bg-white text-burgundy-700 px-12 py-5 rounded-xl font-semibold text-lg hover:bg-cream-50 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
-            >
-              View Your Leagues
-              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          ) : (
-            <Link
-              to="/signup"
-              className="group inline-flex items-center gap-3 bg-white text-burgundy-700 px-12 py-5 rounded-xl font-semibold text-lg hover:bg-cream-50 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
-            >
-              Join Free
-              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          )}
-        </FadeInOnScroll>
-      </div>
-    </section>
+      <Footer />
+    </div>
   );
 }
 
@@ -803,234 +767,60 @@ function PremiumCTA() {
 // ============================================================================
 
 function SplashPage() {
-  const { scrollY, isTouch } = useScrollPosition();
-
-  // Background parallax layers
-  const bgLayer1Offset = isTouch ? 0 : scrollY * 0.1;
-  const bgLayer2Offset = isTouch ? 0 : scrollY * -0.08;
-  const bgLayer3Offset = isTouch ? 0 : scrollY * 0.15;
-
-  // Calculate section visibility with smooth transitions
-  const getOpacity = (start: number, fadeIn: number, hold: number, fadeOut: number) => {
-    if (scrollY < start) return 0;
-    if (scrollY < start + fadeIn) return (scrollY - start) / fadeIn;
-    if (scrollY < start + fadeIn + hold) return 1;
-    if (scrollY < start + fadeIn + hold + fadeOut)
-      return 1 - (scrollY - start - fadeIn - hold) / fadeOut;
-    return 0;
-  };
-
-  // Active section for progress indicator
-  const activeSection = useMemo(() => {
-    if (scrollY < 400) return 0;
-    if (scrollY < 800) return 1;
-    if (scrollY < 1200) return 2;
-    if (scrollY < 1600) return 3;
-    if (scrollY < 2000) return 4;
-    return 5;
-  }, [scrollY]);
-
   return (
-    <div className="min-h-[500vh] bg-cream-50 overflow-x-hidden relative">
-      {/* Background Layer 1 - Slowest, largest orbs */}
-      <div
-        className="fixed top-0 right-0 w-[50vw] h-[50vh] bg-gradient-radial from-burgundy-500/[0.03] to-transparent pointer-events-none"
-        style={{
-          transform: `translate3d(0, ${bgLayer1Offset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      />
-
-      {/* Background Layer 2 - Medium speed */}
-      <div
-        className="fixed bottom-0 left-0 w-[40vw] h-[40vh] bg-gradient-radial from-amber-500/[0.04] to-transparent pointer-events-none"
-        style={{
-          transform: `translate3d(0, ${bgLayer2Offset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      />
-
-      {/* Background Layer 3 - Fastest, smallest accents */}
-      <div
-        className="fixed top-1/3 left-1/4 w-[20vw] h-[20vh] bg-gradient-radial from-burgundy-400/[0.02] to-transparent pointer-events-none"
-        style={{
-          transform: `translate3d(0, ${bgLayer3Offset}px, 0)`,
-          willChange: isTouch ? 'auto' : 'transform',
-        }}
-      />
-
-      {/* Fixed container for scroll-based story */}
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-        <div className="max-w-4xl mx-auto px-8 text-center pointer-events-auto">
-          {/* Section 1: Logo & Brand */}
-          <div
-            className="transition-opacity duration-300"
-            style={{
-              opacity: getOpacity(0, 100, 300, 200),
-              transform: `translate3d(0, ${-scrollY * 0.15}px, 0) scale(${Math.max(0.9, 1 - scrollY / 3000)})`,
-              willChange: isTouch ? 'auto' : 'transform, opacity',
-            }}
-          >
-            <img
-              src="/logo.png"
-              alt="Reality Games Fantasy League"
-              className="h-32 sm:h-40 lg:h-48 mx-auto mb-8"
-            />
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-neutral-800 leading-[1.05] tracking-tight">
-              REALITY GAMES
-              <br />
-              <span className="text-burgundy-600">FANTASY LEAGUE</span>
-            </h1>
-          </div>
-
-          {/* Section 2: The Problem */}
-          <div
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-8"
-            style={{
-              opacity: getOpacity(400, 150, 250, 150),
-              transform: `translate3d(0, ${Math.max(0, 30 - (scrollY - 400) * 0.05)}px, 0)`,
-              willChange: isTouch ? 'auto' : 'transform, opacity',
-            }}
-          >
-            <p className="font-display text-2xl sm:text-3xl lg:text-4xl text-neutral-700 leading-relaxed max-w-3xl mx-auto">
-              Bored of fantasy leagues where you pick one Survivor and hope for the best?
-            </p>
-          </div>
-
-          {/* Section 3: The Solution */}
-          <div
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-8"
-            style={{
-              opacity: getOpacity(800, 150, 250, 150),
-              transform: `translate3d(0, ${Math.max(0, 30 - (scrollY - 800) * 0.05)}px, 0)`,
-              willChange: isTouch ? 'auto' : 'transform, opacity',
-            }}
-          >
-            <p className="text-xl sm:text-2xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
-              We built something different.
-              <br />
-              <span className="text-burgundy-600 font-semibold">
-                A scoring system with 100+ rules
-              </span>{' '}
-              that rewards real strategy.
-            </p>
-          </div>
-
-          {/* Section 4: The Details */}
-          <div
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-8"
-            style={{
-              opacity: getOpacity(1200, 150, 250, 150),
-              transform: `translate3d(0, ${Math.max(0, 30 - (scrollY - 1200) * 0.05)}px, 0)`,
-              willChange: isTouch ? 'auto' : 'transform, opacity',
-            }}
-          >
-            <p className="text-xl sm:text-2xl text-neutral-600 leading-relaxed max-w-3xl mx-auto mb-6">
-              Every vote. Every idol play.
-              <br />
-              Every alliance move and blindside.
-            </p>
-            <p className="text-lg text-neutral-500 italic">No luck required.</p>
-          </div>
-
-          {/* Section 5: Season 50 */}
-          <div
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-8"
-            style={{
-              opacity: getOpacity(1600, 150, 250, 150),
-              transform: `translate3d(0, ${Math.max(0, 30 - (scrollY - 1600) * 0.05)}px, 0)`,
-              willChange: isTouch ? 'auto' : 'transform, opacity',
-            }}
-          >
-            <div className="inline-flex items-center gap-3 mb-4">
-              <span className="w-8 h-px bg-burgundy-400" />
-              <span className="text-burgundy-600 text-sm font-medium tracking-widest uppercase">
-                Now Open
-              </span>
-              <span className="w-8 h-px bg-burgundy-400" />
-            </div>
-            <p className="font-display text-2xl sm:text-3xl text-neutral-800 mb-2">
-              Season 50: In the Hands of the Fans
-            </p>
-            <p className="text-neutral-500">24 legendary castaways return.</p>
-          </div>
-
-          {/* Section 6: CTA */}
-          <div
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-8"
-            style={{
-              opacity: getOpacity(2000, 150, 1000, 0),
-              transform: `translate3d(0, ${Math.max(0, 30 - (scrollY - 2000) * 0.05)}px, 0)`,
-              willChange: isTouch ? 'auto' : 'transform, opacity',
-            }}
-          >
-            <p className="text-neutral-500 mb-8">Premiere: February 25, 2026</p>
-
-            <a
-              href={`${SURVIVOR_APP_URL}/signup`}
-              className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all duration-300 hover:-translate-y-0.5"
-            >
-              Join Season 50
-              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </a>
-
-            <p className="text-neutral-400 text-sm mt-6">
-              Already have an account?{' '}
-              <a href={`${SURVIVOR_APP_URL}/login`} className="text-burgundy-600 hover:underline">
-                Log in
-              </a>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Scroll indicator - fades out */}
-      <div
-        className="fixed bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-neutral-400 transition-opacity duration-300"
-        style={{ opacity: Math.max(0, 1 - scrollY / 200) }}
-      >
-        <span className="text-xs tracking-widest uppercase">Scroll</span>
-        <ChevronDown className="h-5 w-5 animate-bounce" />
-      </div>
-
-      {/* Progress indicator */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-50">
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              i === activeSection
-                ? 'bg-burgundy-500 scale-125'
-                : i < activeSection
-                  ? 'bg-burgundy-300'
-                  : 'bg-neutral-300'
-            }`}
+    <div className="min-h-screen bg-cream-50 flex flex-col">
+      <main className="flex-1 flex items-center justify-center px-6 py-16">
+        <div className="max-w-2xl mx-auto text-center">
+          <img
+            src="/logo.png"
+            alt="Reality Games Fantasy League"
+            className="h-32 sm:h-40 mx-auto mb-10"
           />
-        ))}
-      </div>
 
-      {/* Footer - at the very bottom */}
-      <div className="absolute bottom-0 left-0 right-0 py-8 bg-cream-100">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="flex items-center justify-center gap-4 mb-3 text-sm text-neutral-500">
-            <a
-              href={`${SURVIVOR_APP_URL}/privacy`}
-              className="hover:text-burgundy-600 transition-colors"
-            >
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl text-neutral-800 leading-tight mb-8">
+            SURVIVOR FANTASY LEAGUE
+          </h1>
+
+          <div className="space-y-6 text-lg text-neutral-600 leading-relaxed mb-12">
+            <p>
+              Bored of the same old fantasy leagues where you pick one Survivor and pray for luck?
+            </p>
+            <p>
+              We've created a scoring system with{' '}
+              <span className="text-burgundy-600 font-semibold">100+ game-tested rules</span> that
+              reward real strategy. Every vote, idol play, alliance move, and blindside counts.
+            </p>
+          </div>
+
+          <a
+            href={`${SURVIVOR_APP_URL}/signup`}
+            className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all"
+          >
+            Join Now
+            <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+          </a>
+
+          <p className="text-neutral-400 text-sm mt-6">
+            Already have an account?{' '}
+            <a href={`${SURVIVOR_APP_URL}/login`} className="text-burgundy-600 hover:underline">
+              Log in
+            </a>
+          </p>
+        </div>
+      </main>
+
+      <footer className="py-6 border-t border-cream-200">
+        <div className="max-w-4xl mx-auto px-6 text-center text-sm text-neutral-500">
+          <div className="flex items-center justify-center gap-4 mb-3">
+            <a href={`${SURVIVOR_APP_URL}/privacy`} className="hover:text-burgundy-600">
               Privacy
             </a>
-            <span>|</span>
-            <a
-              href={`${SURVIVOR_APP_URL}/terms`}
-              className="hover:text-burgundy-600 transition-colors"
-            >
+            <span className="text-neutral-300">|</span>
+            <a href={`${SURVIVOR_APP_URL}/terms`} className="hover:text-burgundy-600">
               Terms
             </a>
-            <span>|</span>
-            <a
-              href={`${SURVIVOR_APP_URL}/contact`}
-              className="hover:text-burgundy-600 transition-colors"
-            >
+            <span className="text-neutral-300">|</span>
+            <a href={`${SURVIVOR_APP_URL}/contact`} className="hover:text-burgundy-600">
               Contact
             </a>
           </div>
@@ -1038,33 +828,7 @@ function SplashPage() {
             2025 Reality Games Fantasy League. Not affiliated with CBS or Survivor.
           </p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================================
-// SURVIVOR APP HOME PAGE
-// ============================================================================
-
-function SurvivorHome() {
-  return (
-    <div className="min-h-screen bg-cream-50">
-      <Navigation />
-
-      {/* Premium Hero with Multi-Layer Parallax */}
-      <PremiumHero />
-
-      {/* Value Props with Parallax Background */}
-      <ValueSection />
-
-      {/* Season Spotlight with Parallax */}
-      <SeasonSpotlight />
-
-      {/* Premium CTA with Parallax */}
-      <PremiumCTA />
-
-      <Footer />
+      </footer>
     </div>
   );
 }
@@ -1073,17 +837,35 @@ function SurvivorHome() {
 // MAIN EXPORT
 // ============================================================================
 
+// PICK YOUR CONCEPT:
+// ConceptA = Logo front and center, staggered reveal (user hates this)
+// ConceptB = Animated torch with flame, dark theme
+// ConceptC = Typography play with SURVIVOR SEASON 50
+// ConceptD = Scoreboard - animated 100+ counter, dark theme, stats-forward
+// ConceptE = The Glow - mouse-tracking ambient glow, dark theme
+// ConceptF = Bold Statement - left-aligned big typography, cream theme
+
+// Export all concepts for preview routes
+export const Concepts = {
+  A: ConceptA,
+  B: ConceptB,
+  C: ConceptC,
+  D: ConceptD,
+  E: ConceptE,
+  F: ConceptF,
+};
+
+const ActiveConcept = ConceptD; // <-- CHANGE THIS TO PREVIEW DIFFERENT CONCEPTS
+
 export function Home() {
-  // Redirect shortlink to survivor app (preserves path)
   if (isShortlink()) {
     window.location.href = SURVIVOR_APP_URL + window.location.pathname;
     return null;
   }
 
-  // Show splash page on main domain, full app on survivor subdomain
   if (isMainDomain()) {
     return <SplashPage />;
   }
 
-  return <SurvivorHome />;
+  return <ActiveConcept />;
 }
