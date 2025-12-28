@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "build:check": "tsc -b && vite build",
-    "start": "serve dist -s -l $PORT",
+    "start": "node server.js",
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
