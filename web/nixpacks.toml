@@ -2,16 +2,17 @@
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = [
-  "npm ci",
-  "npm list serve || npm install serve"
-]
+cmds = ["npm ci"]
 
 [phases.build]
 cmds = [
+  "echo 'Setting up Vite env vars'",
+  "export VITE_SUPABASE_URL=https://qxrgejdfxcvsfktgysop.supabase.co",
+  "export VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4cmdlamRmeGN2c2ZrdGd5c29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNjQzNTksImV4cCI6MjA4MTg0MDM1OX0.oe7awPK-K6vIHiP64peWztuAABOw4Hb9r6SHqwdb9B0",
+  "export VITE_API_URL=https://rgfl-api-production.up.railway.app",
   "npm run build",
   "ls -la dist/"
 ]
 
 [start]
-cmd = "node_modules/.bin/serve dist -s -l ${PORT:-3000}"
+cmd = "npx serve dist -s -l $PORT"
