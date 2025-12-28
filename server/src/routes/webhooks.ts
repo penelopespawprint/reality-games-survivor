@@ -1,9 +1,18 @@
+/**
+ * Webhook Routes
+ *
+ * Handles external webhook integrations:
+ * - Stripe payment webhooks
+ * - Twilio SMS webhooks
+ */
+
 import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
-import { stripe, STRIPE_WEBHOOK_SECRET } from '../config/stripe.js';
+import { requireStripe, STRIPE_WEBHOOK_SECRET } from '../config/stripe.js';
 import { validateTwilioWebhook } from '../config/twilio.js';
 import Stripe from 'stripe';
 import { EmailService } from '../emails/index.js';
+import { processSmsCommand, SmsContext } from '../services/sms/index.js';
 
 const router = Router();
 
@@ -14,7 +23,7 @@ router.post('/stripe', async (req: Request, res: Response) => {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
+    event = requireStripe().webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -265,6 +274,10 @@ router.post('/stripe', async (req: Request, res: Response) => {
   }
 });
 
+// ============================================================================
+// Twilio SMS Webhook
+// ============================================================================
+
 // POST /webhooks/sms - Handle Twilio inbound SMS
 router.post('/sms', async (req: Request, res: Response) => {
   try {
@@ -278,7 +291,6 @@ router.post('/sms', async (req: Request, res: Response) => {
     }
 
     // Twilio webhook payload (form-urlencoded)
-    // From = sender phone, Body = message text
     const from = req.body.From;
     const text = req.body.Body;
 
@@ -301,223 +313,17 @@ router.post('/sms', async (req: Request, res: Response) => {
     const parts = rawMessage.split(/\s+/);
     const command = parts[0];
 
-    let response = '';
-    let parsedData: any = { command, args: parts.slice(1) };
+    // Build context for command handler
+    const ctx: SmsContext = {
+      phone,
+      userId: user?.id || null,
+      rawMessage: text,
+      command,
+      args: parts.slice(1),
+    };
 
-    switch (command) {
-      case 'STOP':
-      case 'UNSUBSCRIBE':
-      case 'CANCEL':
-      case 'END':
-      case 'QUIT': {
-        // FCC/TCPA compliance - must respond immediately to STOP requests
-        if (!user) {
-          // Even if user not found, acknowledge the unsubscribe request
-          response = "You've been unsubscribed from RGFL SMS. Reply START to resubscribe or visit rgfl.app to manage preferences.";
-          parsedData.compliance_action = 'unsubscribe_no_user';
-        } else {
-          // Update user's SMS notification preference
-          const { error: updateError } = await supabaseAdmin
-            .from('users')
-            .update({ notification_sms: false })
-            .eq('id', user.id);
-
-          if (updateError) {
-            console.error('Failed to update SMS preference:', updateError);
-            response = 'Error processing unsubscribe request. Please try again or contact support.';
-            parsedData.compliance_action = 'unsubscribe_failed';
-            parsedData.error = updateError.message;
-          } else {
-            response = "You've been unsubscribed from RGFL SMS. Reply START to resubscribe or visit rgfl.app to manage preferences.";
-            parsedData.compliance_action = 'unsubscribe_success';
-
-            // Log notification for compliance
-            await EmailService.logNotification(
-              user.id,
-              'sms',
-              'SMS Unsubscribe',
-              `User unsubscribed via ${command} command`
-            );
-          }
-        }
-        break;
-      }
-
-      case 'START':
-      case 'SUBSCRIBE':
-      case 'UNSTOP': {
-        // Re-enable SMS notifications
-        if (!user) {
-          response = 'Phone not registered. Visit rgfl.app to link your phone and enable SMS notifications.';
-          parsedData.compliance_action = 'subscribe_no_user';
-        } else {
-          // Update user's SMS notification preference
-          const { error: updateError } = await supabaseAdmin
-            .from('users')
-            .update({ notification_sms: true })
-            .eq('id', user.id);
-
-          if (updateError) {
-            console.error('Failed to update SMS preference:', updateError);
-            response = 'Error processing subscribe request. Please try again or contact support.';
-            parsedData.compliance_action = 'subscribe_failed';
-            parsedData.error = updateError.message;
-          } else {
-            response = "You've been subscribed to RGFL SMS notifications. Text STOP to unsubscribe anytime.";
-            parsedData.compliance_action = 'subscribe_success';
-
-            // Log notification for compliance
-            await EmailService.logNotification(
-              user.id,
-              'sms',
-              'SMS Subscribe',
-              `User subscribed via ${command} command`
-            );
-          }
-        }
-        break;
-      }
-
-      case 'PICK': {
-        if (!user) {
-          response = 'Phone not registered. Visit rgfl.app to link your phone.';
-          break;
-        }
-
-        const castawayName = parts.slice(1).join(' ');
-        if (!castawayName) {
-          response = 'Usage: PICK [castaway name]';
-          break;
-        }
-
-        // Find castaway
-        const { data: castaway } = await supabaseAdmin
-          .from('castaways')
-          .select('id, name')
-          .ilike('name', `%${castawayName}%`)
-          .eq('status', 'active')
-          .single();
-
-        if (!castaway) {
-          response = `Castaway "${castawayName}" not found or eliminated.`;
-          break;
-        }
-
-        parsedData.castaway = castaway;
-
-        // Get user's leagues
-        const { data: memberships } = await supabaseAdmin
-          .from('league_members')
-          .select('league_id')
-          .eq('user_id', user.id);
-
-        if (!memberships || memberships.length === 0) {
-          response = 'You are not in any leagues.';
-          break;
-        }
-
-        // Get current episode
-        const { data: episode } = await supabaseAdmin
-          .from('episodes')
-          .select('id, number, picks_lock_at')
-          .gte('picks_lock_at', new Date().toISOString())
-          .order('picks_lock_at', { ascending: true })
-          .limit(1)
-          .single();
-
-        if (!episode) {
-          response = 'No episode currently accepting picks.';
-          break;
-        }
-
-        // Submit picks for all leagues
-        let pickCount = 0;
-        for (const membership of memberships) {
-          // Check user has castaway on roster
-          const { data: roster } = await supabaseAdmin
-            .from('rosters')
-            .select('id')
-            .eq('league_id', membership.league_id)
-            .eq('user_id', user.id)
-            .eq('castaway_id', castaway.id)
-            .is('dropped_at', null)
-            .single();
-
-          if (roster) {
-            await supabaseAdmin
-              .from('weekly_picks')
-              .upsert({
-                league_id: membership.league_id,
-                user_id: user.id,
-                episode_id: episode.id,
-                castaway_id: castaway.id,
-                status: 'pending',
-                picked_at: new Date().toISOString(),
-              }, {
-                onConflict: 'league_id,user_id,episode_id',
-              });
-            pickCount++;
-          }
-        }
-
-        response = `Picked ${castaway.name} for Episode ${episode.number} in ${pickCount} league(s).`;
-        break;
-      }
-
-      case 'STATUS': {
-        if (!user) {
-          response = 'Phone not registered. Visit rgfl.app to link your phone.';
-          break;
-        }
-
-        // Get current picks
-        const { data: picks } = await supabaseAdmin
-          .from('weekly_picks')
-          .select('castaways(name), leagues(name)')
-          .eq('user_id', user.id)
-          .order('picked_at', { ascending: false })
-          .limit(5);
-
-        if (!picks || picks.length === 0) {
-          response = 'No recent picks found.';
-        } else {
-          response = 'Recent picks:\n' + picks.map((p: any) =>
-            `${p.castaways?.name} - ${p.leagues?.name}`
-          ).join('\n');
-        }
-        break;
-      }
-
-      case 'TEAM': {
-        if (!user) {
-          response = 'Phone not registered. Visit rgfl.app to link your phone.';
-          break;
-        }
-
-        // Get roster
-        const { data: rosters } = await supabaseAdmin
-          .from('rosters')
-          .select('castaways(name, status), leagues(name)')
-          .eq('user_id', user.id)
-          .is('dropped_at', null);
-
-        if (!rosters || rosters.length === 0) {
-          response = 'No castaways on roster.';
-        } else {
-          response = 'Your team:\n' + rosters.map((r: any) =>
-            `${r.castaways?.name} (${r.castaways?.status}) - ${r.leagues?.name}`
-          ).join('\n');
-        }
-        break;
-      }
-
-      case 'HELP':
-        response = 'RGFL SMS Commands:\n\nPICK [name] - Pick castaway\nSTATUS - View picks\nTEAM - View roster\nSTOP - Unsubscribe\nSTART - Resubscribe\nHELP - Show this message';
-        break;
-
-      default:
-        response = 'Unknown command. Text HELP for options.';
-    }
+    // Process command via service
+    const result = await processSmsCommand(ctx);
 
     // Log command
     await supabaseAdmin.from('sms_commands').insert({
@@ -525,14 +331,14 @@ router.post('/sms', async (req: Request, res: Response) => {
       user_id: user?.id || null,
       command,
       raw_message: text,
-      parsed_data: parsedData,
-      response_sent: response,
+      parsed_data: result.parsedData,
+      response_sent: result.response,
     });
 
     // Respond with TwiML to send SMS reply
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Message>${escapeXml(response)}</Message>
+  <Message>${escapeXml(result.response)}</Message>
 </Response>`;
 
     res.set('Content-Type', 'text/xml');

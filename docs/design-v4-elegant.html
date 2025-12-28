@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survivor Fantasy League - 5 Elegant Variations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Raleway:wght@100;200;300;400&family=Playfair+Display:wght@400;500&family=Questrial&family=Josefin+Sans:wght@100;200;300;400&family=Poiret+One&family=Julius+Sans+One&family=Cinzel:wght@400;500&family=Tenor+Sans&family=Didact+Gothic&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Raleway', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+    }
+    
+    .separator {
+      height: 100px;
+      background: linear-gradient(to bottom, #0a0a0a, #1a1a1a, #0a0a0a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 14px;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      color: #666;
+    }
+    
+    /* ========================================
+       VARIATION 1: Minimal Torch Accent
+       Thin typography, torch as accent line
+    ======================================== */
+    .v1 {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0d0d0d 0%, #1a1512 50%, #0d0d0d 100%);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v1 nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30px 60px;
+    }
+    
+    .v1 .logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .v1 .logo img {
+      height: 50px;
+    }
+    
+    .v1 .nav-links {
+      display: flex;
+      gap: 40px;
+    }
+    
+    .v1 .nav-links a {
+      color: #888;
+      text-decoration: none;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    
+    .v1 .nav-links a:hover { color: #e8a849; }
+    
+    .v1 .hero {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      padding: 0 60px 60px;
+    }
+    
+    .v1 .hero-content {
+      flex: 1;
+      max-width: 600px;
+    }
+    
+    .v1 .torch-line {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, #e8a849, transparent);
+      margin-bottom: 30px;
+      position: relative;
+    }
+    
+    .v1 .torch-line::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: -6px;
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle, #ff6b35 0%, #e8a849 50%, transparent 70%);
+      border-radius: 50%;
+      animation: flicker 0.5s ease-in-out infinite alternate;
+    }
+    
+    @keyframes flicker {
+      0% { opacity: 0.8; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1.1); }
+    }
+    
+    .v1 h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 72px;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 25px;
+    }
+    
+    .v1 h1 span {
+      color: #e8a849;
+    }
+    
+    .v1 .tagline {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 16px;
+      letter-spacing: 3px;
+      color: #777;
+      margin-bottom: 50px;
+    }
+    
+    .v1 .cta-group {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    
+    .v1 .cta-primary {
+      padding: 16px 40px;
+      background: transparent;
+      border: 1px solid #e8a849;
+      color: #e8a849;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .v1 .cta-primary:hover {
+      background: #e8a849;
+      color: #0d0d0d;
+    }
+    
+    .v1 .cta-secondary {
+      color: #555;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    
+    .v1 .cta-secondary:hover { color: #888; }
+    
+    .v1 .hero-visual {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    
+    .v1 .torch-svg {
+      width: 120px;
+      height: 300px;
+      position: relative;
+    }
+    
+    .v1 .torch-handle {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 200px;
+      background: linear-gradient(180deg, #8B4513 0%, #5D2906 100%);
+      border-radius: 5px;
+    }
+    
+    .v1 .torch-flame {
+      position: absolute;
+      bottom: 180px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 100px;
+    }
+    
+    .v1 .flame {
+      position: absolute;
+      bottom: 0;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      animation: burn 0.8s ease-in-out infinite alternate;
+    }
+    
+    .v1 .flame-outer {
+      width: 50px;
+      height: 80px;
+      background: linear-gradient(to top, #ff4500 0%, #ff6b35 40%, #ffa500 100%);
+      left: 0;
+    }
+    
+    .v1 .flame-inner {
+      width: 30px;
+      height: 50px;
+      background: linear-gradient(to top, #ffff00 0%, #ffa500 100%);
+      left: 10px;
+      bottom: 5px;
+    }
+    
+    @keyframes burn {
+      0% { transform: scaleY(1) scaleX(1); }
+      100% { transform: scaleY(1.1) scaleX(0.95); }
+    }
+    
+    .v1 .countdown-elegant {
+      position: absolute;
+      bottom: 40px;
+      text-align: center;
+    }
+    
+    .v1 .countdown-elegant .label {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: #555;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+    }
+    
+    .v1 .countdown-elegant .time {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 48px;
+      color: #e8a849;
+    }
+    
+    /* ========================================
+       VARIATION 2: Full-Width Torch Divider
+       Ultra thin fonts, torch as horizontal divider
+    ======================================== */
+    .v2 {
+      min-height: 100vh;
+      background: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v2 nav {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+      gap: 60px;
+    }
+    
+    .v2 nav a {
+      color: #555;
+      text-decoration: none;
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 12px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    
+    .v2 nav a:hover { color: #fff; }
+    
+    .v2 .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .v2 .logo-section {
+      margin-bottom: 40px;
+    }
+    
+    .v2 .logo-section img {
+      height: 80px;
+    }
+    
+    .v2 h1 {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 80px;
+      letter-spacing: 20px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    
+    .v2 .torch-divider {
+      width: 400px;
+      height: 40px;
+      position: relative;
+      margin: 30px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .v2 .torch-divider::before,
+    .v2 .torch-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #8B4513 50%, transparent);
+    }
+    
+    .v2 .torch-center {
+      width: 40px;
+      height: 40px;
+      position: relative;
+      margin: 0 20px;
+    }
+    
+    .v2 .mini-torch {
+      width: 8px;
+      height: 25px;
+      background: linear-gradient(180deg, #8B4513 0%, #5D2906 100%);
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+    
+    .v2 .mini-flame {
+      position: absolute;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 16px;
+      height: 20px;
+      background: radial-gradient(ellipse at bottom, #ff6b35 0%, #ffa500 40%, transparent 70%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      animation: miniFlicker 0.4s ease-in-out infinite alternate;
+    }
+    
+    @keyframes miniFlicker {
+      0% { opacity: 0.9; transform: translateX(-50%) scaleY(1); }
+      100% { opacity: 1; transform: translateX(-50%) scaleY(1.15); }
+    }
+    
+    .v2 .tagline {
+      font-family: 'Poiret One', cursive;
+      font-size: 18px;
+      letter-spacing: 8px;
+      color: #666;
+      margin-bottom: 60px;
+    }
+    
+    .v2 .countdown-minimal {
+      display: flex;
+      gap: 50px;
+      margin-bottom: 60px;
+    }
+    
+    .v2 .countdown-minimal .unit {
+      text-align: center;
+    }
+    
+    .v2 .countdown-minimal .number {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 60px;
+      color: #fff;
+      line-height: 1;
+    }
+    
+    .v2 .countdown-minimal .label {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 200;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #555;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+    
+    .v2 .cta-outline {
+      padding: 20px 60px;
+      background: transparent;
+      border: 1px solid #333;
+      color: #fff;
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 200;
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .v2 .cta-outline:hover {
+      border-color: #e8a849;
+      color: #e8a849;
+    }
+    
+    /* ========================================
+       VARIATION 3: Torch Background Glow
+       Elegant serif, subtle torch silhouette
+    ======================================== */
+    .v3 {
+      min-height: 100vh;
+      background: #0f0f0f;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .v3 .torch-bg {
+      position: absolute;
+      right: 10%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 200px;
+      height: 500px;
+      opacity: 0.08;
+    }
+    
+    .v3 .torch-bg-handle {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 300px;
+      background: #fff;
+      border-radius: 5px;
+    }
+    
+    .v3 .torch-bg-flame {
+      position: absolute;
+      bottom: 280px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 180px;
+      background: radial-gradient(ellipse at bottom, #fff 0%, transparent 70%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    }
+    
+    .v3 .torch-glow {
+      position: absolute;
+      right: 15%;
+      top: 20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(232, 168, 73, 0.15) 0%, transparent 70%);
+      filter: blur(50px);
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+    
+    @keyframes glow {
+      0% { opacity: 0.5; transform: scale(1); }
+      100% { opacity: 0.8; transform: scale(1.1); }
+    }
+    
+    .v3 nav {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 40px 80px;
+    }
+    
+    .v3 .logo img {
+      height: 50px;
+    }
+    
+    .v3 .nav-links {
+      display: flex;
+      gap: 50px;
+    }
+    
+    .v3 .nav-links a {
+      color: #666;
+      text-decoration: none;
+      font-family: 'Cinzel', serif;
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    
+    .v3 .nav-links a:hover { color: #e8a849; }
+    
+    .v3 .content {
+      position: relative;
+      z-index: 10;
+      padding: 100px 80px;
+      max-width: 700px;
+    }
+    
+    .v3 .season-badge {
+      display: inline-block;
+      padding: 8px 20px;
+      border: 1px solid #333;
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #666;
+      margin-bottom: 40px;
+    }
+    
+    .v3 h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 64px;
+      line-height: 1.2;
+      margin-bottom: 30px;
+    }
+    
+    .v3 h1 .accent {
+      color: #e8a849;
+      font-style: italic;
+    }
+    
+    .v3 .description {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 16px;
+      line-height: 1.8;
+      color: #888;
+      margin-bottom: 50px;
+    }
+    
+    .v3 .stats {
+      display: flex;
+      gap: 60px;
+      margin-bottom: 50px;
+    }
+    
+    .v3 .stat {
+      text-align: left;
+    }
+    
+    .v3 .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 36px;
+      color: #e8a849;
+    }
+    
+    .v3 .stat-label {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #555;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+    
+    .v3 .cta-elegant {
+      display: inline-block;
+      padding: 18px 50px;
+      background: linear-gradient(135deg, #e8a849 0%, #d4963c 100%);
+      color: #0f0f0f;
+      text-decoration: none;
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: transform 0.3s;
+    }
+    
+    .v3 .cta-elegant:hover {
+      transform: translateY(-2px);
+    }
+    
+    /* ========================================
+       VARIATION 4: Torch Frame Design
+       Ultra-light fonts, torch as decorative frame
+    ======================================== */
+    .v4 {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #0a0806 0%, #12100c 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      position: relative;
+    }
+    
+    .v4 .torch-frame {
+      position: absolute;
+      left: 60px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 300px;
+    }
+    
+    .v4 .torch-frame-handle {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 200px;
+      background: linear-gradient(180deg, #8B4513 0%, #5D2906 100%);
+      border-radius: 2px;
+    }
+    
+    .v4 .torch-frame-flame {
+      position: absolute;
+      bottom: 190px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 40px;
+      background: radial-gradient(ellipse at bottom, #ff6b35 0%, #ffa500 40%, transparent 70%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      animation: frameBurn 0.5s ease-in-out infinite alternate;
+    }
+    
+    .v4 .torch-frame-right {
+      left: auto;
+      right: 60px;
+    }
+    
+    @keyframes frameBurn {
+      0% { opacity: 0.8; height: 40px; }
+      100% { opacity: 1; height: 50px; }
+    }
+    
+    .v4 .content-box {
+      border: 1px solid #2a2520;
+      padding: 80px 100px;
+      text-align: center;
+      max-width: 800px;
+      position: relative;
+    }
+    
+    .v4 .content-box::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #e8a849, transparent);
+    }
+    
+    .v4 .logo-inline {
+      margin-bottom: 40px;
+    }
+    
+    .v4 .logo-inline img {
+      height: 60px;
+    }
+    
+    .v4 h1 {
+      font-family: 'Julius Sans One', sans-serif;
+      font-weight: 400;
+      font-size: 48px;
+      letter-spacing: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .v4 .subtitle {
+      font-family: 'Tenor Sans', sans-serif;
+      font-size: 14px;
+      letter-spacing: 6px;
+      color: #e8a849;
+      margin-bottom: 50px;
+    }
+    
+    .v4 .countdown-framed {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 50px;
+    }
+    
+    .v4 .countdown-framed .unit {
+      width: 80px;
+      padding: 20px;
+      border: 1px solid #2a2520;
+      position: relative;
+    }
+    
+    .v4 .countdown-framed .number {
+      font-family: 'Julius Sans One', sans-serif;
+      font-size: 36px;
+      color: #fff;
+    }
+    
+    .v4 .countdown-framed .label {
+      font-family: 'Tenor Sans', sans-serif;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: #555;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+    
+    .v4 .description {
+      font-family: 'Didact Gothic', sans-serif;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #777;
+      margin-bottom: 40px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .v4 .cta-framed {
+      display: inline-block;
+      padding: 16px 50px;
+      border: 1px solid #e8a849;
+      color: #e8a849;
+      text-decoration: none;
+      font-family: 'Julius Sans One', sans-serif;
+      font-size: 12px;
+      letter-spacing: 4px;
+      transition: all 0.3s;
+    }
+    
+    .v4 .cta-framed:hover {
+      background: #e8a849;
+      color: #0a0806;
+    }
+    
+    /* ========================================
+       VARIATION 5: Interactive Torch Island
+       Floating interface with torch animation
+    ======================================== */
+    .v5 {
+      min-height: 100vh;
+      background: 
+        radial-gradient(ellipse at 50% 100%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+        linear-gradient(180deg, #080808 0%, #0f0d0b 100%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    
+    .v5 .left-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px;
+    }
+    
+    .v5 .logo-section {
+      margin-bottom: 60px;
+    }
+    
+    .v5 .logo-section img {
+      height: 50px;
+    }
+    
+    .v5 h1 {
+      font-family: 'Questrial', sans-serif;
+      font-weight: 400;
+      font-size: 52px;
+      line-height: 1.3;
+      margin-bottom: 25px;
+    }
+    
+    .v5 h1 .thin {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 100;
+    }
+    
+    .v5 h1 .highlight {
+      color: #e8a849;
+    }
+    
+    .v5 .description {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 15px;
+      line-height: 1.9;
+      color: #888;
+      margin-bottom: 50px;
+      max-width: 450px;
+    }
+    
+    .v5 .features {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 50px;
+    }
+    
+    .v5 .feature {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .v5 .feature-torch {
+      width: 6px;
+      height: 20px;
+      background: linear-gradient(180deg, #8B4513 0%, #5D2906 100%);
+      border-radius: 2px;
+      position: relative;
+    }
+    
+    .v5 .feature-torch::before {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 12px;
+      background: radial-gradient(ellipse at bottom, #ff6b35 0%, #ffa500 40%, transparent 70%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    }
+    
+    .v5 .feature-text {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 14px;
+      color: #aaa;
+    }
+    
+    .v5 .cta-group {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .v5 .cta-primary {
+      padding: 16px 40px;
+      background: #e8a849;
+      border: none;
+      color: #0a0806;
+      font-family: 'Questrial', sans-serif;
+      font-size: 13px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .v5 .cta-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(232, 168, 73, 0.3);
+    }
+    
+    .v5 .cta-secondary {
+      padding: 16px 40px;
+      background: transparent;
+      border: 1px solid #333;
+      color: #888;
+      font-family: 'Questrial', sans-serif;
+      font-size: 13px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .v5 .cta-secondary:hover {
+      border-color: #555;
+      color: #fff;
+    }
+    
+    .v5 .right-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .v5 .torch-island {
+      width: 400px;
+      height: 500px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    
+    .v5 .island-glow {
+      position: absolute;
+      bottom: 50px;
+      width: 300px;
+      height: 200px;
+      background: radial-gradient(ellipse at center bottom, rgba(232, 168, 73, 0.2) 0%, transparent 70%);
+      filter: blur(30px);
+    }
+    
+    .v5 .main-torch {
+      position: relative;
+      z-index: 2;
+    }
+    
+    .v5 .torch-body {
+      width: 25px;
+      height: 180px;
+      background: linear-gradient(180deg, #8B4513 0%, #6B3810 50%, #5D2906 100%);
+      border-radius: 4px;
+      position: relative;
+    }
+    
+    .v5 .torch-body::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 3px;
+      right: 3px;
+      height: 15px;
+      background: repeating-linear-gradient(
+        0deg,
+        #654321 0px,
+        #654321 3px,
+        transparent 3px,
+        transparent 6px
+      );
+      opacity: 0.5;
+    }
+    
+    .v5 .torch-flames {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 120px;
+    }
+    
+    .v5 .flame-layer {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    }
+    
+    .v5 .flame-outer {
+      width: 60px;
+      height: 100px;
+      background: linear-gradient(to top, #ff4500 0%, #ff6b35 30%, #ffa500 70%, rgba(255, 200, 0, 0.5) 100%);
+      animation: outerBurn 0.6s ease-in-out infinite alternate;
+    }
+    
+    .v5 .flame-middle {
+      width: 40px;
+      height: 70px;
+      background: linear-gradient(to top, #ffa500 0%, #ffcc00 50%, rgba(255, 255, 0, 0.8) 100%);
+      animation: middleBurn 0.5s ease-in-out infinite alternate;
+      animation-delay: 0.1s;
+    }
+    
+    .v5 .flame-inner {
+      width: 20px;
+      height: 40px;
+      background: linear-gradient(to top, #ffff00 0%, #fff 100%);
+      animation: innerBurn 0.4s ease-in-out infinite alternate;
+      animation-delay: 0.2s;
+    }
+    
+    @keyframes outerBurn {
+      0% { transform: translateX(-50%) scaleY(1) scaleX(1); }
+      100% { transform: translateX(-50%) scaleY(1.1) scaleX(0.9); }
+    }
+    
+    @keyframes middleBurn {
+      0% { transform: translateX(-50%) scaleY(1) scaleX(1); }
+      100% { transform: translateX(-50%) scaleY(1.15) scaleX(0.85); }
+    }
+    
+    @keyframes innerBurn {
+      0% { transform: translateX(-50%) scaleY(1); }
+      100% { transform: translateX(-50%) scaleY(1.2); }
+    }
+    
+    .v5 .spark {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #ffd700;
+      border-radius: 50%;
+      animation: spark 1.5s ease-out infinite;
+    }
+    
+    .v5 .spark:nth-child(1) { left: 30%; animation-delay: 0s; }
+    .v5 .spark:nth-child(2) { left: 50%; animation-delay: 0.3s; }
+    .v5 .spark:nth-child(3) { left: 70%; animation-delay: 0.6s; }
+    .v5 .spark:nth-child(4) { left: 40%; animation-delay: 0.9s; }
+    .v5 .spark:nth-child(5) { left: 60%; animation-delay: 1.2s; }
+    
+    @keyframes spark {
+      0% { bottom: 0; opacity: 1; transform: translateX(0); }
+      100% { bottom: 150px; opacity: 0; transform: translateX(20px); }
+    }
+    
+    .v5 .countdown-floating {
+      position: absolute;
+      top: 80px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      padding: 25px 40px;
+      border: 1px solid rgba(232, 168, 73, 0.2);
+      text-align: center;
+    }
+    
+    .v5 .countdown-floating .label {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #888;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+    }
+    
+    .v5 .countdown-floating .time-display {
+      display: flex;
+      gap: 25px;
+    }
+    
+    .v5 .countdown-floating .unit {
+      text-align: center;
+    }
+    
+    .v5 .countdown-floating .number {
+      font-family: 'Questrial', sans-serif;
+      font-size: 32px;
+      color: #e8a849;
+    }
+    
+    .v5 .countdown-floating .unit-label {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 200;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: #666;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+    
+    .v5 .island-base {
+      width: 200px;
+      height: 30px;
+      background: 
+        radial-gradient(ellipse at center, rgba(139, 69, 19, 0.4) 0%, transparent 70%);
+      border-radius: 50%;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- VARIATION 1: Minimal Torch Accent -->
+<section class="v1">
+  <nav>
+    <div class="logo">
+      <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+    </div>
+    <div class="nav-links">
+      <a href="#">How to Play</a>
+      <a href="#">Castaways</a>
+      <a href="#">Leaderboard</a>
+      <a href="#">Sign In</a>
+    </div>
+  </nav>
+  
+  <div class="hero">
+    <div class="hero-content">
+      <div class="torch-line"></div>
+      <h1>Draft Your<br><span>Castaways</span></h1>
+      <p class="tagline">Season 50 Registration Now Open</p>
+      <div class="cta-group">
+        <button class="cta-primary">Join the Game</button>
+        <a href="#" class="cta-secondary">Learn More →</a>
+      </div>
+    </div>
+    
+    <div class="hero-visual">
+      <div class="torch-svg">
+        <div class="torch-flame">
+          <div class="flame flame-outer"></div>
+          <div class="flame flame-inner"></div>
+        </div>
+        <div class="torch-handle"></div>
+      </div>
+      <div class="countdown-elegant">
+        <div class="label">Draft Opens In</div>
+        <div class="time" id="countdown1">58:12:34:07</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator">Variation 2</div>
+
+<!-- VARIATION 2: Full-Width Torch Divider -->
+<section class="v2">
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">How to Play</a>
+    <a href="#">Castaways</a>
+    <a href="#">Episodes</a>
+    <a href="#">Sign In</a>
+  </nav>
+  
+  <div class="hero">
+    <div class="logo-section">
+      <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+    </div>
+    
+    <h1>SURVIVOR</h1>
+    
+    <div class="torch-divider">
+      <div class="torch-center">
+        <div class="mini-flame"></div>
+        <div class="mini-torch"></div>
+      </div>
+    </div>
+    
+    <p class="tagline">Fantasy League Season 50</p>
+    
+    <div class="countdown-minimal">
+      <div class="unit">
+        <div class="number" id="days2">58</div>
+        <div class="label">Days</div>
+      </div>
+      <div class="unit">
+        <div class="number" id="hours2">12</div>
+        <div class="label">Hours</div>
+      </div>
+      <div class="unit">
+        <div class="number" id="mins2">34</div>
+        <div class="label">Minutes</div>
+      </div>
+    </div>
+    
+    <button class="cta-outline">Begin Your Journey</button>
+  </div>
+</section>
+
+<div class="separator">Variation 3</div>
+
+<!-- VARIATION 3: Torch Background Glow -->
+<section class="v3">
+  <div class="torch-bg">
+    <div class="torch-bg-flame"></div>
+    <div class="torch-bg-handle"></div>
+  </div>
+  <div class="torch-glow"></div>
+  
+  <nav>
+    <div class="logo">
+      <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+    </div>
+    <div class="nav-links">
+      <a href="#">How to Play</a>
+      <a href="#">Scoring</a>
+      <a href="#">Episodes</a>
+      <a href="#">Contact</a>
+      <a href="#">Sign In</a>
+    </div>
+  </nav>
+  
+  <div class="content">
+    <div class="season-badge">Season 50 • Premiere Feb 26</div>
+    
+    <h1>Outwit. Outplay.<br><span class="accent">Out-Fantasy.</span></h1>
+    
+    <p class="description">
+      Draft your dream team of castaways, make weekly picks, and compete 
+      against fans worldwide. Will your torch stay lit?
+    </p>
+    
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-number">2.4K</div>
+        <div class="stat-label">Players Registered</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">186</div>
+        <div class="stat-label">Active Leagues</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number">18</div>
+        <div class="stat-label">Castaways</div>
+      </div>
+    </div>
+    
+    <a href="#" class="cta-elegant">Register Now</a>
+  </div>
+</section>
+
+<div class="separator">Variation 4</div>
+
+<!-- VARIATION 4: Torch Frame Design -->
+<section class="v4">
+  <div class="torch-frame">
+    <div class="torch-frame-flame"></div>
+    <div class="torch-frame-handle"></div>
+  </div>
+  <div class="torch-frame torch-frame-right">
+    <div class="torch-frame-flame"></div>
+    <div class="torch-frame-handle"></div>
+  </div>
+  
+  <div class="content-box">
+    <div class="logo-inline">
+      <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+    </div>
+    
+    <h1>SURVIVOR</h1>
+    <p class="subtitle">Fantasy League • Season 50</p>
+    
+    <div class="countdown-framed">
+      <div class="unit">
+        <div class="number">58</div>
+        <div class="label">Days</div>
+      </div>
+      <div class="unit">
+        <div class="number">12</div>
+        <div class="label">Hours</div>
+      </div>
+      <div class="unit">
+        <div class="number">34</div>
+        <div class="label">Mins</div>
+      </div>
+      <div class="unit">
+        <div class="number">07</div>
+        <div class="label">Secs</div>
+      </div>
+    </div>
+    
+    <p class="description">
+      Join thousands of fans competing for glory. Draft castaways, 
+      earn points, climb the leaderboard.
+    </p>
+    
+    <a href="#" class="cta-framed">Register Free</a>
+  </div>
+</section>
+
+<div class="separator">Variation 5</div>
+
+<!-- VARIATION 5: Interactive Torch Island -->
+<section class="v5">
+  <div class="left-panel">
+    <div class="logo-section">
+      <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+    </div>
+    
+    <h1>
+      <span class="thin">The Ultimate</span><br>
+      Survivor <span class="highlight">Fantasy</span>
+    </h1>
+    
+    <p class="description">
+      Draft your castaways, make strategic weekly picks, and compete 
+      with fans worldwide. Keep your torch lit all season long.
+    </p>
+    
+    <div class="features">
+      <div class="feature">
+        <div class="feature-torch"></div>
+        <span class="feature-text">Draft 2 castaways after Episode 1</span>
+      </div>
+      <div class="feature">
+        <div class="feature-torch"></div>
+        <span class="feature-text">Make weekly picks before each episode</span>
+      </div>
+      <div class="feature">
+        <div class="feature-torch"></div>
+        <span class="feature-text">100+ scoring events per episode</span>
+      </div>
+    </div>
+    
+    <div class="cta-group">
+      <button class="cta-primary">Get Started Free</button>
+      <button class="cta-secondary">How to Play</button>
+    </div>
+  </div>
+  
+  <div class="right-panel">
+    <div class="torch-island">
+      <div class="countdown-floating">
+        <div class="label">Registration Closes</div>
+        <div class="time-display">
+          <div class="unit">
+            <div class="number">58</div>
+            <div class="unit-label">Days</div>
+          </div>
+          <div class="unit">
+            <div class="number">12</div>
+            <div class="unit-label">Hours</div>
+          </div>
+          <div class="unit">
+            <div class="number">34</div>
+            <div class="unit-label">Mins</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="island-glow"></div>
+      
+      <div class="main-torch">
+        <div class="torch-flames">
+          <div class="flame-layer flame-outer"></div>
+          <div class="flame-layer flame-middle"></div>
+          <div class="flame-layer flame-inner"></div>
+          <div class="spark"></div>
+          <div class="spark"></div>
+          <div class="spark"></div>
+          <div class="spark"></div>
+          <div class="spark"></div>
+        </div>
+        <div class="torch-body"></div>
+      </div>
+      
+      <div class="island-base"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Live countdown functionality
+  function updateCountdowns() {
+    const targetDate = new Date('2026-02-25T17:00:00-08:00'); // Feb 25, 2026 5pm PST
+    const now = new Date();
+    const diff = targetDate - now;
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    // Update all countdown displays
+    const countdown1 = document.getElementById('countdown1');
+    if (countdown1) {
+      countdown1.textContent = `${days}:${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+    }
+    
+    const days2 = document.getElementById('days2');
+    const hours2 = document.getElementById('hours2');
+    const mins2 = document.getElementById('mins2');
+    if (days2) days2.textContent = days;
+    if (hours2) hours2.textContent = String(hours).padStart(2,'0');
+    if (mins2) mins2.textContent = String(mins).padStart(2,'0');
+  }
+  
+  updateCountdowns();
+  setInterval(updateCountdowns, 1000);
+</script>
+
+</body>
+</html>

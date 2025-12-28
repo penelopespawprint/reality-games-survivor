@@ -1,16 +1,31 @@
+/**
+ * Admin Routes
+ *
+ * Main admin router that combines modular route files with legacy endpoints.
+ * Routes are organized by domain:
+ * - /dashboard/* - Dashboard, stats, activity, health (modular: dashboard.ts)
+ * - /seasons/* - Season management (modular: seasons.ts)
+ * - /castaways/* - Castaway management
+ * - /episodes/* - Episode management
+ * - /jobs/* - Job management
+ * - /payments/* - Payment management
+ * - /users/* - User management
+ * - /leagues/* - League overview
+ * - /email-queue/* - Email queue management
+ * - /alerting/* - Alert configuration
+ */
+
 import { Router, Response } from 'express';
 import { authenticate, AuthenticatedRequest, requireAdmin } from '../middleware/authenticate.js';
-import { supabase, supabaseAdmin } from '../config/supabase.js';
-import { stripe } from '../config/stripe.js';
-import { runJob, getJobStatus, getJobHistory, getJobStats, getTrackedJobs, scheduleAutoRandomizeRankings, scheduleDraftFinalize } from '../jobs/index.js';
+import { supabaseAdmin } from '../config/supabase.js';
+import { requireStripe } from '../config/stripe.js';
+import { runJob, getJobStatus, getJobHistory, getJobStats, getTrackedJobs } from '../jobs/index.js';
 import { getQueueStats, sendEmailCritical } from '../config/email.js';
-import { seasonConfig } from '../lib/season-config.js';
-import {
-  getTimeline,
-  getDashboardStats,
-  getRecentActivity,
-  getSystemHealth,
-} from '../services/admin-dashboard.js';
+import { eliminateCastaway } from '../services/elimination.js';
+
+// Import modular routers
+import dashboardRouter from './admin/dashboard.js';
+import seasonsRouter from './admin/seasons.js';
 
 const router = Router();
 
@@ -18,218 +33,13 @@ const router = Router();
 router.use(authenticate);
 router.use(requireAdmin);
 
-// GET /api/admin/dashboard/timeline - Get upcoming events timeline
-router.get('/dashboard/timeline', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const timeline = await getTimeline();
-    res.json({ timeline });
-  } catch (err) {
-    console.error('GET /api/admin/dashboard/timeline error:', err);
-    res.status(500).json({ error: 'Failed to fetch timeline' });
-  }
-});
+// Mount modular routers
+router.use('/dashboard', dashboardRouter);
+router.use('/seasons', seasonsRouter);
 
-// GET /api/admin/dashboard/stats - Get comprehensive dashboard stats
-router.get('/dashboard/stats', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const stats = await getDashboardStats();
-    res.json(stats);
-  } catch (err) {
-    console.error('GET /api/admin/dashboard/stats error:', err);
-    res.status(500).json({ error: 'Failed to fetch stats' });
-  }
-});
-
-// GET /api/admin/dashboard/activity - Get recent platform activity
-router.get('/dashboard/activity', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { limit = 20 } = req.query;
-    const activity = await getRecentActivity(Number(limit));
-    res.json({ activity });
-  } catch (err) {
-    console.error('GET /api/admin/dashboard/activity error:', err);
-    res.status(500).json({ error: 'Failed to fetch activity' });
-  }
-});
-
-// GET /api/admin/dashboard/system-health - Get system health status
-router.get('/dashboard/system-health', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const health = await getSystemHealth();
-    res.json(health);
-  } catch (err) {
-    console.error('GET /api/admin/dashboard/system-health error:', err);
-    res.status(500).json({ error: 'Failed to fetch system health' });
-  }
-});
-
-// POST /api/admin/seasons - Create season
-router.post('/seasons', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const {
-      number,
-      name,
-      registration_opens_at,
-      draft_order_deadline,
-      registration_closes_at,
-      premiere_at,
-      draft_deadline,
-      finale_at,
-    } = req.body;
-
-    if (!number || !name || !premiere_at || !draft_deadline) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    const { data: season, error } = await supabaseAdmin
-      .from('seasons')
-      .insert({
-        number,
-        name,
-        registration_opens_at,
-        draft_order_deadline,
-        registration_closes_at,
-        premiere_at,
-        draft_deadline,
-        finale_at,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    res.status(201).json({ season });
-  } catch (err) {
-    console.error('POST /api/admin/seasons error:', err);
-    res.status(500).json({ error: 'Failed to create season' });
-  }
-});
-
-// PATCH /api/admin/seasons/:id - Update season
-router.patch('/seasons/:id', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const seasonId = req.params.id;
-    const updates = req.body;
-
-    const { data: season, error } = await supabaseAdmin
-      .from('seasons')
-      .update(updates)
-      .eq('id', seasonId)
-      .select()
-      .single();
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    // If updating dates, invalidate cache
-    if (updates.draft_deadline || updates.draft_order_deadline || updates.registration_closes_at) {
-      seasonConfig.invalidateCache();
-      console.log('Season dates updated, cache invalidated');
-    }
-
-    res.json({ season });
-  } catch (err) {
-    console.error('PATCH /api/admin/seasons/:id error:', err);
-    res.status(500).json({ error: 'Failed to update season' });
-  }
-});
-
-// POST /api/admin/seasons/:id/activate - Set active season
-router.post('/seasons/:id/activate', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const seasonId = req.params.id;
-
-    // Deactivate all seasons
-    await supabaseAdmin
-      .from('seasons')
-      .update({ is_active: false })
-      .neq('id', seasonId);
-
-    // Activate this season
-    const { data: season, error } = await supabaseAdmin
-      .from('seasons')
-      .update({ is_active: true })
-      .eq('id', seasonId)
-      .select()
-      .single();
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    // Invalidate cache when activating a new season
-    seasonConfig.invalidateCache();
-    console.log(`Season ${season.number} activated, cache invalidated`);
-
-    res.json({ season, previous_deactivated: true });
-  } catch (err) {
-    console.error('POST /api/admin/seasons/:id/activate error:', err);
-    res.status(500).json({ error: 'Failed to activate season' });
-  }
-});
-
-// PATCH /api/admin/seasons/:id/dates - Update season dates and reschedule jobs
-router.patch('/seasons/:id/dates', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const seasonId = req.params.id;
-    const { draft_deadline, draft_order_deadline, registration_closes_at, premiere_at } = req.body;
-
-    // Build updates object with only provided fields
-    const updates: any = {};
-    if (draft_deadline !== undefined) updates.draft_deadline = draft_deadline;
-    if (draft_order_deadline !== undefined) updates.draft_order_deadline = draft_order_deadline;
-    if (registration_closes_at !== undefined) updates.registration_closes_at = registration_closes_at;
-    if (premiere_at !== undefined) updates.premiere_at = premiere_at;
-
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: 'No date fields provided' });
-    }
-
-    // Update season dates
-    const { data: season, error } = await supabaseAdmin
-      .from('seasons')
-      .update(updates)
-      .eq('id', seasonId)
-      .select()
-      .single();
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    // Invalidate cache
-    seasonConfig.invalidateCache();
-    console.log('Season dates updated, cache invalidated');
-
-    // If this is the active season and we updated relevant dates, reschedule one-time jobs
-    if (season.is_active) {
-      const rescheduled: string[] = [];
-
-      if (updates.draft_order_deadline) {
-        await scheduleAutoRandomizeRankings();
-        rescheduled.push('auto-randomize-rankings');
-      }
-
-      if (updates.draft_deadline) {
-        await scheduleDraftFinalize();
-        rescheduled.push('draft-finalize');
-      }
-
-      if (rescheduled.length > 0) {
-        console.log(`Rescheduled jobs: ${rescheduled.join(', ')}`);
-        return res.json({ season, rescheduled_jobs: rescheduled });
-      }
-    }
-
-    res.json({ season });
-  } catch (err) {
-    console.error('PATCH /api/admin/seasons/:id/dates error:', err);
-    res.status(500).json({ error: 'Failed to update season dates' });
-  }
-});
+// ============================================================================
+// Castaways Routes
+// ============================================================================
 
 // POST /api/admin/castaways - Add castaway
 router.post('/castaways', async (req: AuthenticatedRequest, res: Response) => {
@@ -299,157 +109,27 @@ router.post('/castaways/:id/eliminate', async (req: AuthenticatedRequest, res: R
       return res.status(400).json({ error: 'episode_id is required' });
     }
 
-    // Get castaway details before updating
-    const { data: castawayBefore } = await supabaseAdmin
-      .from('castaways')
-      .select('id, name, season_id')
-      .eq('id', castawayId)
-      .single();
+    // Delegate to elimination service (handles DB updates + notifications)
+    const result = await eliminateCastaway({
+      castawayId,
+      episodeId: episode_id,
+      placement,
+    });
 
-    // Update castaway status to eliminated
-    const { data: castaway, error } = await supabaseAdmin
-      .from('castaways')
-      .update({
-        status: 'eliminated',
-        eliminated_episode_id: episode_id,
-        placement,
-      })
-      .eq('id', castawayId)
-      .select()
-      .single();
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    // NOTIFICATION LOGIC: Send elimination alerts to affected users
-    if (castaway && castawayBefore) {
-      // Find all users who have this castaway on their roster
-      const { data: rosters } = await supabaseAdmin
-        .from('rosters')
-        .select(`
-          id,
-          user_id,
-          league_id,
-          users!inner(id, email, display_name, phone, notification_email, notification_sms),
-          leagues!inner(id, name)
-        `)
-        .eq('castaway_id', castawayId)
-        .is('dropped_at', null); // Only active roster spots
-
-      if (rosters && rosters.length > 0) {
-        console.log(`[Elimination] ${castawayBefore.name} eliminated, notifying ${rosters.length} users`);
-
-        // Process each affected user
-        for (const roster of rosters) {
-          const user = (roster as any).users;
-          const league = (roster as any).leagues;
-
-          // Check how many active castaways this user still has
-          const { data: userRoster } = await supabaseAdmin
-            .from('rosters')
-            .select('castaway_id, castaways!inner(id, name, status)')
-            .eq('league_id', roster.league_id)
-            .eq('user_id', roster.user_id)
-            .is('dropped_at', null);
-
-          const activeCastaways = userRoster?.filter(
-            (r: any) => r.castaways?.status === 'active'
-          ) || [];
-
-          if (activeCastaways.length === 0) {
-            // BOTH CASTAWAYS ELIMINATED - TORCH SNUFFED! 🔥
-            console.log(`[Elimination] User ${user.id} has ZERO active castaways in league ${league.id} - TORCH SNUFFED`);
-
-            // Send torch snuffed email
-            if (user.notification_email !== false) {
-              try {
-                // Import EmailService dynamically to avoid circular deps
-                const { EmailService } = await import('../emails/service.js');
-                const { data: episode } = await supabaseAdmin
-                  .from('episodes')
-                  .select('number')
-                  .eq('id', episode_id)
-                  .single();
-
-                await EmailService.sendTorchSnuffed({
-                  displayName: user.display_name,
-                  email: user.email,
-                  leagueName: league.name,
-                  leagueId: league.id,
-                  episodeNumber: episode?.number || 0,
-                });
-                console.log(`[Elimination] Sent torch snuffed email to ${user.email}`);
-              } catch (err) {
-                console.error(`[Elimination] Failed to send torch snuffed email to ${user.email}:`, err);
-              }
-            }
-
-            // Send torch snuffed SMS
-            if (user.notification_sms && user.phone) {
-              try {
-                const { sendSMS } = await import('../config/twilio.js');
-                await sendSMS({
-                  to: user.phone,
-                  text: `[RGFL] Both your castaways have been eliminated in ${league.name}. Your torch has been snuffed and you can no longer compete this season. Check your email for details.`,
-                });
-                console.log(`[Elimination] Sent torch snuffed SMS to ${user.phone}`);
-              } catch (err) {
-                console.error(`[Elimination] Failed to send torch snuffed SMS to ${user.phone}:`, err);
-              }
-            }
-
-            // Mark user as eliminated in league_members
-            await supabaseAdmin
-              .from('league_members')
-              .update({ is_eliminated: true })
-              .eq('league_id', roster.league_id)
-              .eq('user_id', roster.user_id);
-
-          } else if (activeCastaways.length === 1) {
-            // ONE CASTAWAY REMAINING - Send elimination alert
-            console.log(`[Elimination] User ${user.id} has 1 active castaway remaining in league ${league.id}`);
-
-            if (user.notification_email !== false) {
-              try {
-                const { EmailService } = await import('../emails/service.js');
-                await EmailService.sendEliminationAlert({
-                  displayName: user.display_name,
-                  email: user.email,
-                  castawayName: castawayBefore.name,
-                  leagueName: league.name,
-                  leagueId: league.id,
-                });
-                console.log(`[Elimination] Sent elimination alert email to ${user.email}`);
-              } catch (err) {
-                console.error(`[Elimination] Failed to send elimination alert to ${user.email}:`, err);
-              }
-            }
-
-            // Send SMS notification
-            if (user.notification_sms && user.phone) {
-              try {
-                const { sendSMS } = await import('../config/twilio.js');
-                await sendSMS({
-                  to: user.phone,
-                  text: `[RGFL] ${castawayBefore.name} has been eliminated. You have 1 castaway remaining in ${league.name}. Choose wisely!`,
-                });
-                console.log(`[Elimination] Sent elimination SMS to ${user.phone}`);
-              } catch (err) {
-                console.error(`[Elimination] Failed to send elimination SMS:`, err);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    res.json({ castaway });
-  } catch (err) {
+    res.json({
+      castaway: result.castaway,
+      notifications: result.notificationsSent,
+      affected_users: result.affectedUsers,
+    });
+  } catch (err: any) {
     console.error('POST /api/admin/castaways/:id/eliminate error:', err);
-    res.status(500).json({ error: 'Failed to eliminate castaway' });
+    res.status(500).json({ error: err.message || 'Failed to eliminate castaway' });
   }
 });
+
+// ============================================================================
+// Episodes Routes
+// ============================================================================
 
 // POST /api/admin/episodes - Create episode
 router.post('/episodes', async (req: AuthenticatedRequest, res: Response) => {
@@ -517,6 +197,10 @@ router.patch('/episodes/:id', async (req: AuthenticatedRequest, res: Response) =
   }
 });
 
+// ============================================================================
+// Jobs Routes
+// ============================================================================
+
 // GET /api/admin/jobs - Job status
 router.get('/jobs', async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -570,6 +254,10 @@ router.get('/jobs/history', async (req: AuthenticatedRequest, res: Response) => 
   }
 });
 
+// ============================================================================
+// Payments Routes
+// ============================================================================
+
 // GET /api/admin/payments - All payments
 router.get('/payments', async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -613,6 +301,10 @@ router.get('/payments', async (req: AuthenticatedRequest, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch payments' });
   }
 });
+
+// ============================================================================
+// Users Routes
+// ============================================================================
 
 // GET /api/admin/users - View all users
 router.get('/users', async (req: AuthenticatedRequest, res: Response) => {
@@ -673,6 +365,10 @@ router.patch('/users/:id', async (req: AuthenticatedRequest, res: Response) => {
     res.status(500).json({ error: 'Failed to update user' });
   }
 });
+
+// ============================================================================
+// Leagues Routes
+// ============================================================================
 
 // GET /api/admin/leagues - View all leagues
 router.get('/leagues', async (req: AuthenticatedRequest, res: Response) => {
@@ -737,6 +433,10 @@ router.get('/leagues', async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
+// ============================================================================
+// Payment Refunds
+// ============================================================================
+
 // POST /api/admin/payments/:id/refund - Issue refund
 router.post('/payments/:id/refund', async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -763,7 +463,7 @@ router.post('/payments/:id/refund', async (req: AuthenticatedRequest, res: Respo
     }
 
     // Issue Stripe refund
-    const refund = await stripe.refunds.create({
+    const refund = await requireStripe().refunds.create({
       payment_intent: payment.stripe_payment_intent_id,
       reason: 'requested_by_customer',
     });
@@ -790,6 +490,10 @@ router.post('/payments/:id/refund', async (req: AuthenticatedRequest, res: Respo
     res.status(500).json({ error: 'Failed to issue refund' });
   }
 });
+
+// ============================================================================
+// Email Queue Routes
+// ============================================================================
 
 // GET /api/admin/email-queue/stats - Email queue statistics
 router.get('/email-queue/stats', async (req: AuthenticatedRequest, res: Response) => {
@@ -891,6 +595,10 @@ router.post('/failed-emails/:id/retry', async (req: AuthenticatedRequest, res: R
   }
 });
 
+// ============================================================================
+// Alerting Routes
+// ============================================================================
+
 // POST /api/admin/test-alert - Send test alert
 router.post('/test-alert', async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -921,6 +629,10 @@ router.get('/alerting/config', async (req: AuthenticatedRequest, res: Response) 
     res.status(500).json({ error: 'Failed to get alerting config' });
   }
 });
+
+// ============================================================================
+// Results Release Routes
+// ============================================================================
 
 // POST /api/admin/episodes/:id/release-results - Manually release episode results
 router.post('/episodes/:id/release-results', async (req: AuthenticatedRequest, res: Response) => {

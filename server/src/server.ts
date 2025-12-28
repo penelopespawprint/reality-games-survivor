@@ -7,7 +7,7 @@ import { generalLimiter } from './config/rateLimit.js';
 import healthRoutes from './routes/health.js';
 import authRoutes from './routes/auth.js';
 import dashboardRoutes from './routes/dashboard.js';
-import leagueRoutes from './routes/leagues.js';
+import leagueRoutes from './routes/leagues/index.js';
 import draftRoutes from './routes/draft.js';
 import pickRoutes from './routes/picks.js';
 import scoringRoutes from './routes/scoring.js';

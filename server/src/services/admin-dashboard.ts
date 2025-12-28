@@ -3,6 +3,7 @@ import { getJobHistory, getJobStats, getTrackedJobs } from '../jobs/index.js';
 import { getQueueStats } from '../config/email.js';
 import { seasonConfig } from '../lib/season-config.js';
 import { DateTime } from 'luxon';
+import { formatTimeUntil, measureDbLatency } from '../lib/shared-utils.js';
 
 interface TimelineEvent {
   type: 'episode' | 'deadline' | 'job' | 'waiver';
@@ -91,12 +92,6 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
     // 1. Draft Deadline
     const draftDeadline = await seasonConfig.getDraftDeadline();
     if (draftDeadline && draftDeadline > now) {
-      const diff = draftDeadline.diff(now, ['days', 'hours']).toObject();
-      const timeUntil =
-        diff.days! >= 1
-          ? `in ${Math.floor(diff.days!)} days`
-          : `in ${Math.floor(diff.hours!)} hours`;
-
       events.push({
         type: 'deadline',
         title: 'Draft Deadline',
@@ -104,7 +99,7 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
         timestamp: draftDeadline.toISO()!,
         status: 'upcoming',
         icon: '⏰',
-        metadata: { timeUntil },
+        metadata: { timeUntil: formatTimeUntil(draftDeadline, now) },
       });
     }
 
@@ -124,14 +119,6 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
           ? DateTime.fromISO(episode.picks_lock_at, { zone: 'America/Los_Angeles' })
           : airDate.set({ hour: 15, minute: 0 });
 
-        const diff = airDate.diff(now, ['days', 'hours']).toObject();
-        const timeUntil =
-          diff.days! >= 1
-            ? `in ${Math.floor(diff.days!)} days`
-            : diff.hours! >= 1
-            ? `in ${Math.floor(diff.hours!)} hours`
-            : 'today';
-
         events.push({
           type: 'episode',
           title: `Episode ${episode.number} Airs`,
@@ -140,7 +127,7 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
           status: 'upcoming',
           actionUrl: `/admin/scoring?episode=${episode.id}`,
           icon: '📺',
-          metadata: { timeUntil, episodeNumber: episode.number },
+          metadata: { timeUntil: formatTimeUntil(airDate, now), episodeNumber: episode.number },
         });
       }
     }
@@ -209,14 +196,6 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
           nextRun = nextRun.plus({ days: daysUntilTarget });
         }
 
-        const diff = nextRun.diff(now, ['days', 'hours']).toObject();
-        const timeUntil =
-          diff.days! >= 1
-            ? `in ${Math.floor(diff.days!)} days`
-            : diff.hours! >= 1
-            ? `in ${Math.floor(diff.hours!)} hours`
-            : 'in less than 1 hour';
-
         events.push({
           type: 'job',
           title: job.description,
@@ -224,7 +203,7 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
           timestamp: nextRun.toISO()!,
           status: 'upcoming',
           icon: '⚙️',
-          metadata: { timeUntil, jobName: job.name },
+          metadata: { timeUntil: formatTimeUntil(nextRun, now), jobName: job.name },
         });
       }
     }
@@ -244,14 +223,6 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
       const daysUntilWed = (3 - currentDay + 7) % 7;
       const closeTime = nextWaiverClose.plus({ days: daysUntilWed });
 
-      const diff = closeTime.diff(now, ['days', 'hours']).toObject();
-      const timeUntil =
-        diff.days! >= 1
-          ? `in ${Math.floor(diff.days!)} days`
-          : diff.hours! >= 1
-          ? `in ${Math.floor(diff.hours!)} hours`
-          : 'less than 1 hour';
-
       events.push({
         type: 'waiver',
         title: 'Waiver Window Closes',
@@ -259,7 +230,7 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
         timestamp: closeTime.toISO()!,
         status: 'in-progress',
         icon: '🔄',
-        metadata: { timeUntil, action: 'close' },
+        metadata: { timeUntil: formatTimeUntil(closeTime, now), action: 'close' },
       });
     } else {
       // After Saturday - next Saturday
@@ -268,14 +239,6 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
 
     // Add waiver open event if not currently open
     if (currentDay < 6 || (currentDay === 6 && now.hour < 12)) {
-      const diff = nextWaiverOpen.diff(now, ['days', 'hours']).toObject();
-      const timeUntil =
-        diff.days! >= 1
-          ? `in ${Math.floor(diff.days!)} days`
-          : diff.hours! >= 1
-          ? `in ${Math.floor(diff.hours!)} hours`
-          : 'in less than 1 hour';
-
       events.push({
         type: 'waiver',
         title: 'Waiver Window Opens',
@@ -283,7 +246,7 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
         timestamp: nextWaiverOpen.toISO()!,
         status: 'upcoming',
         icon: '🔄',
-        metadata: { timeUntil, action: 'open' },
+        metadata: { timeUntil: formatTimeUntil(nextWaiverOpen, now), action: 'open' },
       });
     }
   } catch (error) {
@@ -431,9 +394,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     }
 
     // System health stats
-    const dbStart = Date.now();
-    await supabaseAdmin.from('users').select('id', { count: 'exact', head: true }).limit(1);
-    const dbResponseTimeMs = Date.now() - dbStart;
+    const dbResponseTimeMs = await measureDbLatency();
 
     // Job failures in last 24h
     const last24h = now.minus({ hours: 24 }).toJSDate();
@@ -620,9 +581,7 @@ export async function getSystemHealth(): Promise<SystemHealth> {
 
   try {
     // Check database
-    const dbStart = Date.now();
-    await supabaseAdmin.from('users').select('id').limit(1);
-    const dbResponseTimeMs = Date.now() - dbStart;
+    const dbResponseTimeMs = await measureDbLatency();
 
     const dbHealthy = dbResponseTimeMs < 1000;
     if (!dbHealthy) {

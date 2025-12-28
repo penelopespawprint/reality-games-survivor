@@ -204,5 +204,5 @@ async function handleEliminatedUser(
     console.error(`Error handling elimination for user ${userId}:`, err);
   }
 }
-
 export default autoPick;
+

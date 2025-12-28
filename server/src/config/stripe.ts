@@ -8,6 +8,19 @@ if (!STRIPE_SECRET_KEY) {
   console.warn('STRIPE_SECRET_KEY not set - payment features disabled');
 }
 
-export const stripe = STRIPE_SECRET_KEY
+// Properly typed: stripe is null when not configured
+// All routes using stripe MUST check for null before using
+export const stripe: Stripe | null = STRIPE_SECRET_KEY
   ? new Stripe(STRIPE_SECRET_KEY)
-  : (null as unknown as Stripe); // Routes using stripe must check for null
+  : null;
+
+/**
+ * Helper to safely get stripe instance
+ * @throws Error if stripe is not configured
+ */
+export function requireStripe(): Stripe {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY environment variable.');
+  }
+  return stripe;
+}

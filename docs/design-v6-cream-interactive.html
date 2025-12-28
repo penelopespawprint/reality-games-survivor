@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RGFL - Cream Theme Variations (Interactive Torch)</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300&family=Barlow:wght@200;300;400;500&family=Raleway:wght@200;300;400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --burgundy: #8B2635;
+      --burgundy-dark: #6D1E2A;
+      --cream: #FAF7F2;
+      --cream-dark: #EDE6DB;
+      --gold: #D4A853;
+      --gold-light: #E8C87A;
+      --text-dark: #2A2522;
+      --text-mid: #5A544E;
+      --text-light: #8A857E;
+      --torch-brown: #8B6914;
+      --torch-brown-dark: #5D4A1A;
+      --flame-red: #E53935;
+      --flame-orange: #FF9800;
+      --flame-yellow: #FFEB3B;
+    }
+    
+    body { background: var(--cream); }
+    
+    .separator {
+      padding: 50px;
+      background: var(--burgundy);
+      text-align: center;
+    }
+    .separator h2 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--gold-light);
+    }
+    .separator p {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-style: italic;
+      font-size: 16px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 8px;
+    }
+
+    /* ====== ACTUAL TORCH SVG COMPONENT ====== */
+    .torch-svg {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .torch-svg svg {
+      display: block;
+    }
+    
+    /* Flame animation on load */
+    .torch-svg .flame-group {
+      transform-origin: center bottom;
+      animation: flameGrow 1.5s ease-out forwards;
+    }
+    
+    @keyframes flameGrow {
+      0% { transform: scaleY(0); opacity: 0; }
+      50% { transform: scaleY(1.2); opacity: 1; }
+      100% { transform: scaleY(1); opacity: 1; }
+    }
+    
+    /* Continuous flame flicker */
+    .torch-svg .flame-flicker {
+      animation: flicker 0.4s ease-in-out infinite alternate;
+    }
+    
+    @keyframes flicker {
+      0% { transform: scaleY(1) scaleX(1); }
+      100% { transform: scaleY(1.08) scaleX(0.96); }
+    }
+
+    /* ====== VARIATION 1: Interactive Card Reveal ====== */
+    .v1 {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 80% 20%, rgba(212,168,83,0.1) 0%, transparent 50%),
+                  linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 100%);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v1 nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+      border-bottom: 1px solid rgba(139,38,53,0.1);
+    }
+    
+    .v1 .logo img { height: 48px; }
+    
+    .v1 .nav-links {
+      display: flex;
+      gap: 35px;
+    }
+    
+    .v1 .nav-links a {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    
+    .v1 .nav-links a:hover { color: var(--burgundy); }
+    
+    .v1 .nav-cta {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .v1 .btn {
+      padding: 12px 24px;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    
+    .v1 .btn-outline {
+      background: transparent;
+      border: 1px solid var(--burgundy);
+      color: var(--burgundy);
+    }
+    
+    .v1 .btn-outline:hover {
+      background: var(--burgundy);
+      color: white;
+    }
+    
+    .v1 .btn-filled {
+      background: var(--burgundy);
+      border: 1px solid var(--burgundy);
+      color: white;
+    }
+    
+    .v1 .hero {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      padding: 60px 50px;
+      align-items: center;
+    }
+    
+    .v1 .hero-content { max-width: 500px; }
+    
+    .v1 .torch-accent {
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    
+    .v1 .accent-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--burgundy), transparent);
+      margin-bottom: 20px;
+    }
+    
+    .v1 h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 62px;
+      line-height: 1.1;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    
+    .v1 h1 em {
+      color: var(--burgundy);
+      font-style: italic;
+    }
+    
+    .v1 .tagline {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 35px;
+    }
+    
+    .v1 .cta-group {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    
+    .v1 .countdown-box {
+      background: white;
+      padding: 20px 28px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      display: inline-flex;
+      align-items: center;
+      gap: 25px;
+    }
+    
+    .v1 .countdown-box .label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    .v1 .countdown-box .time {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .v1 .countdown-box .unit { text-align: center; }
+    
+    .v1 .countdown-box .number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      color: var(--burgundy);
+    }
+    
+    .v1 .countdown-box .unit-label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    /* Interactive torch island */
+    .v1 .torch-island {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      height: 500px;
+    }
+    
+    .v1 .main-torch-container {
+      position: absolute;
+      bottom: 30px;
+      z-index: 10;
+    }
+    
+    /* Hidden cards that reveal on hover */
+    .v1 .mystery-cards {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 100px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 20px;
+    }
+    
+    .v1 .mystery-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Hidden state - just shows silhouette */
+    .v1 .mystery-card .hidden-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      transition: opacity 0.3s;
+    }
+    
+    .v1 .mystery-card .silhouette {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--cream-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .v1 .mystery-card .silhouette svg {
+      width: 30px;
+      height: 30px;
+      fill: var(--text-light);
+    }
+    
+    .v1 .mystery-card .mystery-text {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    /* Revealed state */
+    .v1 .mystery-card .revealed-state {
+      position: absolute;
+      inset: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: all 0.4s;
+    }
+    
+    .v1 .mystery-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--burgundy);
+      box-shadow: 0 15px 40px rgba(139,38,53,0.15);
+    }
+    
+    .v1 .mystery-card:hover .hidden-state { opacity: 0; }
+    .v1 .mystery-card:hover .revealed-state {
+      opacity: 1;
+      transform: scale(1);
+    }
+    
+    .v1 .mystery-card .avatar {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+      color: white;
+      margin-bottom: 10px;
+    }
+    
+    .v1 .mystery-card .name {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+      font-size: 18px;
+      color: var(--text-dark);
+    }
+    
+    .v1 .mystery-card .tribe {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-top: 4px;
+    }
+    
+    .v1 .mystery-card .points {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      color: var(--burgundy);
+      margin-top: 8px;
+    }
+    
+    .v1 .mystery-card .points-label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--text-light);
+    }
+
+    /* ====== VARIATION 2: Torch Spotlight Reveal ====== */
+    .v2 {
+      min-height: 100vh;
+      background: var(--cream);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .v2 .content-side {
+      padding: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .v2 .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 50px;
+    }
+    
+    .v2 .logo-section img { height: 50px; }
+    
+    .v2 h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 56px;
+      line-height: 1.15;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    
+    .v2 h1 em {
+      font-style: italic;
+      color: var(--burgundy);
+    }
+    
+    .v2 .tagline {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 35px;
+      max-width: 420px;
+    }
+    
+    .v2 .features-list {
+      margin-bottom: 35px;
+    }
+    
+    .v2 .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    
+    .v2 .feature-item span {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      color: var(--text-mid);
+    }
+    
+    .v2 .cta-group {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .v2 .btn {
+      padding: 16px 32px;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    
+    .v2 .btn-primary {
+      background: var(--burgundy);
+      border: none;
+      color: white;
+    }
+    
+    .v2 .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--text-light);
+      color: var(--text-mid);
+    }
+    
+    /* Torch spotlight side */
+    .v2 .torch-side {
+      background: var(--cream-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Spotlight effect from torch */
+    .v2 .spotlight {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255,235,59,0.15) 0%, transparent 70%);
+      filter: blur(40px);
+      animation: spotlightPulse 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes spotlightPulse {
+      0% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+    }
+    
+    .v2 .torch-stage {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .v2 .countdown-floating {
+      background: white;
+      padding: 24px 32px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      text-align: center;
+      margin-bottom: 40px;
+      animation: floatUp 3s ease-in-out infinite;
+    }
+    
+    @keyframes floatUp {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .v2 .countdown-floating .label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 12px;
+    }
+    
+    .v2 .countdown-floating .time {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .v2 .countdown-floating .number {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      color: var(--burgundy);
+    }
+    
+    .v2 .countdown-floating .unit-label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: var(--text-light);
+    }
+
+    /* ====== VARIATION 3: Grid Reveal with Torches ====== */
+    .v3 {
+      min-height: 100vh;
+      background: var(--cream);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v3 nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+    }
+    
+    .v3 .logo img { height: 48px; }
+    
+    .v3 .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+    
+    .v3 .nav-center a {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+    }
+    
+    .v3 .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .v3 h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-weight: 400;
+      font-size: 52px;
+      color: var(--text-dark);
+      margin-bottom: 16px;
+    }
+    
+    .v3 h1 em {
+      font-style: italic;
+      color: var(--burgundy);
+    }
+    
+    .v3 .subtitle {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 14px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 50px;
+    }
+    
+    /* Grid of torch-revealed cards */
+    .v3 .reveal-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 50px;
+    }
+    
+    .v3 .reveal-cell {
+      width: 140px;
+      height: 180px;
+      background: white;
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.4s;
+    }
+    
+    /* Unlit torch state */
+    .v3 .reveal-cell .unlit {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: opacity 0.3s;
+    }
+    
+    .v3 .reveal-cell .unlit-text {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--text-light);
+    }
+    
+    /* Lit reveal state */
+    .v3 .reveal-cell .lit {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: all 0.4s;
+    }
+    
+    .v3 .reveal-cell:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(139,38,53,0.15);
+    }
+    
+    .v3 .reveal-cell:hover .unlit { opacity: 0; }
+    .v3 .reveal-cell:hover .lit {
+      opacity: 1;
+      transform: scale(1);
+    }
+    
+    .v3 .reveal-cell .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 500;
+      color: white;
+      margin-bottom: 8px;
+    }
+    
+    .v3 .reveal-cell .name {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 14px;
+      color: var(--text-dark);
+      text-align: center;
+    }
+    
+    .v3 .reveal-cell .tribe {
+      font-family: 'Barlow', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    
+    .v3 .cta-group {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .v3 .btn {
+      padding: 16px 40px;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    
+    .v3 .btn-primary {
+      background: var(--burgundy);
+      border: none;
+      color: white;
+    }
+    
+    .v3 .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--burgundy);
+      color: var(--burgundy);
+    }
+
+    /* ====== VARIATION 4: Torch Timeline ====== */
+    .v4 {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 100%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .v4 .content-side {
+      padding: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .v4 .logo-section {
+      margin-bottom: 40px;
+    }
+    
+    .v4 .logo-section img { height: 50px; }
+    
+    .v4 h1 {
+      font-family: 'Spectral', serif;
+      font-weight: 300;
+      font-size: 54px;
+      line-height: 1.15;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    
+    .v4 h1 em {
+      font-style: italic;
+      color: var(--burgundy);
+    }
+    
+    .v4 .tagline {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 35px;
+      max-width: 400px;
+    }
+    
+    .v4 .cta-group {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .v4 .btn {
+      padding: 16px 32px;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    
+    .v4 .btn-primary {
+      background: var(--burgundy);
+      border: none;
+      color: white;
+    }
+    
+    .v4 .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--text-light);
+      color: var(--text-mid);
+    }
+    
+    /* Timeline side with torches */
+    .v4 .timeline-side {
+      background: var(--cream-dark);
+      padding: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .v4 .timeline-title {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 30px;
+    }
+    
+    .v4 .timeline {
+      position: relative;
+      padding-left: 60px;
+    }
+    
+    .v4 .timeline::before {
+      content: '';
+      position: absolute;
+      left: 20px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--burgundy), var(--gold), transparent);
+    }
+    
+    .v4 .timeline-item {
+      position: relative;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .v4 .timeline-item:hover {
+      transform: translateX(8px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+    
+    .v4 .timeline-item .torch-marker {
+      position: absolute;
+      left: -48px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    
+    .v4 .timeline-item .date {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    
+    .v4 .timeline-item .event {
+      font-family: 'Spectral', serif;
+      font-size: 18px;
+      color: var(--text-dark);
+    }
+
+    /* ====== VARIATION 5: Full Immersive ====== */
+    .v5 {
+      min-height: 100vh;
+      background: var(--cream);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Background torch silhouettes */
+    .v5 .bg-torches {
+      position: absolute;
+      inset: 0;
+      opacity: 0.03;
+      pointer-events: none;
+    }
+    
+    .v5 .bg-torch {
+      position: absolute;
+    }
+    
+    .v5 .bg-torch:nth-child(1) { left: 5%; top: 20%; }
+    .v5 .bg-torch:nth-child(2) { right: 8%; top: 15%; }
+    .v5 .bg-torch:nth-child(3) { left: 15%; bottom: 10%; }
+    .v5 .bg-torch:nth-child(4) { right: 12%; bottom: 20%; }
+    
+    .v5 nav {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+    }
+    
+    .v5 .logo img { height: 48px; }
+    
+    .v5 .nav-links {
+      display: flex;
+      gap: 35px;
+    }
+    
+    .v5 .nav-links a {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+    }
+    
+    .v5 .hero {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      padding: 60px 50px;
+      align-items: center;
+      min-height: calc(100vh - 88px);
+    }
+    
+    .v5 .hero-content { max-width: 500px; }
+    
+    .v5 h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 60px;
+      line-height: 1.1;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    
+    .v5 h1 em {
+      color: var(--burgundy);
+      font-style: italic;
+    }
+    
+    .v5 .tagline {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 30px;
+    }
+    
+    /* Stats with torch icons */
+    .v5 .stats-row {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 35px;
+    }
+    
+    .v5 .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .v5 .stat-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      color: var(--burgundy);
+    }
+    
+    .v5 .stat-label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    .v5 .cta-group {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .v5 .btn {
+      padding: 16px 32px;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    
+    .v5 .btn-primary {
+      background: var(--burgundy);
+      border: none;
+      color: white;
+    }
+    
+    .v5 .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--burgundy);
+      color: var(--burgundy);
+    }
+    
+    /* Interactive torch reveal zone */
+    .v5 .reveal-zone {
+      background: var(--cream-dark);
+      border-radius: 20px;
+      padding: 40px;
+      position: relative;
+    }
+    
+    .v5 .reveal-zone .title {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .v5 .torch-center {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    
+    .v5 .castaway-orbit {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+    
+    .v5 .orbit-card {
+      width: 100px;
+      height: 120px;
+      background: white;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .v5 .orbit-card .hidden {
+      transition: opacity 0.3s;
+    }
+    
+    .v5 .orbit-card .revealed {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: all 0.3s;
+    }
+    
+    .v5 .orbit-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 25px rgba(139,38,53,0.15);
+    }
+    
+    .v5 .orbit-card:hover .hidden { opacity: 0; }
+    .v5 .orbit-card:hover .revealed {
+      opacity: 1;
+      transform: scale(1);
+    }
+    
+    .v5 .orbit-card .q-mark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      color: var(--text-light);
+    }
+    
+    .v5 .orbit-card .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow', sans-serif;
+      font-size: 12px;
+      color: white;
+      margin-bottom: 6px;
+    }
+    
+    .v5 .orbit-card .name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px;
+      color: var(--text-dark);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Reusable Torch SVG Template -->
+<svg style="display: none;">
+  <defs>
+    <symbol id="torch-icon" viewBox="0 0 60 180">
+      <g class="flame-group flame-flicker">
+        <!-- Outer flame (red) -->
+        <path d="M30 0 C15 20 10 35 10 50 C10 70 20 80 30 80 C40 80 50 70 50 50 C50 35 45 20 30 0" fill="#E53935" stroke="#1a1a1a" stroke-width="2"/>
+        <!-- Middle flame (orange) -->
+        <path d="M30 15 C20 30 17 40 17 50 C17 62 23 70 30 70 C37 70 43 62 43 50 C43 40 40 30 30 15" fill="#FF9800"/>
+        <!-- Inner flame (yellow) -->
+        <path d="M30 30 C25 40 22 48 22 55 C22 63 26 68 30 68 C34 68 38 63 38 55 C38 48 35 40 30 30" fill="#FFEB3B"/>
+      </g>
+      <!-- Handle -->
+      <path d="M22 75 L20 175 L40 175 L38 75 Z" fill="url(#torchGradient)" stroke="#1a1a1a" stroke-width="2"/>
+      <defs>
+        <linearGradient id="torchGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#8B6914"/>
+          <stop offset="50%" stop-color="#A67C00"/>
+          <stop offset="100%" stop-color="#5D4A1A"/>
+        </linearGradient>
+      </defs>
+    </symbol>
+    
+    <!-- Small torch -->
+    <symbol id="torch-small" viewBox="0 0 30 90">
+      <g class="flame-group flame-flicker">
+        <path d="M15 0 C8 10 5 17 5 25 C5 35 10 40 15 40 C20 40 25 35 25 25 C25 17 22 10 15 0" fill="#E53935" stroke="#1a1a1a" stroke-width="1"/>
+        <path d="M15 8 C10 15 8 20 8 25 C8 31 11 35 15 35 C19 35 22 31 22 25 C22 20 20 15 15 8" fill="#FF9800"/>
+        <path d="M15 15 C12 20 11 24 11 28 C11 32 13 34 15 34 C17 34 19 32 19 28 C19 24 18 20 15 15" fill="#FFEB3B"/>
+      </g>
+      <path d="M11 38 L10 88 L20 88 L19 38 Z" fill="url(#torchGradientSm)" stroke="#1a1a1a" stroke-width="1"/>
+      <defs>
+        <linearGradient id="torchGradientSm" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#8B6914"/>
+          <stop offset="50%" stop-color="#A67C00"/>
+          <stop offset="100%" stop-color="#5D4A1A"/>
+        </linearGradient>
+      </defs>
+    </symbol>
+    
+    <!-- Mini torch for bullets -->
+    <symbol id="torch-mini" viewBox="0 0 20 50">
+      <g class="flame-group flame-flicker">
+        <path d="M10 0 C5 6 3 10 3 15 C3 21 6 24 10 24 C14 24 17 21 17 15 C17 10 15 6 10 0" fill="#E53935" stroke="#1a1a1a" stroke-width="0.5"/>
+        <path d="M10 5 C7 9 5 12 5 15 C5 19 7 21 10 21 C13 21 15 19 15 15 C15 12 13 9 10 5" fill="#FF9800"/>
+        <path d="M10 10 C8 13 7 15 7 17 C7 20 8 21 10 21 C12 21 13 20 13 17 C13 15 12 13 10 10" fill="#FFEB3B"/>
+      </g>
+      <path d="M8 22 L7 48 L13 48 L12 22 Z" fill="#8B6914" stroke="#1a1a1a" stroke-width="0.5"/>
+    </symbol>
+    
+    <!-- Unlit torch -->
+    <symbol id="torch-unlit" viewBox="0 0 30 90">
+      <path d="M11 10 L10 88 L20 88 L19 10 Z" fill="#8B6914" stroke="#1a1a1a" stroke-width="1" opacity="0.4"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- VARIATION 1 -->
+<section class="v1">
+  <nav>
+    <div class="logo"><img src="web/public/logo.png" alt="RGFL"></div>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">How to Play</a>
+      <a href="#">Castaways</a>
+      <a href="#">Leaderboard</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Log In</a>
+      <a href="#" class="btn btn-filled">Sign Up</a>
+    </div>
+  </nav>
+  
+  <div class="hero">
+    <div class="hero-content">
+      <div class="torch-accent">
+        <svg class="torch-svg" width="40" height="120"><use href="#torch-small"/></svg>
+        <div class="accent-line"></div>
+      </div>
+      
+      <h1>Draft Your<br><em>Dream Team</em></h1>
+      <p class="tagline">Build the ultimate roster of Survivor castaways. Two players, infinite possibilities. Outwit, outplay, outlast.</p>
+      
+      <div class="cta-group">
+        <a href="#" class="btn btn-filled">Create League</a>
+        <a href="#" class="btn btn-outline">Join League</a>
+      </div>
+      
+      <div class="countdown-box">
+        <div class="label">Season 50 Premiere</div>
+        <div class="time">
+          <div class="unit"><div class="number">60</div><div class="unit-label">Days</div></div>
+          <div class="unit"><div class="number">12</div><div class="unit-label">Hours</div></div>
+          <div class="unit"><div class="number">45</div><div class="unit-label">Mins</div></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="torch-island">
+      <div class="mystery-cards">
+        <div class="mystery-card">
+          <div class="hidden-state">
+            <div class="silhouette">
+              <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <span class="mystery-text">Hover to reveal</span>
+          </div>
+          <div class="revealed-state">
+            <div class="avatar">BR</div>
+            <div class="name">Boston Rob</div>
+            <div class="tribe">Manu Tribe</div>
+            <div class="points">245</div>
+            <div class="points-label">Points</div>
+          </div>
+        </div>
+        <div class="mystery-card">
+          <div class="hidden-state">
+            <div class="silhouette">
+              <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <span class="mystery-text">Hover to reveal</span>
+          </div>
+          <div class="revealed-state">
+            <div class="avatar">PC</div>
+            <div class="name">Parvati</div>
+            <div class="tribe">Kama Tribe</div>
+            <div class="points">231</div>
+            <div class="points-label">Points</div>
+          </div>
+        </div>
+        <div class="mystery-card">
+          <div class="hidden-state">
+            <div class="silhouette">
+              <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <span class="mystery-text">Hover to reveal</span>
+          </div>
+          <div class="revealed-state">
+            <div class="avatar">TV</div>
+            <div class="name">Tony V</div>
+            <div class="tribe">Lesu Tribe</div>
+            <div class="points">218</div>
+            <div class="points-label">Points</div>
+          </div>
+        </div>
+        <div class="mystery-card">
+          <div class="hidden-state">
+            <div class="silhouette">
+              <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <span class="mystery-text">Hover to reveal</span>
+          </div>
+          <div class="revealed-state">
+            <div class="avatar">SD</div>
+            <div class="name">Sandra DT</div>
+            <div class="tribe">Manu Tribe</div>
+            <div class="points">205</div>
+            <div class="points-label">Points</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="main-torch-container">
+        <svg class="torch-svg" width="80" height="240"><use href="#torch-icon"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Variation 2</h2>
+  <p>Torch spotlight with floating countdown</p>
+</div>
+
+<!-- VARIATION 2 -->
+<section class="v2">
+  <div class="content-side">
+    <div class="logo-section">
+      <img src="web/public/logo.png" alt="RGFL">
+      <svg class="torch-svg" width="30" height="90"><use href="#torch-small"/></svg>
+    </div>
+    
+    <h1>Outwit. Outplay.<br><em>Out-Fantasy.</em></h1>
+    <p class="tagline">Draft your dream team of castaways, make weekly picks, and compete against fans worldwide.</p>
+    
+    <div class="features-list">
+      <div class="feature-item">
+        <svg class="torch-svg" width="20" height="50"><use href="#torch-mini"/></svg>
+        <span>Draft 2 castaways after Episode 1</span>
+      </div>
+      <div class="feature-item">
+        <svg class="torch-svg" width="20" height="50"><use href="#torch-mini"/></svg>
+        <span>Make weekly picks before each episode</span>
+      </div>
+      <div class="feature-item">
+        <svg class="torch-svg" width="20" height="50"><use href="#torch-mini"/></svg>
+        <span>100+ scoring events per episode</span>
+      </div>
+    </div>
+    
+    <div class="cta-group">
+      <button class="btn btn-primary">Get Started Free</button>
+      <button class="btn btn-secondary">How to Play</button>
+    </div>
+  </div>
+  
+  <div class="torch-side">
+    <div class="spotlight"></div>
+    
+    <div class="torch-stage">
+      <div class="countdown-floating">
+        <div class="label">Registration Closes</div>
+        <div class="time">
+          <div class="unit"><div class="number">60</div><div class="unit-label">Days</div></div>
+          <div class="unit"><div class="number">12</div><div class="unit-label">Hours</div></div>
+          <div class="unit"><div class="number">45</div><div class="unit-label">Mins</div></div>
+        </div>
+      </div>
+      
+      <svg class="torch-svg" width="100" height="300"><use href="#torch-icon"/></svg>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Variation 3</h2>
+  <p>Grid reveal - unlit torches become lit on hover</p>
+</div>
+
+<!-- VARIATION 3 -->
+<section class="v3">
+  <nav>
+    <div class="logo"><img src="web/public/logo.png" alt="RGFL"></div>
+    <div class="nav-center">
+      <a href="#">How to Play</a>
+      <a href="#">Castaways</a>
+      <a href="#">Leaderboard</a>
+      <a href="#">Sign In</a>
+    </div>
+  </nav>
+  
+  <div class="hero">
+    <h1>Survivor <em>Fantasy</em></h1>
+    <p class="subtitle">Season 50 • Premiere Feb 2026</p>
+    
+    <div class="reveal-grid">
+      <div class="reveal-cell">
+        <div class="unlit">
+          <svg width="30" height="70"><use href="#torch-unlit"/></svg>
+          <span class="unlit-text">Light it</span>
+        </div>
+        <div class="lit">
+          <svg class="torch-svg" width="25" height="60"><use href="#torch-small"/></svg>
+          <div class="avatar">BR</div>
+          <div class="name">Boston Rob</div>
+          <div class="tribe">Manu</div>
+        </div>
+      </div>
+      <div class="reveal-cell">
+        <div class="unlit">
+          <svg width="30" height="70"><use href="#torch-unlit"/></svg>
+          <span class="unlit-text">Light it</span>
+        </div>
+        <div class="lit">
+          <svg class="torch-svg" width="25" height="60"><use href="#torch-small"/></svg>
+          <div class="avatar">PC</div>
+          <div class="name">Parvati</div>
+          <div class="tribe">Kama</div>
+        </div>
+      </div>
+      <div class="reveal-cell">
+        <div class="unlit">
+          <svg width="30" height="70"><use href="#torch-unlit"/></svg>
+          <span class="unlit-text">Light it</span>
+        </div>
+        <div class="lit">
+          <svg class="torch-svg" width="25" height="60"><use href="#torch-small"/></svg>
+          <div class="avatar">TV</div>
+          <div class="name">Tony V</div>
+          <div class="tribe">Lesu</div>
+        </div>
+      </div>
+      <div class="reveal-cell">
+        <div class="unlit">
+          <svg width="30" height="70"><use href="#torch-unlit"/></svg>
+          <span class="unlit-text">Light it</span>
+        </div>
+        <div class="lit">
+          <svg class="torch-svg" width="25" height="60"><use href="#torch-small"/></svg>
+          <div class="avatar">SD</div>
+          <div class="name">Sandra</div>
+          <div class="tribe">Manu</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="cta-group">
+      <button class="btn btn-primary">Create Your League</button>
+      <button class="btn btn-secondary">Join a League</button>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Variation 4</h2>
+  <p>Timeline with torch markers</p>
+</div>
+
+<!-- VARIATION 4 -->
+<section class="v4">
+  <div class="content-side">
+    <div class="logo-section">
+      <img src="web/public/logo.png" alt="RGFL">
+    </div>
+    
+    <h1>The Ultimate<br>Survivor <em>Fantasy</em></h1>
+    <p class="tagline">Draft your castaways, make strategic weekly picks, and compete with fans worldwide.</p>
+    
+    <div class="cta-group">
+      <button class="btn btn-primary">Get Started</button>
+      <button class="btn btn-secondary">Learn More</button>
+    </div>
+  </div>
+  
+  <div class="timeline-side">
+    <p class="timeline-title">Season 50 Timeline</p>
+    
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="torch-marker">
+          <svg class="torch-svg" width="25" height="60"><use href="#torch-small"/></svg>
+        </div>
+        <div class="date">Dec 19, 2025</div>
+        <div class="event">Registration Opens</div>
+      </div>
+      <div class="timeline-item">
+        <div class="torch-marker">
+          <svg class="torch-svg" width="25" height="60"><use href="#torch-small"/></svg>
+        </div>
+        <div class="date">Feb 25, 2026</div>
+        <div class="event">Season 50 Premiere</div>
+      </div>
+      <div class="timeline-item">
+        <div class="torch-marker">
+          <svg class="torch-svg" width="25" height="60"><use href="#torch-small"/></svg>
+        </div>
+        <div class="date">Mar 2, 2026</div>
+        <div class="event">Draft Deadline</div>
+      </div>
+      <div class="timeline-item">
+        <div class="torch-marker">
+          <svg class="torch-svg" width="25" height="60"><use href="#torch-small"/></svg>
+        </div>
+        <div class="date">May 27, 2026</div>
+        <div class="event">Season Finale</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Variation 5</h2>
+  <p>Full immersive with background torches</p>
+</div>
+
+<!-- VARIATION 5 -->
+<section class="v5">
+  <div class="bg-torches">
+    <div class="bg-torch"><svg width="80" height="240"><use href="#torch-icon"/></svg></div>
+    <div class="bg-torch"><svg width="80" height="240"><use href="#torch-icon"/></svg></div>
+    <div class="bg-torch"><svg width="80" height="240"><use href="#torch-icon"/></svg></div>
+    <div class="bg-torch"><svg width="80" height="240"><use href="#torch-icon"/></svg></div>
+  </div>
+  
+  <nav>
+    <div class="logo"><img src="web/public/logo.png" alt="RGFL"></div>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">How to Play</a>
+      <a href="#">Castaways</a>
+      <a href="#">Leaderboard</a>
+      <a href="#">Sign In</a>
+    </div>
+  </nav>
+  
+  <div class="hero">
+    <div class="hero-content">
+      <h1>Draft Your<br><em>Dream Team</em></h1>
+      <p class="tagline">Build the ultimate roster of Survivor castaways. Two players, infinite possibilities.</p>
+      
+      <div class="stats-row">
+        <div class="stat-item">
+          <svg class="torch-svg" width="20" height="50"><use href="#torch-mini"/></svg>
+          <div>
+            <div class="stat-number">2.4K</div>
+            <div class="stat-label">Players</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <svg class="torch-svg" width="20" height="50"><use href="#torch-mini"/></svg>
+          <div>
+            <div class="stat-number">186</div>
+            <div class="stat-label">Leagues</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="cta-group">
+        <button class="btn btn-primary">Create League</button>
+        <button class="btn btn-secondary">Join League</button>
+      </div>
+    </div>
+    
+    <div class="reveal-zone">
+      <p class="title">Featured Castaways</p>
+      
+      <div class="torch-center">
+        <svg class="torch-svg" width="60" height="180"><use href="#torch-icon"/></svg>
+      </div>
+      
+      <div class="castaway-orbit">
+        <div class="orbit-card">
+          <div class="hidden"><span class="q-mark">?</span></div>
+          <div class="revealed">
+            <div class="avatar">BR</div>
+            <div class="name">Boston Rob</div>
+          </div>
+        </div>
+        <div class="orbit-card">
+          <div class="hidden"><span class="q-mark">?</span></div>
+          <div class="revealed">
+            <div class="avatar">PC</div>
+            <div class="name">Parvati</div>
+          </div>
+        </div>
+        <div class="orbit-card">
+          <div class="hidden"><span class="q-mark">?</span></div>
+          <div class="revealed">
+            <div class="avatar">TV</div>
+            <div class="name">Tony V</div>
+          </div>
+        </div>
+        <div class="orbit-card">
+          <div class="hidden"><span class="q-mark">?</span></div>
+          <div class="revealed">
+            <div class="avatar">SD</div>
+            <div class="name">Sandra</div>
+          </div>
+        </div>
+        <div class="orbit-card">
+          <div class="hidden"><span class="q-mark">?</span></div>
+          <div class="revealed">
+            <div class="avatar">CK</div>
+            <div class="name">Cirie</div>
+          </div>
+        </div>
+        <div class="orbit-card">
+          <div class="hidden"><span class="q-mark">?</span></div>
+          <div class="revealed">
+            <div class="avatar">JF</div>
+            <div class="name">JT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Live countdown
+  function updateCountdown() {
+    const target = new Date('2026-02-25T20:00:00-05:00').getTime();
+    const now = new Date().getTime();
+    const diff = target - now;
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    document.querySelectorAll('.number').forEach((el, i) => {
+      const idx = i % 3;
+      if (idx === 0) el.textContent = days;
+      else if (idx === 1) el.textContent = String(hours).padStart(2, '0');
+      else el.textContent = String(mins).padStart(2, '0');
+    });
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+
+</body>
+</html>

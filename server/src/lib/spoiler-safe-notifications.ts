@@ -22,6 +22,7 @@ interface User {
 interface Episode {
   id: string;
   number: number;
+  week_number?: number; // Optional: falls back to number if not set
   season_id: string;
 }
 
@@ -109,7 +110,8 @@ async function generateResultsToken(userId: string, episodeId: string): Promise<
  */
 function renderSpoilerSafeEmail(episode: Episode, token: string, userName: string): string {
   const appUrl = process.env.APP_URL || 'https://survivor.realitygamesfantasyleague.com';
-  const resultsUrl = `${appUrl}/results/week-${episode.week_number}?token=${token}`;
+  const weekNumber = episode.week_number ?? episode.number; // Use week_number if available, fallback to number
+  const resultsUrl = `${appUrl}/results/week-${weekNumber}?token=${token}`;
 
   return `
 <!DOCTYPE html>
@@ -178,7 +180,8 @@ function renderSpoilerSafeEmail(episode: Episode, token: string, userName: strin
  */
 function renderSpoilerSafeEmailText(episode: Episode, token: string, userName: string): string {
   const appUrl = process.env.APP_URL || 'https://survivor.realitygamesfantasyleague.com';
-  const resultsUrl = `${appUrl}/results/week-${episode.week_number}?token=${token}`;
+  const weekNumber = episode.week_number ?? episode.number; // Use week_number if available, fallback to number
+  const resultsUrl = `${appUrl}/results/week-${weekNumber}?token=${token}`;
 
   return `
 SURVIVOR FANTASY LEAGUE - Episode ${episode.number} Results Ready

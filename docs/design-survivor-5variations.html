@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survivor Fantasy League - 5 Variations</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300&family=Lora:ital,wght@0,400;0,500;1,400&family=Barlow:wght@200;300;400;500&family=Raleway:wght@200;300;400;500&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --burgundy: #8B2635;
+      --burgundy-dark: #6D1E2A;
+      --cream: #FAF7F2;
+      --cream-dark: #EDE6DB;
+      --gold: #D4A853;
+      --gold-light: #E8C87A;
+      --text-dark: #2A2522;
+      --text-mid: #5A544E;
+      --text-light: #8A857E;
+    }
+    
+    body { background: var(--cream); }
+    
+    /* Separator */
+    .separator {
+      padding: 50px;
+      background: linear-gradient(135deg, var(--burgundy-dark), var(--burgundy));
+      text-align: center;
+    }
+    .separator h2 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 6px;
+    }
+    .separator p {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 16px;
+      font-style: italic;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* ==============================================
+       EXACT TORCH SVG - Matches the provided image
+    ============================================== */
+    .torch-svg {
+      display: inline-block;
+    }
+    
+    /* Flame load animation */
+    .torch-svg .flame-group {
+      transform-origin: center bottom;
+      animation: flameIgnite 1.5s ease-out forwards;
+    }
+    
+    @keyframes flameIgnite {
+      0% { 
+        transform: scaleY(0) scaleX(0.3);
+        opacity: 0;
+      }
+      40% {
+        transform: scaleY(0.6) scaleX(0.8);
+        opacity: 0.7;
+      }
+      70% {
+        transform: scaleY(1.1) scaleX(1.05);
+        opacity: 1;
+      }
+      100% {
+        transform: scaleY(1) scaleX(1);
+        opacity: 1;
+      }
+    }
+    
+    /* Continuous flame flicker */
+    .torch-svg .flame-outer {
+      animation: flickerOuter 0.6s ease-in-out infinite alternate;
+      animation-delay: 1.5s;
+    }
+    .torch-svg .flame-middle {
+      animation: flickerMiddle 0.5s ease-in-out infinite alternate;
+      animation-delay: 1.6s;
+    }
+    .torch-svg .flame-inner {
+      animation: flickerInner 0.4s ease-in-out infinite alternate;
+      animation-delay: 1.7s;
+    }
+    
+    @keyframes flickerOuter {
+      0% { transform: scaleY(1) scaleX(1); }
+      100% { transform: scaleY(1.08) scaleX(0.95); }
+    }
+    @keyframes flickerMiddle {
+      0% { transform: scaleY(1) scaleX(1) translateY(0); }
+      100% { transform: scaleY(1.1) scaleX(0.9) translateY(-2px); }
+    }
+    @keyframes flickerInner {
+      0% { transform: scaleY(1); }
+      100% { transform: scaleY(1.15); }
+    }
+
+    /* ==============================================
+       VARIATION 1: Interactive Reveal Cards
+       Hover to reveal castaway details
+    ============================================== */
+    .v1 {
+      min-height: 100vh;
+      background: 
+        radial-gradient(ellipse at 75% 25%, rgba(212, 168, 83, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 100%);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v1 nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+      border-bottom: 1px solid rgba(139, 38, 53, 0.1);
+    }
+    
+    .v1 .logo img { height: 45px; }
+    
+    .v1 .nav-links {
+      display: flex;
+      gap: 35px;
+    }
+    
+    .v1 .nav-links a {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .v1 .nav-links a:hover { color: var(--burgundy); }
+    
+    .v1 .nav-cta { display: flex; gap: 12px; }
+    
+    .v1 .btn {
+      padding: 11px 24px;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    .v1 .btn-outline {
+      background: transparent;
+      border: 1px solid var(--burgundy);
+      color: var(--burgundy);
+    }
+    .v1 .btn-outline:hover {
+      background: var(--burgundy);
+      color: white;
+    }
+    .v1 .btn-filled {
+      background: var(--burgundy);
+      border: 1px solid var(--burgundy);
+      color: white;
+    }
+    .v1 .btn-filled:hover { background: var(--burgundy-dark); }
+    
+    .v1 .hero {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      padding: 60px 50px;
+      align-items: center;
+    }
+    
+    .v1 .hero-left h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 62px;
+      line-height: 1.1;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    .v1 .hero-left h1 em {
+      color: var(--burgundy);
+      font-style: italic;
+    }
+    
+    .v1 .hero-left p {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 35px;
+      max-width: 440px;
+    }
+    
+    .v1 .cta-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    
+    .v1 .cta-row .btn { padding: 14px 32px; }
+    
+    /* Countdown */
+    .v1 .countdown {
+      background: white;
+      padding: 20px 28px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      display: inline-flex;
+      align-items: center;
+      gap: 25px;
+    }
+    .v1 .countdown .label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    .v1 .countdown .time {
+      display: flex;
+      gap: 18px;
+    }
+    .v1 .countdown .unit { text-align: center; }
+    .v1 .countdown .number {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400;
+      font-size: 32px;
+      color: var(--burgundy);
+    }
+    .v1 .countdown .unit-label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    /* Right side - Interactive torch + reveal cards */
+    .v1 .hero-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    
+    .v1 .torch-area {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+    
+    /* Reveal cards positioned around torch */
+    .v1 .reveal-card {
+      position: absolute;
+      width: 160px;
+      height: 80px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .v1 .reveal-card:hover {
+      width: 200px;
+      height: 140px;
+      box-shadow: 0 15px 50px rgba(139, 38, 53, 0.2);
+      z-index: 10;
+    }
+    
+    .v1 .reveal-card .card-preview {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 80px;
+    }
+    
+    .v1 .reveal-card .avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      color: white;
+      flex-shrink: 0;
+    }
+    
+    .v1 .reveal-card .preview-text {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    .v1 .reveal-card .card-details {
+      padding: 0 16px 16px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease 0.1s;
+    }
+    
+    .v1 .reveal-card:hover .card-details {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .v1 .reveal-card .name {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+      font-size: 18px;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    
+    .v1 .reveal-card .tribe {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    
+    .v1 .reveal-card .stats {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .v1 .reveal-card .stat-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px;
+      color: var(--burgundy);
+    }
+    
+    .v1 .reveal-card .stat-lbl {
+      font-family: 'Barlow', sans-serif;
+      font-size: 9px;
+      color: var(--text-light);
+    }
+    
+    .v1 .reveal-card:nth-child(1) { top: 30px; left: 10px; }
+    .v1 .reveal-card:nth-child(2) { top: 60px; right: 10px; }
+    .v1 .reveal-card:nth-child(3) { bottom: 120px; left: 0; }
+    .v1 .reveal-card:nth-child(4) { bottom: 90px; right: 0; }
+
+    /* ==============================================
+       VARIATION 2: Torch Pulse Ring Effect
+    ============================================== */
+    .v2 {
+      min-height: 100vh;
+      background: var(--cream);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v2 nav {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      padding: 28px 50px;
+    }
+    .v2 nav a {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .v2 nav a:hover { color: var(--burgundy); }
+    
+    .v2 .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+    }
+    
+    .v2 .logo-section { margin-bottom: 40px; }
+    .v2 .logo-section img { height: 60px; }
+    
+    .v2 h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 64px;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+    .v2 h1 em {
+      font-style: italic;
+      color: var(--burgundy);
+    }
+    
+    .v2 .subtitle {
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 15px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 40px;
+    }
+    
+    /* Torch with pulse rings */
+    .v2 .torch-container {
+      position: relative;
+      margin-bottom: 40px;
+    }
+    
+    .v2 .pulse-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 120px;
+      height: 120px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      opacity: 0;
+      animation: pulseRing 3s ease-out infinite;
+    }
+    .v2 .pulse-ring:nth-child(2) { animation-delay: 1s; }
+    .v2 .pulse-ring:nth-child(3) { animation-delay: 2s; }
+    
+    @keyframes pulseRing {
+      0% {
+        width: 80px;
+        height: 80px;
+        opacity: 0.6;
+      }
+      100% {
+        width: 200px;
+        height: 200px;
+        opacity: 0;
+      }
+    }
+    
+    .v2 .countdown-inline {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    .v2 .countdown-inline .unit { text-align: center; }
+    .v2 .countdown-inline .number {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      color: var(--burgundy);
+    }
+    .v2 .countdown-inline .label {
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    .v2 .cta-group { display: flex; gap: 16px; }
+    .v2 .btn {
+      padding: 16px 45px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    .v2 .btn-primary {
+      background: var(--burgundy);
+      border: 1px solid var(--burgundy);
+      color: white;
+    }
+    .v2 .btn-primary:hover { background: var(--burgundy-dark); }
+    .v2 .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--text-light);
+      color: var(--text-mid);
+    }
+    .v2 .btn-secondary:hover {
+      border-color: var(--burgundy);
+      color: var(--burgundy);
+    }
+
+    /* ==============================================
+       VARIATION 3: Torch Menu Indicator
+    ============================================== */
+    .v3 {
+      min-height: 100vh;
+      background: 
+        radial-gradient(ellipse at 20% 80%, rgba(139, 38, 53, 0.04) 0%, transparent 50%),
+        var(--cream);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .v3 .left-content {
+      padding: 50px 60px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v3 .logo-area {
+      margin-bottom: 60px;
+    }
+    .v3 .logo-area img { height: 45px; }
+    
+    /* Menu with torch indicator */
+    .v3 .menu-list {
+      margin-bottom: 60px;
+    }
+    
+    .v3 .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .v3 .menu-item:hover { padding-left: 10px; }
+    
+    .v3 .menu-torch {
+      width: 20px;
+      height: 40px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .v3 .menu-item:hover .menu-torch { opacity: 1; }
+    .v3 .menu-item.active .menu-torch { opacity: 1; }
+    
+    .v3 .menu-item span {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 20px;
+      color: var(--text-mid);
+      transition: color 0.3s;
+    }
+    
+    .v3 .menu-item:hover span,
+    .v3 .menu-item.active span { color: var(--burgundy); }
+    
+    .v3 .hero-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .v3 .hero-text h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-weight: 400;
+      font-size: 48px;
+      line-height: 1.2;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    .v3 .hero-text h1 em {
+      font-style: italic;
+      color: var(--burgundy);
+    }
+    
+    .v3 .hero-text p {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 30px;
+      max-width: 400px;
+    }
+    
+    .v3 .btn {
+      display: inline-block;
+      padding: 14px 35px;
+      background: var(--burgundy);
+      color: white;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .v3 .btn:hover { background: var(--burgundy-dark); }
+    
+    /* Right side - large torch */
+    .v3 .right-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--cream-dark);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .v3 .glow-bg {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(212, 168, 83, 0.3) 0%, transparent 70%);
+      filter: blur(40px);
+    }
+
+    /* ==============================================
+       VARIATION 4: Floating Castaway Orbs
+    ============================================== */
+    .v4 {
+      min-height: 100vh;
+      background: var(--cream);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .v4 .left-panel {
+      padding: 50px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .v4 .logo-section { margin-bottom: 50px; }
+    .v4 .logo-section img { height: 45px; }
+    
+    .v4 h1 {
+      font-family: 'Spectral', serif;
+      font-weight: 300;
+      font-size: 52px;
+      line-height: 1.2;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    .v4 h1 em {
+      font-style: italic;
+      color: var(--burgundy);
+    }
+    
+    .v4 .description {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text-mid);
+      margin-bottom: 35px;
+      max-width: 420px;
+    }
+    
+    /* Feature list with mini torches */
+    .v4 .features {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 35px;
+    }
+    
+    .v4 .feature {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    
+    .v4 .feature-text {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 14px;
+      color: var(--text-mid);
+    }
+    
+    .v4 .cta-group { display: flex; gap: 14px; }
+    .v4 .btn {
+      padding: 14px 32px;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    .v4 .btn-primary {
+      background: var(--burgundy);
+      border: none;
+      color: white;
+    }
+    .v4 .btn-primary:hover {
+      background: var(--burgundy-dark);
+      transform: translateY(-2px);
+    }
+    .v4 .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--text-light);
+      color: var(--text-mid);
+    }
+    .v4 .btn-secondary:hover {
+      border-color: var(--burgundy);
+      color: var(--burgundy);
+    }
+    
+    /* Right panel - torch with floating orbs */
+    .v4 .right-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: 
+        radial-gradient(ellipse at center, rgba(212, 168, 83, 0.08) 0%, transparent 60%),
+        var(--cream-dark);
+    }
+    
+    .v4 .orb-container {
+      position: relative;
+      width: 350px;
+      height: 450px;
+    }
+    
+    /* Floating orbs that reveal on hover */
+    .v4 .castaway-orb {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+    }
+    
+    .v4 .castaway-orb:hover {
+      width: 180px;
+      height: 100px;
+      border-radius: 16px;
+      z-index: 10;
+    }
+    
+    .v4 .orb-initial {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 500;
+      font-size: 18px;
+      color: var(--burgundy);
+      transition: opacity 0.2s;
+    }
+    
+    .v4 .castaway-orb:hover .orb-initial { opacity: 0; position: absolute; }
+    
+    .v4 .orb-details {
+      opacity: 0;
+      padding: 16px;
+      text-align: center;
+      transition: opacity 0.3s ease 0.1s;
+    }
+    
+    .v4 .castaway-orb:hover .orb-details { opacity: 1; }
+    
+    .v4 .orb-details .name {
+      font-family: 'Spectral', serif;
+      font-size: 16px;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    .v4 .orb-details .tribe {
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    .v4 .orb-details .points {
+      font-family: 'Spectral', serif;
+      font-size: 20px;
+      color: var(--burgundy);
+    }
+    
+    .v4 .castaway-orb:nth-child(1) { top: 40px; left: 50px; animation: floatOrb 4s ease-in-out infinite; }
+    .v4 .castaway-orb:nth-child(2) { top: 80px; right: 40px; animation: floatOrb 4s ease-in-out infinite 0.5s; }
+    .v4 .castaway-orb:nth-child(3) { top: 200px; left: 20px; animation: floatOrb 4s ease-in-out infinite 1s; }
+    .v4 .castaway-orb:nth-child(4) { top: 220px; right: 60px; animation: floatOrb 4s ease-in-out infinite 1.5s; }
+    .v4 .castaway-orb:nth-child(5) { bottom: 100px; left: 80px; animation: floatOrb 4s ease-in-out infinite 2s; }
+    
+    @keyframes floatOrb {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    /* ==============================================
+       VARIATION 5: Torch Trail Navigation
+    ============================================== */
+    .v5 {
+      min-height: 100vh;
+      background: var(--cream);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Torch trail along edge */
+    .v5 .torch-trail {
+      position: absolute;
+      left: 40px;
+      top: 0;
+      bottom: 0;
+      width: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 0;
+      gap: 0;
+    }
+    
+    .v5 .trail-line {
+      width: 2px;
+      flex: 1;
+      background: linear-gradient(180deg, transparent, var(--burgundy) 20%, var(--burgundy) 80%, transparent);
+    }
+    
+    .v5 .trail-torch {
+      margin: 20px 0;
+    }
+    
+    .v5 .main-content {
+      margin-left: 120px;
+      padding: 60px 60px 60px 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      min-height: 100vh;
+      align-items: center;
+    }
+    
+    .v5 .content-left {
+      max-width: 500px;
+    }
+    
+    .v5 .logo-section { margin-bottom: 40px; }
+    .v5 .logo-section img { height: 45px; }
+    
+    .v5 h1 {
+      font-family: 'Lora', serif;
+      font-weight: 400;
+      font-size: 50px;
+      line-height: 1.2;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    .v5 h1 em {
+      font-style: italic;
+      color: var(--burgundy);
+    }
+    
+    .v5 .description {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text-mid);
+      margin-bottom: 35px;
+    }
+    
+    .v5 .stats-row {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 35px;
+    }
+    .v5 .stat-number {
+      font-family: 'Lora', serif;
+      font-size: 32px;
+      color: var(--burgundy);
+    }
+    .v5 .stat-label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    .v5 .btn {
+      display: inline-block;
+      padding: 14px 35px;
+      background: var(--burgundy);
+      color: white;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .v5 .btn:hover { background: var(--burgundy-dark); }
+    
+    /* Right - Interactive card stack */
+    .v5 .content-right {
+      position: relative;
+    }
+    
+    .v5 .card-stack {
+      position: relative;
+      height: 400px;
+    }
+    
+    .v5 .stack-card {
+      position: absolute;
+      width: 280px;
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .v5 .stack-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 60px rgba(139, 38, 53, 0.15);
+      z-index: 10;
+    }
+    
+    .v5 .stack-card:nth-child(1) { top: 0; left: 0; z-index: 4; }
+    .v5 .stack-card:nth-child(2) { top: 30px; left: 30px; z-index: 3; }
+    .v5 .stack-card:nth-child(3) { top: 60px; left: 60px; z-index: 2; }
+    
+    .v5 .stack-card .card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    
+    .v5 .stack-card .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+      color: white;
+    }
+    
+    .v5 .stack-card .card-info .name {
+      font-family: 'Lora', serif;
+      font-size: 18px;
+      color: var(--text-dark);
+    }
+    .v5 .stack-card .card-info .tribe {
+      font-family: 'Barlow', sans-serif;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    
+    .v5 .stack-card .card-stats {
+      display: flex;
+      gap: 20px;
+      padding-top: 14px;
+      border-top: 1px solid var(--cream-dark);
+    }
+    .v5 .stack-card .stat-val {
+      font-family: 'Lora', serif;
+      font-size: 22px;
+      color: var(--burgundy);
+    }
+    .v5 .stack-card .stat-lbl {
+      font-family: 'Barlow', sans-serif;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+  </style>
+</head>
+<body>
+
+<!-- VARIATION 1: Interactive Reveal Cards -->
+<section class="v1">
+  <nav>
+    <div class="logo">
+      <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+    </div>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">How to Play</a>
+      <a href="#">Castaways</a>
+      <a href="#">Leaderboard</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Log In</a>
+      <a href="#" class="btn btn-filled">Sign Up</a>
+    </div>
+  </nav>
+  
+  <div class="hero">
+    <div class="hero-left">
+      <h1>Draft Your<br><em>Dream Team</em></h1>
+      <p>Build the ultimate roster of Survivor castaways. Two players, infinite possibilities. Outwit, outplay, outlast.</p>
+      
+      <div class="cta-row">
+        <a href="#" class="btn btn-filled">Create Your League</a>
+        <a href="#" class="btn btn-outline">Join a League</a>
+      </div>
+      
+      <div class="countdown">
+        <div class="label">Season 50 Premiere</div>
+        <div class="time">
+          <div class="unit">
+            <div class="number" id="v1-days">60</div>
+            <div class="unit-label">Days</div>
+          </div>
+          <div class="unit">
+            <div class="number" id="v1-hours">12</div>
+            <div class="unit-label">Hours</div>
+          </div>
+          <div class="unit">
+            <div class="number" id="v1-mins">45</div>
+            <div class="unit-label">Mins</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="hero-right">
+      <div class="torch-area">
+        <!-- Reveal cards -->
+        <div class="reveal-card">
+          <div class="card-preview">
+            <div class="avatar">BR</div>
+            <div class="preview-text">Hover to reveal</div>
+          </div>
+          <div class="card-details">
+            <div class="name">Boston Rob</div>
+            <div class="tribe">Manu Tribe</div>
+            <div class="stats">
+              <div><span class="stat-val">245</span> <span class="stat-lbl">pts</span></div>
+              <div><span class="stat-val">4</span> <span class="stat-lbl">seasons</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="reveal-card">
+          <div class="card-preview">
+            <div class="avatar">PC</div>
+            <div class="preview-text">Hover to reveal</div>
+          </div>
+          <div class="card-details">
+            <div class="name">Parvati</div>
+            <div class="tribe">Kama Tribe</div>
+            <div class="stats">
+              <div><span class="stat-val">231</span> <span class="stat-lbl">pts</span></div>
+              <div><span class="stat-val">4</span> <span class="stat-lbl">seasons</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="reveal-card">
+          <div class="card-preview">
+            <div class="avatar">TV</div>
+            <div class="preview-text">Hover to reveal</div>
+          </div>
+          <div class="card-details">
+            <div class="name">Tony Vlachos</div>
+            <div class="tribe">Lesu Tribe</div>
+            <div class="stats">
+              <div><span class="stat-val">218</span> <span class="stat-lbl">pts</span></div>
+              <div><span class="stat-val">2</span> <span class="stat-lbl">wins</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="reveal-card">
+          <div class="card-preview">
+            <div class="avatar">SD</div>
+            <div class="preview-text">Hover to reveal</div>
+          </div>
+          <div class="card-details">
+            <div class="name">Sandra D-T</div>
+            <div class="tribe">Manu Tribe</div>
+            <div class="stats">
+              <div><span class="stat-val">205</span> <span class="stat-lbl">pts</span></div>
+              <div><span class="stat-val">2</span> <span class="stat-lbl">wins</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Main torch -->
+        <svg class="torch-svg" width="100" height="280" viewBox="0 0 100 280" style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);">
+          <defs>
+            <linearGradient id="handleGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#8B6914"/>
+              <stop offset="50%" style="stop-color:#A67C52"/>
+              <stop offset="100%" style="stop-color:#654321"/>
+            </linearGradient>
+          </defs>
+          <!-- Handle (tapered) -->
+          <path d="M40 100 L45 280 L55 280 L60 100 Z" fill="url(#handleGrad1)" stroke="#1a1a1a" stroke-width="2"/>
+          <path d="M42 100 L44 250" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>
+          <!-- Flame group -->
+          <g class="flame-group" transform-origin="50 100">
+            <path class="flame-outer" d="M50 10 C70 30, 80 50, 75 70 C72 82, 65 92, 50 100 C35 92, 28 82, 25 70 C20 50, 30 30, 50 10" fill="#E53E3E" stroke="#1a1a1a" stroke-width="2"/>
+            <path class="flame-middle" d="M50 25 C62 40, 68 55, 65 72 C62 82, 56 90, 50 95 C44 90, 38 82, 35 72 C32 55, 38 40, 50 25" fill="#ED8936"/>
+            <path class="flame-inner" d="M50 40 C58 52, 60 62, 58 75 C56 82, 53 88, 50 92 C47 88, 44 82, 42 75 C40 62, 42 52, 50 40" fill="#F6E05E"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Variation 2</h2>
+  <p>Centered with pulse rings</p>
+</div>
+
+<!-- VARIATION 2: Torch Pulse Ring Effect -->
+<section class="v2">
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">How to Play</a>
+    <a href="#">Castaways</a>
+    <a href="#">Results</a>
+    <a href="#">Sign In</a>
+  </nav>
+  
+  <div class="hero">
+    <div class="logo-section">
+      <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+    </div>
+    
+    <h1>Survivor <em>Fantasy</em></h1>
+    <p class="subtitle">Season 50 • Premiere Feb 2026</p>
+    
+    <div class="torch-container">
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <div class="pulse-ring"></div>
+      <svg class="torch-svg" width="80" height="200" viewBox="0 0 80 200">
+        <defs>
+          <linearGradient id="handleGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#8B6914"/>
+            <stop offset="50%" style="stop-color:#A67C52"/>
+            <stop offset="100%" style="stop-color:#654321"/>
+          </linearGradient>
+        </defs>
+        <path d="M32 75 L36 200 L44 200 L48 75 Z" fill="url(#handleGrad2)" stroke="#1a1a1a" stroke-width="2"/>
+        <g class="flame-group" transform-origin="40 75">
+          <path class="flame-outer" d="M40 8 C56 24, 64 40, 60 56 C58 66, 52 74, 40 80 C28 74, 22 66, 20 56 C16 40, 24 24, 40 8" fill="#E53E3E" stroke="#1a1a1a" stroke-width="2"/>
+          <path class="flame-middle" d="M40 20 C50 32, 55 44, 52 58 C50 66, 45 72, 40 76 C35 72, 30 66, 28 58 C25 44, 30 32, 40 20" fill="#ED8936"/>
+          <path class="flame-inner" d="M40 32 C47 42, 49 50, 47 60 C45 66, 43 70, 40 73 C37 70, 35 66, 33 60 C31 50, 33 42, 40 32" fill="#F6E05E"/>
+        </g>
+      </svg>
+    </div>
+    
+    <div class="countdown-inline">
+      <div class="unit">
+        <div class="number">60</div>
+        <div class="label">Days</div>
+      </div>
+      <div class="unit">
+        <div class="number">12</div>
+        <div class="label">Hours</div>
+      </div>
+      <div class="unit">
+        <div class="number">45</div>
+        <div class="label">Minutes</div>
+      </div>
+    </div>
+    
+    <div class="cta-group">
+      <a href="#" class="btn btn-primary">Get Started Free</a>
+      <a href="#" class="btn btn-secondary">Learn More</a>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Variation 3</h2>
+  <p>Torch as menu indicator</p>
+</div>
+
+<!-- VARIATION 3: Torch Menu Indicator -->
+<section class="v3">
+  <div class="left-content">
+    <div class="logo-area">
+      <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+    </div>
+    
+    <div class="menu-list">
+      <div class="menu-item active">
+        <svg class="menu-torch" width="20" height="40" viewBox="0 0 20 40">
+          <path d="M8 18 L9 40 L11 40 L12 18 Z" fill="#A67C52" stroke="#1a1a1a" stroke-width="1"/>
+          <g class="flame-group" transform-origin="10 18">
+            <path class="flame-outer" d="M10 2 C15 7, 18 12, 16 16 C15 18, 12 19, 10 20 C8 19, 5 18, 4 16 C2 12, 5 7, 10 2" fill="#E53E3E" stroke="#1a1a1a" stroke-width="1"/>
+            <path class="flame-middle" d="M10 5 C13 9, 15 12, 14 16 C13 18, 11 19, 10 19.5 C9 19, 7 18, 6 16 C5 12, 7 9, 10 5" fill="#ED8936"/>
+            <path class="flame-inner" d="M10 8 C12 11, 13 13, 12 16 C11 17, 10.5 18, 10 18.5 C9.5 18, 9 17, 8 16 C7 13, 8 11, 10 8" fill="#F6E05E"/>
+          </g>
+        </svg>
+        <span>Home</span>
+      </div>
+      <div class="menu-item">
+        <svg class="menu-torch" width="20" height="40" viewBox="0 0 20 40">
+          <path d="M8 18 L9 40 L11 40 L12 18 Z" fill="#A67C52" stroke="#1a1a1a" stroke-width="1"/>
+          <g class="flame-group">
+            <path class="flame-outer" d="M10 2 C15 7, 18 12, 16 16 C15 18, 12 19, 10 20 C8 19, 5 18, 4 16 C2 12, 5 7, 10 2" fill="#E53E3E" stroke="#1a1a1a" stroke-width="1"/>
+            <path class="flame-middle" d="M10 5 C13 9, 15 12, 14 16 C13 18, 11 19, 10 19.5 C9 19, 7 18, 6 16 C5 12, 7 9, 10 5" fill="#ED8936"/>
+            <path class="flame-inner" d="M10 8 C12 11, 13 13, 12 16 C11 17, 10.5 18, 10 18.5 C9.5 18, 9 17, 8 16 C7 13, 8 11, 10 8" fill="#F6E05E"/>
+          </g>
+        </svg>
+        <span>How to Play</span>
+      </div>
+      <div class="menu-item">
+        <svg class="menu-torch" width="20" height="40" viewBox="0 0 20 40">
+          <path d="M8 18 L9 40 L11 40 L12 18 Z" fill="#A67C52" stroke="#1a1a1a" stroke-width="1"/>
+          <g class="flame-group">
+            <path class="flame-outer" d="M10 2 C15 7, 18 12, 16 16 C15 18, 12 19, 10 20 C8 19, 5 18, 4 16 C2 12, 5 7, 10 2" fill="#E53E3E" stroke="#1a1a1a" stroke-width="1"/>
+            <path class="flame-middle" d="M10 5 C13 9, 15 12, 14 16 C13 18, 11 19, 10 19.5 C9 19, 7 18, 6 16 C5 12, 7 9, 10 5" fill="#ED8936"/>
+            <path class="flame-inner" d="M10 8 C12 11, 13 13, 12 16 C11 17, 10.5 18, 10 18.5 C9.5 18, 9 17, 8 16 C7 13, 8 11, 10 8" fill="#F6E05E"/>
+          </g>
+        </svg>
+        <span>Castaways</span>
+      </div>
+      <div class="menu-item">
+        <svg class="menu-torch" width="20" height="40" viewBox="0 0 20 40">
+          <path d="M8 18 L9 40 L11 40 L12 18 Z" fill="#A67C52" stroke="#1a1a1a" stroke-width="1"/>
+          <g class="flame-group">
+            <path class="flame-outer" d="M10 2 C15 7, 18 12, 16 16 C15 18, 12 19, 10 20 C8 19, 5 18, 4 16 C2 12, 5 7, 10 2" fill="#E53E3E" stroke="#1a1a1a" stroke-width="1"/>
+            <path class="flame-middle" d="M10 5 C13 9, 15 12, 14 16 C13 18, 11 19, 10 19.5 C9 19, 7 18, 6 16 C5 12, 7 9, 10 5" fill="#ED8936"/>
+            <path class="flame-inner" d="M10 8 C12 11, 13 13, 12 16 C11 17, 10.5 18, 10 18.5 C9.5 18, 9 17, 8 16 C7 13, 8 11, 10 8" fill="#F6E05E"/>
+          </g>
+        </svg>
+        <span>Leaderboard</span>
+      </div>
+    </div>
+    
+    <div class="hero-text">
+      <h1>Keep Your<br><em>Torch Lit</em></h1>
+      <p>Draft your dream team of Survivor castaways and compete all season long.</p>
+      <a href="#" class="btn">Start Playing</a>
+    </div>
+  </div>
+  
+  <div class="right-visual">
+    <div class="glow-bg"></div>
+    <svg class="torch-svg" width="120" height="340" viewBox="0 0 120 340">
+      <defs>
+        <linearGradient id="handleGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#8B6914"/>
+          <stop offset="50%" style="stop-color:#A67C52"/>
+          <stop offset="100%" style="stop-color:#654321"/>
+        </linearGradient>
+      </defs>
+      <path d="M48 120 L52 340 L68 340 L72 120 Z" fill="url(#handleGrad3)" stroke="#1a1a1a" stroke-width="2"/>
+      <g class="flame-group" transform-origin="60 120">
+        <path class="flame-outer" d="M60 10 C85 35, 95 60, 90 85 C86 100, 76 115, 60 125 C44 115, 34 100, 30 85 C25 60, 35 35, 60 10" fill="#E53E3E" stroke="#1a1a1a" stroke-width="2"/>
+        <path class="flame-middle" d="M60 30 C75 50, 82 65, 78 88 C74 102, 66 112, 60 118 C54 112, 46 102, 42 88 C38 65, 45 50, 60 30" fill="#ED8936"/>
+        <path class="flame-inner" d="M60 48 C70 62, 73 74, 70 90 C67 100, 63 108, 60 112 C57 108, 53 100, 50 90 C47 74, 50 62, 60 48" fill="#F6E05E"/>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Variation 4</h2>
+  <p>Floating orbs with hover reveal</p>
+</div>
+
+<!-- VARIATION 4: Floating Castaway Orbs -->
+<section class="v4">
+  <div class="left-panel">
+    <div class="logo-section">
+      <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+    </div>
+    
+    <h1>The Ultimate<br>Survivor <em>Fantasy</em></h1>
+    
+    <p class="description">
+      Draft your castaways, make strategic weekly picks, and compete 
+      with fans worldwide. Keep your torch lit all season long.
+    </p>
+    
+    <div class="features">
+      <div class="feature">
+        <svg width="12" height="28" viewBox="0 0 12 28">
+          <path d="M5 12 L5.5 28 L6.5 28 L7 12 Z" fill="#A67C52" stroke="#1a1a1a" stroke-width="0.5"/>
+          <path d="M6 1 C9 4, 11 7, 10 10 C9.5 11.5, 7.5 12, 6 12.5 C4.5 12, 2.5 11.5, 2 10 C1 7, 3 4, 6 1" fill="#E53E3E" stroke="#1a1a1a" stroke-width="0.5"/>
+          <path d="M6 3 C8 5, 9 7, 8.5 10 C8 11, 7 11.5, 6 12 C5 11.5, 4 11, 3.5 10 C3 7, 4 5, 6 3" fill="#ED8936"/>
+          <path d="M6 5 C7 6.5, 7.5 8, 7 10 C6.7 10.8, 6.3 11.2, 6 11.5 C5.7 11.2, 5.3 10.8, 5 10 C4.5 8, 5 6.5, 6 5" fill="#F6E05E"/>
+        </svg>
+        <span class="feature-text">Draft 2 castaways after Episode 1</span>
+      </div>
+      <div class="feature">
+        <svg width="12" height="28" viewBox="0 0 12 28">
+          <path d="M5 12 L5.5 28 L6.5 28 L7 12 Z" fill="#A67C52" stroke="#1a1a1a" stroke-width="0.5"/>
+          <path d="M6 1 C9 4, 11 7, 10 10 C9.5 11.5, 7.5 12, 6 12.5 C4.5 12, 2.5 11.5, 2 10 C1 7, 3 4, 6 1" fill="#E53E3E" stroke="#1a1a1a" stroke-width="0.5"/>
+          <path d="M6 3 C8 5, 9 7, 8.5 10 C8 11, 7 11.5, 6 12 C5 11.5, 4 11, 3.5 10 C3 7, 4 5, 6 3" fill="#ED8936"/>
+          <path d="M6 5 C7 6.5, 7.5 8, 7 10 C6.7 10.8, 6.3 11.2, 6 11.5 C5.7 11.2, 5.3 10.8, 5 10 C4.5 8, 5 6.5, 6 5" fill="#F6E05E"/>
+        </svg>
+        <span class="feature-text">Make weekly picks before each episode</span>
+      </div>
+      <div class="feature">
+        <svg width="12" height="28" viewBox="0 0 12 28">
+          <path d="M5 12 L5.5 28 L6.5 28 L7 12 Z" fill="#A67C52" stroke="#1a1a1a" stroke-width="0.5"/>
+          <path d="M6 1 C9 4, 11 7, 10 10 C9.5 11.5, 7.5 12, 6 12.5 C4.5 12, 2.5 11.5, 2 10 C1 7, 3 4, 6 1" fill="#E53E3E" stroke="#1a1a1a" stroke-width="0.5"/>
+          <path d="M6 3 C8 5, 9 7, 8.5 10 C8 11, 7 11.5, 6 12 C5 11.5, 4 11, 3.5 10 C3 7, 4 5, 6 3" fill="#ED8936"/>
+          <path d="M6 5 C7 6.5, 7.5 8, 7 10 C6.7 10.8, 6.3 11.2, 6 11.5 C5.7 11.2, 5.3 10.8, 5 10 C4.5 8, 5 6.5, 6 5" fill="#F6E05E"/>
+        </svg>
+        <span class="feature-text">100+ scoring events per episode</span>
+      </div>
+    </div>
+    
+    <div class="cta-group">
+      <button class="btn btn-primary">Get Started Free</button>
+      <button class="btn btn-secondary">How to Play</button>
+    </div>
+  </div>
+  
+  <div class="right-panel">
+    <div class="orb-container">
+      <!-- Floating orbs -->
+      <div class="castaway-orb">
+        <span class="orb-initial">BR</span>
+        <div class="orb-details">
+          <div class="name">Boston Rob</div>
+          <div class="tribe">Manu Tribe</div>
+          <div class="points">245 pts</div>
+        </div>
+      </div>
+      <div class="castaway-orb">
+        <span class="orb-initial">PC</span>
+        <div class="orb-details">
+          <div class="name">Parvati</div>
+          <div class="tribe">Kama Tribe</div>
+          <div class="points">231 pts</div>
+        </div>
+      </div>
+      <div class="castaway-orb">
+        <span class="orb-initial">TV</span>
+        <div class="orb-details">
+          <div class="name">Tony V</div>
+          <div class="tribe">Lesu Tribe</div>
+          <div class="points">218 pts</div>
+        </div>
+      </div>
+      <div class="castaway-orb">
+        <span class="orb-initial">SD</span>
+        <div class="orb-details">
+          <div class="name">Sandra</div>
+          <div class="tribe">Manu Tribe</div>
+          <div class="points">205 pts</div>
+        </div>
+      </div>
+      <div class="castaway-orb">
+        <span class="orb-initial">CK</span>
+        <div class="orb-details">
+          <div class="name">Cirie</div>
+          <div class="tribe">Lesu Tribe</div>
+          <div class="points">198 pts</div>
+        </div>
+      </div>
+      
+      <!-- Center torch -->
+      <svg class="torch-svg" width="80" height="220" viewBox="0 0 80 220" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);">
+        <defs>
+          <linearGradient id="handleGrad4" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#8B6914"/>
+            <stop offset="50%" style="stop-color:#A67C52"/>
+            <stop offset="100%" style="stop-color:#654321"/>
+          </linearGradient>
+        </defs>
+        <path d="M32 80 L36 220 L44 220 L48 80 Z" fill="url(#handleGrad4)" stroke="#1a1a1a" stroke-width="2"/>
+        <g class="flame-group" transform-origin="40 80">
+          <path class="flame-outer" d="M40 8 C58 26, 66 44, 62 60 C59 72, 51 80, 40 86 C29 80, 21 72, 18 60 C14 44, 22 26, 40 8" fill="#E53E3E" stroke="#1a1a1a" stroke-width="2"/>
+          <path class="flame-middle" d="M40 22 C52 36, 57 48, 54 62 C51 72, 45 78, 40 82 C35 78, 29 72, 26 62 C23 48, 28 36, 40 22" fill="#ED8936"/>
+          <path class="flame-inner" d="M40 35 C48 45, 50 54, 48 65 C46 72, 43 76, 40 79 C37 76, 34 72, 32 65 C30 54, 32 45, 40 35" fill="#F6E05E"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Variation 5</h2>
+  <p>Torch trail with card stack</p>
+</div>
+
+<!-- VARIATION 5: Torch Trail Navigation -->
+<section class="v5">
+  <div class="torch-trail">
+    <div class="trail-line"></div>
+    <div class="trail-torch">
+      <svg class="torch-svg" width="35" height="90" viewBox="0 0 35 90">
+        <path d="M14 35 L15 90 L20 90 L21 35 Z" fill="#A67C52" stroke="#1a1a1a" stroke-width="1"/>
+        <g class="flame-group" transform-origin="17.5 35">
+          <path class="flame-outer" d="M17.5 3 C25 10, 30 18, 27 26 C25 31, 21 35, 17.5 38 C14 35, 10 31, 8 26 C5 18, 10 10, 17.5 3" fill="#E53E3E" stroke="#1a1a1a" stroke-width="1"/>
+          <path class="flame-middle" d="M17.5 8 C22 14, 25 20, 23 28 C21 32, 19 35, 17.5 36 C16 35, 14 32, 12 28 C10 20, 13 14, 17.5 8" fill="#ED8936"/>
+          <path class="flame-inner" d="M17.5 13 C20 17, 21 22, 20 28 C19 31, 18 33, 17.5 34 C17 33, 16 31, 15 28 C14 22, 15 17, 17.5 13" fill="#F6E05E"/>
+        </g>
+      </svg>
+    </div>
+    <div class="trail-line"></div>
+  </div>
+  
+  <div class="main-content">
+    <div class="content-left">
+      <div class="logo-section">
+        <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+      </div>
+      
+      <h1>Outwit. Outplay.<br><em>Out-Fantasy.</em></h1>
+      
+      <p class="description">
+        Draft your dream team of castaways, make weekly picks, and compete 
+        against fans worldwide. Will your torch stay lit?
+      </p>
+      
+      <div class="stats-row">
+        <div>
+          <div class="stat-number">2.4K</div>
+          <div class="stat-label">Players</div>
+        </div>
+        <div>
+          <div class="stat-number">186</div>
+          <div class="stat-label">Leagues</div>
+        </div>
+        <div>
+          <div class="stat-number">18</div>
+          <div class="stat-label">Castaways</div>
+        </div>
+      </div>
+      
+      <a href="#" class="btn">Start Playing Free</a>
+    </div>
+    
+    <div class="content-right">
+      <div class="card-stack">
+        <div class="stack-card">
+          <div class="card-header">
+            <div class="avatar">BR</div>
+            <div class="card-info">
+              <div class="name">Boston Rob</div>
+              <div class="tribe">Manu Tribe</div>
+            </div>
+          </div>
+          <div class="card-stats">
+            <div>
+              <div class="stat-val">245</div>
+              <div class="stat-lbl">Points</div>
+            </div>
+            <div>
+              <div class="stat-val">4</div>
+              <div class="stat-lbl">Seasons</div>
+            </div>
+            <div>
+              <div class="stat-val">1</div>
+              <div class="stat-lbl">Wins</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stack-card">
+          <div class="card-header">
+            <div class="avatar">PC</div>
+            <div class="card-info">
+              <div class="name">Parvati Shallow</div>
+              <div class="tribe">Kama Tribe</div>
+            </div>
+          </div>
+          <div class="card-stats">
+            <div>
+              <div class="stat-val">231</div>
+              <div class="stat-lbl">Points</div>
+            </div>
+            <div>
+              <div class="stat-val">4</div>
+              <div class="stat-lbl">Seasons</div>
+            </div>
+            <div>
+              <div class="stat-val">1</div>
+              <div class="stat-lbl">Wins</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stack-card">
+          <div class="card-header">
+            <div class="avatar">TV</div>
+            <div class="card-info">
+              <div class="name">Tony Vlachos</div>
+              <div class="tribe">Lesu Tribe</div>
+            </div>
+          </div>
+          <div class="card-stats">
+            <div>
+              <div class="stat-val">218</div>
+              <div class="stat-lbl">Points</div>
+            </div>
+            <div>
+              <div class="stat-val">3</div>
+              <div class="stat-lbl">Seasons</div>
+            </div>
+            <div>
+              <div class="stat-val">2</div>
+              <div class="stat-lbl">Wins</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Countdown timer
+  function updateCountdowns() {
+    const target = new Date('2026-02-25T20:00:00-05:00').getTime();
+    const now = Date.now();
+    const diff = target - now;
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    const v1d = document.getElementById('v1-days');
+    const v1h = document.getElementById('v1-hours');
+    const v1m = document.getElementById('v1-mins');
+    if (v1d) v1d.textContent = days;
+    if (v1h) v1h.textContent = String(hours).padStart(2, '0');
+    if (v1m) v1m.textContent = String(mins).padStart(2, '0');
+  }
+  updateCountdowns();
+  setInterval(updateCountdowns, 1000);
+</script>
+
+</body>
+</html>

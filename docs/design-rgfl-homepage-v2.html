@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reality Games Fantasy League</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400;1,500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --burgundy: #8B2635;
+      --burgundy-dark: #6D1E2A;
+      --cream: #FAF7F2;
+      --cream-dark: #EDE6DB;
+      --gold: #D4A853;
+      --gold-light: #E8C87A;
+      --text-dark: #2A2522;
+      --text-mid: #5A544E;
+      --text-light: #8A857E;
+    }
+    
+    body {
+      background: var(--cream);
+      min-height: 100vh;
+      font-family: 'Jost', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    
+    /* Large logo - 1.5-2x size */
+    .logo-container {
+      position: relative;
+      margin-bottom: 50px;
+    }
+    
+    .logo-container img {
+      height: 140px;
+      display: block;
+    }
+    
+    /* Torch overlay for animation */
+    .torch-overlay {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+    
+    /* Torch divider */
+    .torch-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 550px;
+      margin-bottom: 45px;
+    }
+    
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--burgundy));
+    }
+    
+    .divider-line:last-child {
+      background: linear-gradient(90deg, var(--burgundy), transparent);
+    }
+    
+    .divider-torch {
+      margin: 0 30px;
+    }
+    
+    /* Flame animations */
+    
+    /* Phase 1: Ignition (0.5s delay, then 1s ignition) */
+    .flame-group {
+      transform-origin: center bottom;
+      opacity: 0;
+      transform: scaleY(0) scaleX(0.2);
+      animation: flameIgnite 1s ease-out 0.5s forwards;
+    }
+    
+    @keyframes flameIgnite {
+      0% { 
+        transform: scaleY(0) scaleX(0.2); 
+        opacity: 0; 
+      }
+      20% { 
+        transform: scaleY(0.3) scaleX(0.5); 
+        opacity: 0.4; 
+      }
+      50% { 
+        transform: scaleY(0.8) scaleX(0.9); 
+        opacity: 0.9; 
+      }
+      70% { 
+        transform: scaleY(1.15) scaleX(1.05); 
+        opacity: 1; 
+      }
+      100% { 
+        transform: scaleY(1) scaleX(1); 
+        opacity: 1; 
+      }
+    }
+    
+    /* Phase 2: Idle flicker (starts after ignition) */
+    .flame-outer {
+      animation: flameIgnite 1s ease-out 0.5s forwards, flickerOuter 0.5s ease-in-out 1.5s infinite alternate;
+    }
+    
+    .flame-middle {
+      animation: flameIgnite 1s ease-out 0.5s forwards, flickerMiddle 0.4s ease-in-out 1.6s infinite alternate;
+    }
+    
+    .flame-inner {
+      animation: flameIgnite 1s ease-out 0.5s forwards, flickerInner 0.35s ease-in-out 1.7s infinite alternate;
+    }
+    
+    @keyframes flickerOuter {
+      0% { transform: scaleY(1) scaleX(1); }
+      100% { transform: scaleY(1.06) scaleX(0.96); }
+    }
+    
+    @keyframes flickerMiddle {
+      0% { transform: scaleY(1) translateY(0); }
+      100% { transform: scaleY(1.08) translateY(-1px); }
+    }
+    
+    @keyframes flickerInner {
+      0% { transform: scaleY(1); }
+      100% { transform: scaleY(1.12); }
+    }
+    
+    /* Glow effect that appears with flame */
+    .flame-glow {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 80px;
+      background: radial-gradient(ellipse at center, rgba(237, 137, 54, 0.4) 0%, transparent 70%);
+      filter: blur(15px);
+      opacity: 0;
+      animation: glowAppear 1s ease-out 0.7s forwards, glowPulse 1s ease-in-out 1.7s infinite alternate;
+    }
+    
+    @keyframes glowAppear {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    @keyframes glowPulse {
+      0% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+    }
+    
+    /* Main copy - centered */
+    .main-copy {
+      text-align: center;
+      max-width: 700px;
+      margin-bottom: 50px;
+    }
+    
+    .main-copy .paragraph {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 24px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 25px;
+    }
+    
+    .main-copy .kicker {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+      font-style: italic;
+      font-size: 26px;
+      color: var(--burgundy);
+    }
+    
+    /* Countdown */
+    .countdown {
+      display: flex;
+      gap: 50px;
+      margin-bottom: 50px;
+    }
+    
+    .countdown .unit {
+      text-align: center;
+      position: relative;
+    }
+    
+    .countdown .unit:not(:last-child)::after {
+      content: ':';
+      position: absolute;
+      right: -30px;
+      top: 50%;
+      transform: translateY(-60%);
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 50px;
+      color: var(--burgundy);
+      opacity: 0.3;
+    }
+    
+    .countdown .number {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 72px;
+      color: var(--burgundy);
+      line-height: 1;
+    }
+    
+    .countdown .label {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-top: 10px;
+    }
+    
+    /* CTA Button */
+    .cta-btn {
+      display: inline-block;
+      padding: 22px 70px;
+      background: transparent;
+      border: 1px solid var(--burgundy);
+      color: var(--burgundy);
+      font-family: 'Jost', sans-serif;
+      font-weight: 400;
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .cta-btn:hover {
+      background: var(--burgundy);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Large logo with torch animation overlay -->
+<div class="logo-container">
+  <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+</div>
+
+<!-- Torch divider -->
+<div class="torch-divider">
+  <div class="divider-line"></div>
+  <div class="divider-torch" style="position: relative;">
+    <div class="flame-glow"></div>
+    <svg width="50" height="110" viewBox="0 0 50 110">
+      <defs>
+        <linearGradient id="handleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#8B6914"/>
+          <stop offset="50%" style="stop-color:#A67C52"/>
+          <stop offset="100%" style="stop-color:#654321"/>
+        </linearGradient>
+      </defs>
+      <!-- Handle -->
+      <path d="M22 50 L23 105 L27 105 L28 50 Z" fill="url(#handleGrad)" stroke="#1a1a1a" stroke-width="1.5"/>
+      <!-- Flames with ignition animation -->
+      <g class="flame-group" transform-origin="25 50">
+        <path class="flame-outer" d="M25 5 C38 18, 43 30, 40 42 C37 50, 31 55, 25 58 C19 55, 13 50, 10 42 C7 30, 12 18, 25 5" fill="#E53E3E" stroke="#1a1a1a" stroke-width="1.5"/>
+        <path class="flame-middle" d="M25 12 C34 22, 37 30, 35 42 C32 50, 28 54, 25 56 C22 54, 18 50, 15 42 C13 30, 16 22, 25 12" fill="#ED8936"/>
+        <path class="flame-inner" d="M25 20 C31 28, 33 35, 31 45 C29 50, 27 53, 25 54 C23 53, 21 50, 19 45 C17 35, 19 28, 25 20" fill="#F6E05E"/>
+      </g>
+    </svg>
+  </div>
+  <div class="divider-line"></div>
+</div>
+
+<!-- Main copy -->
+<div class="main-copy">
+  <p class="paragraph">
+    Get ready for fantasy done differently. Reality Games Fantasy League brings you fantasy experiences built by superfans, for superfans—no corporate shortcuts, no afterthoughts, just games designed by people who actually care.
+  </p>
+  <p class="kicker">
+    Starting with Survivor 50, the game is in the hands of the fans.
+  </p>
+</div>
+
+<!-- Countdown -->
+<div class="countdown">
+  <div class="unit">
+    <div class="number" id="days">59</div>
+    <div class="label">Days</div>
+  </div>
+  <div class="unit">
+    <div class="number" id="hours">21</div>
+    <div class="label">Hours</div>
+  </div>
+  <div class="unit">
+    <div class="number" id="mins">44</div>
+    <div class="label">Minutes</div>
+  </div>
+</div>
+
+<!-- CTA Button -->
+<a href="#" class="cta-btn">Claim Your Spot</a>
+
+<script>
+  function updateCountdown() {
+    const target = new Date('2026-02-25T20:00:00-05:00').getTime();
+    const now = Date.now();
+    const diff = target - now;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    document.getElementById('days').textContent = days;
+    document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+    document.getElementById('mins').textContent = String(mins).padStart(2, '0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+
+</body>
+</html>

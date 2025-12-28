@@ -1,919 +1,451 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
-import { Navigation } from '@/components/Navigation';
-import { Footer } from '@/components/Footer';
-import { ChevronRight } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
-const isMainDomain = () => {
-  const hostname = window.location.hostname;
+// ============================================================================
+// MINI TORCH COMPONENT - Improved design for transformed icons
+// ============================================================================
+
+function MiniTorch() {
   return (
-    hostname === 'realitygamesfantasyleague.com' || hostname === 'www.realitygamesfantasyleague.com'
-  );
-};
-
-const isShortlink = () => {
-  const hostname = window.location.hostname;
-  return hostname === 'rgfl.app' || hostname === 'www.rgfl.app';
-};
-
-const SURVIVOR_APP_URL = 'https://survivor.realitygamesfantasyleague.com';
-
-// ============================================================================
-// CONCEPT A: "Logo Hero" - Logo front and center, content below
-// Clean, logo dominates, text appears on scroll or after delay
-// ============================================================================
-
-function ConceptA() {
-  const { user } = useAuth();
-  const [stage, setStage] = useState(0);
-
-  useEffect(() => {
-    // Staggered reveal
-    const t1 = setTimeout(() => setStage(1), 300);
-    const t2 = setTimeout(() => setStage(2), 800);
-    const t3 = setTimeout(() => setStage(3), 1300);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-    };
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-cream-50 flex flex-col">
-      <Navigation />
-
-      <main className="flex-1 flex items-center justify-center px-6 py-16">
-        <div className="text-center max-w-2xl mx-auto">
-          {/* Logo - Hero element */}
-          <div
-            className={`mb-10 transition-all duration-1000 ${
-              stage >= 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-            }`}
-          >
-            <img
-              src="/logo.png"
-              alt="Reality Games Fantasy League"
-              className="h-40 sm:h-52 lg:h-64 mx-auto"
-            />
-          </div>
-
-          {/* Tagline */}
-          <p
-            className={`font-display text-2xl sm:text-3xl text-neutral-800 mb-8 transition-all duration-700 ${
-              stage >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
-          >
-            Fantasy Survivor for <span className="text-burgundy-600">strategists.</span>
-          </p>
-
-          {/* Copy */}
-          <div
-            className={`space-y-4 text-neutral-600 leading-relaxed mb-10 transition-all duration-700 ${
-              stage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
-          >
-            {!user && (
-              <>
-                <p>100+ scoring rules. Every vote, idol, and blindside counts.</p>
-                <p className="text-neutral-500">Built by superfans, for superfans.</p>
-              </>
-            )}
-            {user && <p>Welcome back. Your leagues await.</p>}
-          </div>
-
-          {/* CTA */}
-          <div
-            className={`transition-all duration-700 delay-100 ${
-              stage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
-          >
-            <Link
-              to={user ? '/dashboard' : '/signup'}
-              className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all"
-            >
-              {user ? 'Dashboard' : 'Join Season 50'}
-              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            {!user && (
-              <p className="text-neutral-400 text-sm mt-6">
-                <Link to="/login" className="text-burgundy-600 hover:underline">
-                  Log in
-                </Link>
-                {' · '}
-                <Link to="/how-to-play" className="hover:text-neutral-600">
-                  How it works
-                </Link>
-              </p>
-            )}
-          </div>
-        </div>
-      </main>
-
-      <Footer />
-    </div>
-  );
-}
-
-// ============================================================================
-// CONCEPT B: "The Torch Reveal" - Animated torch that glows/pulses
-// Torch element separates and becomes the focal point with flame animation
-// ============================================================================
-
-function ConceptB() {
-  const { user } = useAuth();
-  const [flameIntensity, setFlameIntensity] = useState(0);
-  const [showContent, setShowContent] = useState(false);
-
-  useEffect(() => {
-    // Torch "ignites" then content reveals
-    const t1 = setTimeout(() => setFlameIntensity(1), 500);
-    const t2 = setTimeout(() => setShowContent(true), 1200);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-neutral-900 flex flex-col overflow-hidden">
-      <Navigation />
-
-      <main className="flex-1 flex items-center justify-center px-6 py-16 relative">
-        {/* Ambient glow from torch */}
-        <div
-          className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full transition-all duration-1000"
-          style={{
-            background: `radial-gradient(circle, rgba(255, 140, 0, ${0.15 * flameIntensity}) 0%, transparent 60%)`,
-            filter: 'blur(40px)',
-          }}
-        />
-
-        <div className="relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center max-w-6xl mx-auto">
-          {/* Left: Torch visualization */}
-          <div className="flex justify-center lg:justify-end order-1 lg:order-1">
-            <div className="relative">
-              {/* Torch glow backdrop */}
-              <div
-                className={`absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full transition-all duration-1000 ${
-                  flameIntensity > 0 ? 'opacity-100' : 'opacity-0'
-                }`}
-                style={{
-                  background: 'radial-gradient(circle, rgba(255, 120, 0, 0.4) 0%, transparent 70%)',
-                  filter: 'blur(20px)',
-                  animation: flameIntensity > 0 ? 'pulse 2s ease-in-out infinite' : 'none',
-                }}
-              />
-
-              {/* Stylized torch flame */}
-              <div className="relative">
-                {/* Outer flame */}
-                <div
-                  className={`w-20 h-32 mx-auto transition-all duration-700 ${
-                    flameIntensity > 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-                  }`}
-                  style={{
-                    background:
-                      'linear-gradient(to top, #B22222 0%, #FF6B00 40%, #FFD700 70%, #FFFACD 100%)',
-                    borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
-                    animation:
-                      flameIntensity > 0 ? 'flicker 0.5s ease-in-out infinite alternate' : 'none',
-                  }}
-                />
-
-                {/* Inner bright core */}
-                <div
-                  className={`absolute bottom-4 left-1/2 -translate-x-1/2 w-10 h-16 transition-all duration-700 delay-200 ${
-                    flameIntensity > 0 ? 'opacity-90 scale-100' : 'opacity-0 scale-75'
-                  }`}
-                  style={{
-                    background: 'linear-gradient(to top, #FFA500 0%, #FFD700 50%, #FFFFFF 100%)',
-                    borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%',
-                  }}
-                />
-
-                {/* Torch handle */}
-                <div className="w-8 h-24 mx-auto bg-gradient-to-b from-amber-700 via-amber-800 to-amber-900 rounded-b-lg" />
-              </div>
-
-              {/* Season 50 text wrapping around torch */}
-              <div
-                className={`absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap transition-all duration-700 delay-500 ${
-                  flameIntensity > 0 ? 'opacity-100' : 'opacity-0'
-                }`}
-              >
-                <span className="text-amber-400/80 text-xs tracking-[0.3em] uppercase font-medium">
-                  Season 50
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Content */}
-          <div
-            className={`text-center lg:text-left order-2 lg:order-2 transition-all duration-700 ${
-              showContent ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
-            }`}
-          >
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-6">
-              Survivor Fantasy
-              <br />
-              <span className="text-amber-400">for strategists.</span>
-            </h1>
-
-            {!user && (
-              <div className="space-y-4 text-neutral-400 leading-relaxed mb-10 max-w-md mx-auto lg:mx-0">
-                <p>Bored of picking one Survivor and praying for luck?</p>
-                <p>
-                  100+ scoring rules reward real strategy. Every vote, idol, and blindside counts.
-                </p>
-              </div>
-            )}
-
-            {user && <p className="text-xl text-neutral-400 mb-10">Your leagues are waiting.</p>}
-
-            <Link
-              to={user ? '/dashboard' : '/signup'}
-              className="group inline-flex items-center gap-3 bg-amber-500 text-neutral-900 px-8 py-4 rounded-xl font-semibold hover:bg-amber-400 transition-all"
-            >
-              {user ? 'Dashboard' : 'Join Now'}
-              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            {!user && (
-              <p className="text-neutral-500 text-sm mt-6">
-                <Link to="/login" className="text-amber-400 hover:underline">
-                  Log in
-                </Link>
-                {' · '}
-                <Link to="/how-to-play" className="hover:text-neutral-400">
-                  How it works
-                </Link>
-              </p>
-            )}
-          </div>
-        </div>
-      </main>
-
-      {/* Keyframes for animations */}
-      <style>{`
-        @keyframes flicker {
-          0% { transform: scaleY(1) scaleX(1); }
-          100% { transform: scaleY(1.05) scaleX(0.97); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 0.6; transform: translate(-50%, 0) scale(1); }
-          50% { opacity: 0.8; transform: translate(-50%, 0) scale(1.1); }
-        }
-      `}</style>
-
-      <Footer />
-    </div>
-  );
-}
-
-// ============================================================================
-// CONCEPT C: "Type Play" - Creative typography for SURVIVOR SEASON 50
-// Letters animate in, season number has special treatment
-// ============================================================================
-
-function ConceptC() {
-  const { user } = useAuth();
-  const [stage, setStage] = useState(0);
-
-  useEffect(() => {
-    const t1 = setTimeout(() => setStage(1), 100);
-    const t2 = setTimeout(() => setStage(2), 600);
-    const t3 = setTimeout(() => setStage(3), 1100);
-    const t4 = setTimeout(() => setStage(4), 1600);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
-    };
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-cream-50 flex flex-col">
-      <Navigation />
-
-      <main className="flex-1 flex items-center justify-center px-6 py-16">
-        <div className="text-center max-w-4xl mx-auto">
-          {/* Typography hero */}
-          <div className="mb-12">
-            {/* SURVIVOR - staggered letter reveal */}
-            <div className="overflow-hidden mb-2">
-              <h1
-                className={`font-display text-5xl sm:text-7xl lg:text-8xl text-neutral-900 tracking-tight transition-all duration-700 ${
-                  stage >= 1 ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
-                }`}
-              >
-                SURVIVOR
-              </h1>
-            </div>
-
-            {/* SEASON 50 - special treatment */}
-            <div className="flex items-center justify-center gap-4">
-              <span
-                className={`w-12 h-px bg-burgundy-400 transition-all duration-500 ${
-                  stage >= 2 ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
-                }`}
-                style={{ transformOrigin: 'right' }}
-              />
-
-              <span
-                className={`font-display text-2xl sm:text-3xl text-burgundy-600 tracking-widest transition-all duration-700 ${
-                  stage >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                }`}
-              >
-                SEASON
-              </span>
-
-              {/* 50 with special emphasis */}
-              <span
-                className={`font-display text-4xl sm:text-5xl lg:text-6xl text-burgundy-600 transition-all duration-700 delay-100 ${
-                  stage >= 2 ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-                }`}
-              >
-                50
-              </span>
-
-              <span
-                className={`w-12 h-px bg-burgundy-400 transition-all duration-500 ${
-                  stage >= 2 ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
-                }`}
-                style={{ transformOrigin: 'left' }}
-              />
-            </div>
-          </div>
-
-          {/* Subtitle */}
-          <p
-            className={`font-display text-xl sm:text-2xl text-neutral-700 mb-8 transition-all duration-700 ${
-              stage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
-          >
-            Fantasy League for <span className="text-burgundy-600">Superfans</span>
-          </p>
-
-          {/* Copy */}
-          <div
-            className={`max-w-xl mx-auto space-y-4 text-neutral-600 leading-relaxed mb-10 transition-all duration-700 ${
-              stage >= 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
-          >
-            {!user && (
-              <p>
-                100+ scoring rules that reward real strategy. Every vote, idol play, and blindside
-                can earn or cost you points.
-              </p>
-            )}
-            {user && <p>Welcome back. Your leagues are waiting.</p>}
-          </div>
-
-          {/* CTA */}
-          <div
-            className={`transition-all duration-700 ${
-              stage >= 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
-          >
-            <Link
-              to={user ? '/dashboard' : '/signup'}
-              className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all"
-            >
-              {user ? 'Dashboard' : 'Join Now'}
-              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            {!user && (
-              <p className="text-neutral-400 text-sm mt-6">
-                <Link to="/login" className="text-burgundy-600 hover:underline">
-                  Log in
-                </Link>
-                {' · '}
-                <Link to="/how-to-play" className="hover:text-neutral-600">
-                  How it works
-                </Link>
-              </p>
-            )}
-          </div>
-        </div>
-      </main>
-
-      <Footer />
-    </div>
-  );
-}
-
-// ============================================================================
-// CONCEPT D: "Scoreboard" - Fantasy sports scoreboard aesthetic
-// Counter animations, dark theme with accent colors, stats-forward
-// ============================================================================
-
-function ConceptD() {
-  const { user } = useAuth();
-  const [count, setCount] = useState(0);
-  const [revealed, setRevealed] = useState(false);
-
-  useEffect(() => {
-    // Animate counter from 0 to 100
-    const duration = 1500;
-    const steps = 60;
-    const increment = 100 / steps;
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= 100) {
-        setCount(100);
-        clearInterval(timer);
-        setTimeout(() => setRevealed(true), 300);
-      } else {
-        setCount(Math.floor(current));
-      }
-    }, duration / steps);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col">
-      <Navigation />
-
-      <main className="flex-1 flex items-center justify-center px-6 py-16">
-        <div className="text-center max-w-3xl mx-auto">
-          {/* Logo */}
-          <img
-            src="/logo.png"
-            alt="Reality Games Fantasy League"
-            className={`h-24 sm:h-32 mx-auto mb-12 transition-all duration-700 ${
-              revealed ? 'opacity-100' : 'opacity-50'
-            }`}
+    <div className="relative flex flex-col items-center">
+      {/* Glow */}
+      <div
+        className="absolute -top-2 w-10 h-12 rounded-full blur-lg"
+        style={{
+          background:
+            'radial-gradient(ellipse at center, rgba(237, 137, 54, 0.45) 0%, rgba(178, 34, 34, 0.2) 40%, transparent 70%)',
+          animation: 'glowPulse 1.5s ease-in-out infinite alternate',
+        }}
+      />
+      {/* Torch SVG */}
+      <svg width="32" height="65" viewBox="0 0 32 65" className="relative z-10">
+        <defs>
+          <linearGradient id="miniHandleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#6B4423" />
+            <stop offset="50%" stopColor="#A67C52" />
+            <stop offset="100%" stopColor="#654321" />
+          </linearGradient>
+        </defs>
+        {/* Handle */}
+        <rect x="13" y="38" width="6" height="24" rx="1" fill="url(#miniHandleGrad)" />
+        <ellipse cx="16" cy="38" rx="5" ry="2" fill="#C9A050" />
+        {/* Flame layers */}
+        <g style={{ transformOrigin: '16px 38px' }}>
+          <path
+            d="M16 4 C24 12, 28 20, 25 30 C22 36, 19 39, 16 40 C13 39, 10 36, 7 30 C4 20, 8 12, 16 4"
+            fill="#B22222"
+            style={{ animation: 'flameOuter 0.5s ease-in-out infinite alternate' }}
           />
-
-          {/* Stats counter */}
-          <div className="mb-10">
-            <div className="inline-flex items-baseline gap-2 mb-4">
-              <span
-                className="font-display text-7xl sm:text-8xl lg:text-9xl text-burgundy-500 tabular-nums"
-                style={{ fontVariantNumeric: 'tabular-nums' }}
-              >
-                {count}+
-              </span>
-            </div>
-            <p className="text-2xl sm:text-3xl text-neutral-400 font-display tracking-wide">
-              SCORING RULES
-            </p>
-          </div>
-
-          {/* Divider */}
-          <div
-            className={`w-32 h-px bg-gradient-to-r from-transparent via-burgundy-600 to-transparent mx-auto mb-10 transition-all duration-700 ${
-              revealed ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'
-            }`}
+          <path
+            d="M16 9 C22 15, 24 22, 22 30 C20 35, 18 38, 16 39 C14 38, 12 35, 10 30 C8 22, 10 15, 16 9"
+            fill="#ED8936"
+            style={{ animation: 'flameMid 0.45s ease-in-out infinite alternate' }}
           />
-
-          {/* Copy */}
-          <div
-            className={`space-y-4 text-neutral-400 text-lg leading-relaxed mb-10 transition-all duration-500 ${
-              revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            {!user && (
-              <>
-                <p>Every vote, idol, and blindside counts.</p>
-                <p className="text-neutral-500">Real strategy. No luck required.</p>
-              </>
-            )}
-            {user && <p>Your leagues are waiting.</p>}
-          </div>
-
-          {/* CTA */}
-          <div
-            className={`transition-all duration-500 delay-200 ${
-              revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            <Link
-              to={user ? '/dashboard' : '/signup'}
-              className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-500 transition-all"
-            >
-              {user ? 'Dashboard' : 'Join Season 50'}
-              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            {!user && (
-              <p className="text-neutral-500 text-sm mt-6">
-                <Link to="/login" className="text-burgundy-400 hover:underline">
-                  Log in
-                </Link>
-                {' · '}
-                <Link to="/how-to-play" className="hover:text-neutral-400">
-                  How it works
-                </Link>
-              </p>
-            )}
-          </div>
-        </div>
-      </main>
-
-      <Footer />
+          <path
+            d="M16 14 C20 19, 21 25, 19 32 C18 36, 17 38, 16 38 C15 38, 14 36, 13 32 C11 25, 12 19, 16 14"
+            fill="#F6E05E"
+            style={{ animation: 'flameInner 0.4s ease-in-out infinite alternate' }}
+          />
+          <path
+            d="M16 19 C18 23, 19 27, 18 33 C17 35, 16 37, 16 37 C16 37, 15 35, 14 33 C13 27, 14 23, 16 19"
+            fill="#FFFACD"
+            style={{ animation: 'flameCore 0.35s ease-in-out infinite alternate' }}
+          />
+        </g>
+      </svg>
     </div>
   );
 }
 
 // ============================================================================
-// CONCEPT E: "The Glow" - Subtle ambient fire glow effect
-// Warm gradient background that shifts, minimalist content
+// FLOATING ICON COMPONENT
 // ============================================================================
 
-function ConceptE() {
-  const { user } = useAuth();
-  const [loaded, setLoaded] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+interface FloatingIconProps {
+  icon: 'rose' | 'key' | 'ticket' | 'torch';
+  position: { x: number; y: number };
+  entryDelay: number;
+  floatClass: string;
+  shouldMorph: boolean;
+  morphDelay: number;
+}
+
+function FloatingIcon({
+  icon,
+  position,
+  entryDelay,
+  floatClass,
+  shouldMorph,
+  morphDelay,
+}: FloatingIconProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [hasMorphed, setHasMorphed] = useState(icon === 'torch');
 
   useEffect(() => {
-    setTimeout(() => setLoaded(true), 200);
-  }, []);
+    const timer = setTimeout(() => setIsVisible(true), entryDelay);
+    return () => clearTimeout(timer);
+  }, [entryDelay]);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setMousePos({ x, y });
+  useEffect(() => {
+    if (shouldMorph && !hasMorphed && icon !== 'torch') {
+      const timer = setTimeout(() => setHasMorphed(true), morphDelay);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldMorph, morphDelay, hasMorphed, icon]);
+
+  const getEmoji = () => {
+    switch (icon) {
+      case 'rose':
+        return '🌹';
+      case 'key':
+        return '🔑';
+      case 'ticket':
+        return '🎫';
+      case 'torch':
+        return null;
+    }
   };
 
   return (
     <div
-      className="min-h-screen flex flex-col relative overflow-hidden"
-      onMouseMove={handleMouseMove}
+      className={`absolute transition-all duration-600 ${floatClass} ${
+        isVisible ? 'opacity-75 scale-100' : 'opacity-0 scale-0'
+      }`}
       style={{
-        background: `radial-gradient(ellipse at ${mousePos.x}% ${mousePos.y}%, rgba(139, 69, 19, 0.15) 0%, rgba(20, 20, 20, 1) 50%)`,
-        transition: 'background 0.3s ease-out',
+        left: `${position.x}%`,
+        top: `${position.y}%`,
       }}
     >
-      <Navigation />
+      {/* Original emoji */}
+      <span
+        className={`text-4xl block transition-all duration-400 ${
+          hasMorphed && icon !== 'torch' ? 'opacity-0 scale-50' : 'opacity-100 scale-100'
+        }`}
+      >
+        {icon === 'torch' ? null : getEmoji()}
+      </span>
 
-      {/* Ambient glow overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, rgba(255, 140, 50, 0.08) 0%, transparent 40%)`,
-          transition: 'background 0.3s ease-out',
-        }}
-      />
+      {/* Torch replacement */}
+      {icon !== 'torch' && (
+        <div
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ${
+            hasMorphed ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
+          }`}
+        >
+          <MiniTorch />
+        </div>
+      )}
 
-      <main className="flex-1 flex items-center justify-center px-6 py-16 relative z-10">
-        <div className="text-center max-w-2xl mx-auto">
-          {/* Logo with glow */}
-          <div className="relative inline-block mb-10">
+      {/* If already a torch */}
+      {icon === 'torch' && <MiniTorch />}
+    </div>
+  );
+}
+
+// ============================================================================
+// COUNTDOWN TIMER
+// ============================================================================
+
+function CountdownTimer() {
+  const calculateTimeLeft = useCallback(() => {
+    const target = new Date('2026-02-25T15:00:00-08:00').getTime(); // Feb 25, 2026 3pm PST
+    const now = Date.now();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      return { days: 0, hours: 0, minutes: 0 };
+    }
+
+    return {
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+    };
+  }, []);
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [calculateTimeLeft]);
+
+  return (
+    <div className="flex items-center gap-3 sm:gap-5">
+      <div className="text-center">
+        <div className="font-display text-5xl sm:text-6xl lg:text-7xl font-medium text-burgundy-500 tabular-nums leading-none tracking-tight">
+          {timeLeft.days}
+        </div>
+        <div className="text-[10px] sm:text-xs tracking-[0.15em] uppercase text-neutral-400 mt-2">
+          Days
+        </div>
+      </div>
+      <span className="text-3xl sm:text-4xl text-burgundy-500/25 font-light mb-4">|</span>
+      <div className="text-center">
+        <div className="font-display text-5xl sm:text-6xl lg:text-7xl font-medium text-burgundy-500 tabular-nums leading-none tracking-tight">
+          {String(timeLeft.hours).padStart(2, '0')}
+        </div>
+        <div className="text-[10px] sm:text-xs tracking-[0.15em] uppercase text-neutral-400 mt-2">
+          Hours
+        </div>
+      </div>
+      <span className="text-3xl sm:text-4xl text-burgundy-500/25 font-light mb-4">|</span>
+      <div className="text-center">
+        <div className="font-display text-5xl sm:text-6xl lg:text-7xl font-medium text-burgundy-500 tabular-nums leading-none tracking-tight">
+          {String(timeLeft.minutes).padStart(2, '0')}
+        </div>
+        <div className="text-[10px] sm:text-xs tracking-[0.15em] uppercase text-neutral-400 mt-2">
+          Minutes
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// MAIN HOME COMPONENT
+// ============================================================================
+
+export function Home() {
+  const { user } = useAuth();
+  const [startMorphing, setStartMorphing] = useState(false);
+  const [contentVisible, setContentVisible] = useState(false);
+
+  // Define floating icons with positions - spread around edges
+  const floatingIcons = useMemo(
+    () => [
+      { icon: 'rose' as const, position: { x: 5, y: 8 }, floatClass: 'animate-float-1' },
+      { icon: 'key' as const, position: { x: 92, y: 6 }, floatClass: 'animate-float-2' },
+      { icon: 'ticket' as const, position: { x: 3, y: 25 }, floatClass: 'animate-float-3' },
+      { icon: 'rose' as const, position: { x: 95, y: 18 }, floatClass: 'animate-float-4' },
+      { icon: 'key' as const, position: { x: 4, y: 45 }, floatClass: 'animate-float-5' },
+      { icon: 'ticket' as const, position: { x: 96, y: 40 }, floatClass: 'animate-float-6' },
+      { icon: 'torch' as const, position: { x: 5, y: 62 }, floatClass: 'animate-float-1' },
+      { icon: 'rose' as const, position: { x: 94, y: 58 }, floatClass: 'animate-float-2' },
+      { icon: 'key' as const, position: { x: 8, y: 78 }, floatClass: 'animate-float-3' },
+      { icon: 'ticket' as const, position: { x: 95, y: 75 }, floatClass: 'animate-float-4' },
+      { icon: 'rose' as const, position: { x: 15, y: 88 }, floatClass: 'animate-float-5' },
+      { icon: 'key' as const, position: { x: 88, y: 90 }, floatClass: 'animate-float-6' },
+      { icon: 'torch' as const, position: { x: 8, y: 35 }, floatClass: 'animate-float-2' },
+      { icon: 'ticket' as const, position: { x: 92, y: 52 }, floatClass: 'animate-float-3' },
+    ],
+    []
+  );
+
+  useEffect(() => {
+    const contentTimer = setTimeout(() => setContentVisible(true), 500);
+    const morphTimer = setTimeout(() => setStartMorphing(true), 2000);
+
+    return () => {
+      clearTimeout(contentTimer);
+      clearTimeout(morphTimer);
+    };
+  }, []);
+
+  let morphIndex = 0;
+
+  return (
+    <div className="h-screen w-screen overflow-hidden bg-cream-50 relative">
+      {/* Floating icons layer */}
+      <div className="absolute inset-0 pointer-events-none z-10">
+        {floatingIcons.map((item, index) => {
+          const isTorch = item.icon === 'torch';
+          const currentMorphIndex = isTorch ? -1 : morphIndex++;
+          return (
+            <FloatingIcon
+              key={index}
+              icon={item.icon}
+              position={item.position}
+              entryDelay={200 + index * 120}
+              floatClass={item.floatClass}
+              shouldMorph={startMorphing}
+              morphDelay={currentMorphIndex * 500}
+            />
+          );
+        })}
+      </div>
+
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-5 sm:px-10 py-5 bg-gradient-to-b from-cream-50 to-transparent">
+        <nav className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-6 sm:gap-9">
+            <Link
+              to="/"
+              className="text-neutral-500 hover:text-burgundy-500 font-display text-sm sm:text-base font-medium transition-colors"
+            >
+              Home
+            </Link>
+            <Link
+              to="/contact"
+              className="text-neutral-500 hover:text-burgundy-500 font-display text-sm sm:text-base font-medium transition-colors"
+            >
+              Contact
+            </Link>
+          </div>
+
+          <Link
+            to={user ? '/dashboard' : '/signup'}
+            className="px-5 sm:px-7 py-2.5 sm:py-3 bg-burgundy-500 text-white font-display text-xs sm:text-sm font-semibold rounded hover:bg-burgundy-600 transition-all shadow-lg shadow-burgundy-500/25"
+          >
+            {user ? 'Dashboard' : 'Join Survivor Season 50'}
+          </Link>
+        </nav>
+      </header>
+
+      {/* Main Content */}
+      <main className="h-full flex flex-col items-center justify-center px-6 pt-20 pb-12 relative z-20">
+        <div
+          className={`text-center max-w-[680px] mx-auto transition-all duration-800 ${
+            contentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+          }`}
+        >
+          {/* Logo */}
+          <div className="mb-10 sm:mb-12 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <img
               src="/logo.png"
               alt="Reality Games Fantasy League"
-              className={`h-32 sm:h-40 lg:h-48 mx-auto relative z-10 transition-all duration-1000 ${
-                loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-              }`}
-            />
-            {/* Logo glow */}
-            <div
-              className={`absolute inset-0 blur-2xl transition-opacity duration-1000 ${
-                loaded ? 'opacity-40' : 'opacity-0'
-              }`}
-              style={{
-                background: 'radial-gradient(circle, rgba(255, 120, 50, 0.6) 0%, transparent 70%)',
-              }}
+              className="w-72 sm:w-80 h-auto mx-auto"
             />
           </div>
-
-          {/* Title */}
-          <h1
-            className={`font-display text-3xl sm:text-4xl lg:text-5xl text-white mb-6 transition-all duration-700 delay-300 ${
-              loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            Survivor Fantasy League
-          </h1>
-
-          {/* Tagline */}
-          <p
-            className={`text-xl text-amber-200/70 mb-8 transition-all duration-700 delay-500 ${
-              loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            Season 50
-          </p>
 
           {/* Copy */}
-          <div
-            className={`space-y-3 text-neutral-400 leading-relaxed mb-10 transition-all duration-700 delay-700 ${
-              loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            {!user && (
-              <>
-                <p>100+ scoring rules that reward real strategy.</p>
-                <p className="text-neutral-500">Built by superfans, for superfans.</p>
-              </>
-            )}
-            {user && <p>Your leagues await.</p>}
+          <div className="space-y-4 mb-11 sm:mb-12">
+            <p className="font-display text-lg sm:text-xl text-neutral-600 leading-relaxed font-normal">
+              Get ready for fantasy done differently. Built by superfans, for superfans—no corporate
+              shortcuts, no afterthoughts, just games designed by people who actually care.
+            </p>
+            <p className="font-display text-lg sm:text-xl text-neutral-600 leading-relaxed font-normal">
+              We're kicking off with the season fans have been waiting for—
+              <span className="text-burgundy-500 font-medium">Survivor 50</span>.
+              <br />
+              <span className="italic text-neutral-400">Don't let your torch get snuffed.</span>
+            </p>
           </div>
 
-          {/* CTA */}
-          <div
-            className={`transition-all duration-700 delay-900 ${
-              loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
+          {/* Countdown */}
+          <div className="mb-3">
+            <CountdownTimer />
+          </div>
+
+          {/* Subtext */}
+          <p className="text-neutral-400 text-sm mb-9">League registration closes February 25, 2026 at 3p PST</p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5">
             <Link
               to={user ? '/dashboard' : '/signup'}
-              className="group inline-flex items-center gap-3 bg-amber-600/90 backdrop-blur text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-amber-500 transition-all border border-amber-500/30"
+              className="w-full sm:w-auto px-14 py-5 bg-burgundy-500 text-white font-display text-sm font-semibold tracking-wide uppercase rounded hover:bg-burgundy-600 transition-all shadow-xl shadow-burgundy-500/30"
             >
-              {user ? 'Dashboard' : 'Join Now'}
-              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              {user ? 'Dashboard' : 'Sign Up'}
             </Link>
 
-            {!user && (
-              <p className="text-neutral-500 text-sm mt-6">
-                <Link to="/login" className="text-amber-400/80 hover:text-amber-400">
-                  Log in
-                </Link>
-                {' · '}
-                <Link to="/how-to-play" className="hover:text-neutral-400">
-                  How it works
-                </Link>
-              </p>
-            )}
+            <Link
+              to="/how-to-play"
+              className="w-full sm:w-auto px-10 py-5 bg-transparent border border-cream-400 text-neutral-500 font-display text-sm font-medium rounded hover:text-burgundy-500 hover:border-burgundy-500 hover:bg-burgundy-500/5 transition-all"
+            >
+              How it Works
+            </Link>
           </div>
-        </div>
-      </main>
 
-      <Footer />
-    </div>
-  );
-}
-
-// ============================================================================
-// CONCEPT F: "Bold Statement" - Large statement typography, minimal
-// One big message, clear hierarchy, cream theme
-// ============================================================================
-
-function ConceptF() {
-  const { user } = useAuth();
-  const [stage, setStage] = useState(0);
-
-  useEffect(() => {
-    const t1 = setTimeout(() => setStage(1), 200);
-    const t2 = setTimeout(() => setStage(2), 600);
-    const t3 = setTimeout(() => setStage(3), 1000);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-    };
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-cream-50 flex flex-col">
-      <Navigation />
-
-      <main className="flex-1 flex items-center px-6 py-16">
-        <div className="max-w-5xl mx-auto w-full">
-          {/* Left-aligned bold statement */}
-          <div className="max-w-3xl">
-            <p
-              className={`text-burgundy-600 font-medium tracking-wide uppercase text-sm mb-6 transition-all duration-500 ${
-                stage >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              }`}
-            >
-              Season 50 · Fantasy League
-            </p>
-
-            <h1
-              className={`font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-neutral-900 leading-[1.1] mb-8 transition-all duration-700 ${
-                stage >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-              }`}
-            >
-              {!user ? (
-                <>
-                  Survivor Fantasy
-                  <br />
-                  for people who
-                  <br />
-                  <span className="text-burgundy-600">actually watch</span> Survivor.
-                </>
-              ) : (
-                <>
-                  Welcome back.
-                  <br />
-                  <span className="text-burgundy-600">Your move.</span>
-                </>
-              )}
-            </h1>
-
-            <p
-              className={`text-lg sm:text-xl text-neutral-600 max-w-xl leading-relaxed mb-10 transition-all duration-700 delay-100 ${
-                stage >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              }`}
-            >
-              {!user
-                ? '100+ scoring rules. Every vote, idol, and blindside counts. No luck required.'
-                : 'Your leagues are waiting.'}
-            </p>
-
-            <div
-              className={`flex flex-wrap items-center gap-4 transition-all duration-700 delay-200 ${
-                stage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              }`}
-            >
-              <Link
-                to={user ? '/dashboard' : '/signup'}
-                className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-burgundy-700 transition-all"
-              >
-                {user ? 'Dashboard' : 'Join Now'}
-                <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+          {/* Login link */}
+          {!user && (
+            <p className="text-neutral-400 text-sm mt-6">
+              Already have an account?{' '}
+              <Link to="/login" className="text-burgundy-500 hover:text-burgundy-600 underline">
+                Log in
               </Link>
-
-              {!user && (
-                <>
-                  <Link
-                    to="/login"
-                    className="px-6 py-4 text-burgundy-600 font-medium hover:text-burgundy-700 transition-colors"
-                  >
-                    Log in
-                  </Link>
-                  <Link
-                    to="/how-to-play"
-                    className="text-neutral-500 hover:text-neutral-700 transition-colors"
-                  >
-                    How it works →
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
+            </p>
+          )}
         </div>
       </main>
 
-      <Footer />
+      {/* Animation styles */}
+      <style>{`
+        @keyframes float-1 {
+          0%, 100% { transform: translate(0, 0) rotate(-3deg); }
+          25% { transform: translate(15px, -20px) rotate(2deg); }
+          50% { transform: translate(-10px, 10px) rotate(-2deg); }
+          75% { transform: translate(-15px, -15px) rotate(3deg); }
+        }
+        @keyframes float-2 {
+          0%, 100% { transform: translate(0, 0) rotate(2deg); }
+          33% { transform: translate(-20px, -25px) rotate(-3deg); }
+          66% { transform: translate(10px, 15px) rotate(2deg); }
+        }
+        @keyframes float-3 {
+          0%, 100% { transform: translate(0, 0) rotate(-2deg); }
+          50% { transform: translate(20px, -15px) rotate(3deg); }
+        }
+        @keyframes float-4 {
+          0%, 100% { transform: translate(0, 0) rotate(3deg); }
+          25% { transform: translate(-15px, 20px) rotate(-2deg); }
+          75% { transform: translate(15px, -10px) rotate(2deg); }
+        }
+        @keyframes float-5 {
+          0%, 100% { transform: translate(0, 0) rotate(-1deg); }
+          40% { transform: translate(-10px, -20px) rotate(2deg); }
+          80% { transform: translate(20px, 10px) rotate(-3deg); }
+        }
+        @keyframes float-6 {
+          0%, 100% { transform: translate(0, 0) rotate(1deg); }
+          30% { transform: translate(18px, -12px) rotate(-2deg); }
+          60% { transform: translate(-12px, 18px) rotate(3deg); }
+        }
+
+        .animate-float-1 { animation: float-1 12s ease-in-out infinite; }
+        .animate-float-2 { animation: float-2 14s ease-in-out infinite; }
+        .animate-float-3 { animation: float-3 11s ease-in-out infinite; }
+        .animate-float-4 { animation: float-4 13s ease-in-out infinite; }
+        .animate-float-5 { animation: float-5 15s ease-in-out infinite; }
+        .animate-float-6 { animation: float-6 16s ease-in-out infinite; }
+
+        @keyframes flameOuter {
+          0% { transform: scaleY(1) scaleX(1); }
+          100% { transform: scaleY(1.06) scaleX(0.96); }
+        }
+        @keyframes flameMid {
+          0% { transform: scaleY(1); }
+          100% { transform: scaleY(1.08) translateY(-1px); }
+        }
+        @keyframes flameInner {
+          0% { transform: scaleY(1); }
+          100% { transform: scaleY(1.1); }
+        }
+        @keyframes flameCore {
+          0% { transform: scaleY(1) scaleX(1); }
+          100% { transform: scaleY(1.12) scaleX(0.95); }
+        }
+
+        @keyframes glowPulse {
+          0% { opacity: 0.5; }
+          100% { opacity: 0.9; }
+        }
+
+        .duration-400 { transition-duration: 400ms; }
+        .duration-600 { transition-duration: 600ms; }
+        .duration-800 { transition-duration: 800ms; }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in-up {
+          animation: fadeInUp 0.8s ease-out forwards;
+          opacity: 0;
+        }
+      `}</style>
     </div>
   );
 }
 
-// ============================================================================
-// SPLASH PAGE (Main Domain) - Parchment with Parallax
-// ============================================================================
-
-function SplashPage() {
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Parchment background texture */}
-      <div
-        className="fixed inset-0 z-0"
-        style={{
-          background: `
-            linear-gradient(90deg, rgba(139, 69, 19, 0.03) 0%, transparent 50%, rgba(139, 69, 19, 0.03) 100%),
-            repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 69, 19, 0.05) 2px, rgba(139, 69, 19, 0.05) 4px),
-            radial-gradient(circle at 20% 50%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 80% 50%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
-            #f5f1e8
-          `,
-          backgroundSize: '100% 100%, 100% 8px, 100% 100%, 100% 100%, 100% 100%',
-        }}
-      />
-
-      {/* Parallax layers */}
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{
-          transform: `translateY(${scrollY * 0.3}px)`,
-          background:
-            'radial-gradient(circle at 30% 40%, rgba(184, 134, 11, 0.15) 0%, transparent 50%)',
-        }}
-      />
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{
-          transform: `translateY(${scrollY * 0.5}px)`,
-          background:
-            'radial-gradient(circle at 70% 60%, rgba(139, 69, 19, 0.1) 0%, transparent 50%)',
-        }}
-      />
-
-      <main className="relative z-10 min-h-screen flex items-center justify-center px-6 py-16">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Big Logo */}
-          <img
-            src="/logo.png"
-            alt="Reality Games Fantasy League"
-            className="h-64 sm:h-80 lg:h-96 mx-auto mb-8 drop-shadow-lg"
-          />
-
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-            <p className="text-burgundy-700 text-sm italic mb-2">Scroll to learn more</p>
-            <div className="w-6 h-6 border-r-2 border-b-2 border-burgundy-700 rotate-45 mx-auto" />
-          </div>
-        </div>
-      </main>
-
-      {/* Content sections that appear on scroll */}
-      <div className="relative z-10 bg-[#f5f1e8]/80 backdrop-blur-sm">
-        <section className="max-w-4xl mx-auto px-6 py-16 text-center">
-          <h2 className="text-4xl font-display font-bold text-burgundy-800 mb-6">
-            Season 50: In the Hands of the Fans
-          </h2>
-          <p className="text-xl text-neutral-700 leading-relaxed mb-8">
-            Fantasy Survivor for people who actually watch Survivor. 100+ scoring rules. Real
-            strategy. No luck required.
-          </p>
-          <a
-            href={`${SURVIVOR_APP_URL}/signup`}
-            className="group inline-flex items-center gap-3 bg-burgundy-600 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-burgundy-700 transition-all shadow-lg"
-          >
-            Join Now
-            <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </a>
-        </section>
-      </div>
-
-      <footer className="relative z-10 py-6 border-t border-burgundy-200/30 bg-[#f5f1e8]/80">
-        <div className="max-w-4xl mx-auto px-6 text-center text-sm text-neutral-600">
-          <div className="flex items-center justify-center gap-4 mb-3">
-            <a href={`${SURVIVOR_APP_URL}/privacy`} className="hover:text-burgundy-600">
-              Privacy
-            </a>
-            <span className="text-neutral-400">|</span>
-            <a href={`${SURVIVOR_APP_URL}/terms`} className="hover:text-burgundy-600">
-              Terms
-            </a>
-            <span className="text-neutral-400">|</span>
-            <a href={`${SURVIVOR_APP_URL}/contact`} className="hover:text-burgundy-600">
-              Contact
-            </a>
-          </div>
-          <p className="text-xs text-neutral-500">
-            2025 Reality Games Fantasy League. Not affiliated with CBS or Survivor.
-          </p>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-// ============================================================================
-// MAIN EXPORT
-// ============================================================================
-
-// PICK YOUR CONCEPT:
-// ConceptA = Logo front and center, staggered reveal (user hates this)
-// ConceptB = Animated torch with flame, dark theme
-// ConceptC = Typography play with SURVIVOR SEASON 50
-// ConceptD = Scoreboard - animated 100+ counter, dark theme, stats-forward
-// ConceptE = The Glow - mouse-tracking ambient glow, dark theme
-// ConceptF = Bold Statement - left-aligned big typography, cream theme
-
-// Export all concepts for preview routes
-export const Concepts = {
-  A: ConceptA,
-  B: ConceptB,
-  C: ConceptC,
-  D: ConceptD,
-  E: ConceptE,
-  F: ConceptF,
-};
-
-const ActiveConcept = ConceptD; // <-- CHANGE THIS TO PREVIEW DIFFERENT CONCEPTS
-
-export function Home() {
-  if (isShortlink()) {
-    window.location.href = SURVIVOR_APP_URL + window.location.pathname;
-    return null;
-  }
-
-  if (isMainDomain()) {
-    return <SplashPage />;
-  }
-
-  // Allow previewing concepts via URL param: ?concept=A, ?concept=B, etc.
-  const params = new URLSearchParams(window.location.search);
-  const conceptParam = params.get('concept')?.toUpperCase();
-  if (conceptParam && conceptParam in Concepts) {
-    const PreviewConcept = Concepts[conceptParam as keyof typeof Concepts];
-    return <PreviewConcept />;
-  }
-
-  return <ActiveConcept />;
-}
+export default Home;

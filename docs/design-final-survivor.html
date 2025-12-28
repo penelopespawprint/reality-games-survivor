@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survivor Fantasy League</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,400&family=Barlow:wght@200;300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --burgundy: #8B2635;
+      --burgundy-dark: #6D1E2A;
+      --cream: #FAF7F2;
+      --cream-dark: #EDE6DB;
+      --gold: #D4A853;
+      --gold-light: #E8C87A;
+      --text-dark: #2A2522;
+      --text-mid: #5A544E;
+      --text-light: #8A857E;
+    }
+    
+    body {
+      background: radial-gradient(ellipse at 75% 25%, rgba(212, 168, 83, 0.08) 0%, transparent 50%),
+                  linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 100%);
+      min-height: 100vh;
+      font-family: 'Barlow', sans-serif;
+    }
+    
+    /* Nav */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+      border-bottom: 1px solid rgba(139, 38, 53, 0.1);
+    }
+    .logo img { height: 45px; }
+    .nav-links { display: flex; gap: 35px; }
+    .nav-links a {
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--burgundy); }
+    .nav-cta { display: flex; gap: 12px; }
+    .btn {
+      padding: 11px 24px;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--burgundy);
+      color: var(--burgundy);
+    }
+    .btn-outline:hover { background: var(--burgundy); color: white; }
+    .btn-filled {
+      background: var(--burgundy);
+      border: 1px solid var(--burgundy);
+      color: white;
+    }
+    .btn-filled:hover { background: var(--burgundy-dark); }
+    
+    /* Hero */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      padding: 60px 50px;
+      align-items: center;
+      min-height: calc(100vh - 85px);
+    }
+    
+    .hero-left h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 62px;
+      line-height: 1.1;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    .hero-left h1 em { color: var(--burgundy); font-style: italic; }
+    .hero-left p {
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 35px;
+      max-width: 440px;
+    }
+    .cta-row { display: flex; gap: 16px; margin-bottom: 40px; }
+    .cta-row .btn { padding: 14px 32px; }
+    
+    /* Countdown */
+    .countdown {
+      background: white;
+      padding: 20px 28px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      display: inline-flex;
+      align-items: center;
+      gap: 25px;
+    }
+    .countdown .label {
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    .countdown .time { display: flex; gap: 18px; }
+    .countdown .unit { text-align: center; }
+    .countdown .number {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400;
+      font-size: 32px;
+      color: var(--burgundy);
+    }
+    .countdown .unit-label {
+      font-weight: 300;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    /* Right side - Torch + Cards */
+    .hero-right {
+      position: relative;
+      height: 480px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+    
+    /* Torch glow */
+    .torch-glow {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      height: 120px;
+      background: radial-gradient(ellipse at center bottom, rgba(212, 168, 83, 0.35) 0%, transparent 70%);
+      filter: blur(20px);
+    }
+    
+    /* Main torch */
+    .main-torch {
+      position: relative;
+      z-index: 5;
+    }
+    
+    /* Flame animation - grows from nothing */
+    .flame-group {
+      transform-origin: center bottom;
+      animation: flameIgnite 1.5s ease-out forwards;
+    }
+    @keyframes flameIgnite {
+      0% { transform: scaleY(0) scaleX(0.3); opacity: 0; }
+      40% { transform: scaleY(0.6) scaleX(0.8); opacity: 0.7; }
+      70% { transform: scaleY(1.1) scaleX(1.05); opacity: 1; }
+      100% { transform: scaleY(1) scaleX(1); opacity: 1; }
+    }
+    
+    /* Continuous flicker */
+    .flame-outer { animation: flickO 0.6s ease-in-out 1.5s infinite alternate; }
+    .flame-middle { animation: flickM 0.5s ease-in-out 1.6s infinite alternate; }
+    .flame-inner { animation: flickI 0.4s ease-in-out 1.7s infinite alternate; }
+    @keyframes flickO { 0% { transform: scaleY(1) scaleX(1); } 100% { transform: scaleY(1.08) scaleX(0.95); } }
+    @keyframes flickM { 0% { transform: scaleY(1); } 100% { transform: scaleY(1.1) translateY(-2px); } }
+    @keyframes flickI { 0% { transform: scaleY(1); } 100% { transform: scaleY(1.15); } }
+    
+    /* Reveal cards */
+    .reveal-card {
+      position: absolute;
+      width: 170px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .reveal-card:hover {
+      transform: scale(1.08) translateY(-5px);
+      box-shadow: 0 15px 50px rgba(139, 38, 53, 0.2);
+      z-index: 10;
+    }
+    .reveal-card:nth-child(1) { top: 20px; left: 10px; }
+    .reveal-card:nth-child(2) { top: 50px; right: 10px; }
+    .reveal-card:nth-child(3) { bottom: 150px; left: 0; }
+    .reveal-card:nth-child(4) { bottom: 120px; right: 0; }
+    
+    .card-front {
+      padding: 20px;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      text-align: center;
+      transition: opacity 0.3s;
+    }
+    .card-front .mystery-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .card-front p {
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+    }
+    
+    .card-back {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      padding: 18px;
+      background: white;
+      opacity: 0;
+      transition: opacity 0.3s;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .reveal-card:hover .card-front { opacity: 0; }
+    .reveal-card:hover .card-back { opacity: 1; }
+    
+    .card-back .avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      font-size: 14px;
+      color: white;
+      margin: 0 auto 10px;
+    }
+    .card-back .name {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+      font-size: 16px;
+      color: var(--text-dark);
+      text-align: center;
+    }
+    .card-back .tribe {
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .card-back .points {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      color: var(--burgundy);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <img src="web/public/logo.png" alt="RGFL">
+  </div>
+  <div class="nav-links">
+    <a href="#">Home</a>
+    <a href="#">How to Play</a>
+    <a href="#">Castaways</a>
+    <a href="#">Leaderboard</a>
+  </div>
+  <div class="nav-cta">
+    <a href="#" class="btn btn-outline">Log In</a>
+    <a href="#" class="btn btn-filled">Sign Up</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-left">
+    <h1>Draft Your<br><em>Dream Team</em></h1>
+    <p>Build the ultimate roster of Survivor castaways. Two players, infinite possibilities. Outwit, outplay, outlast.</p>
+    
+    <div class="cta-row">
+      <a href="#" class="btn btn-filled">Create Your League</a>
+      <a href="#" class="btn btn-outline">Join a League</a>
+    </div>
+    
+    <div class="countdown">
+      <div class="label">Season 50 Premiere</div>
+      <div class="time">
+        <div class="unit">
+          <div class="number" id="days">60</div>
+          <div class="unit-label">Days</div>
+        </div>
+        <div class="unit">
+          <div class="number" id="hours">12</div>
+          <div class="unit-label">Hours</div>
+        </div>
+        <div class="unit">
+          <div class="number" id="mins">45</div>
+          <div class="unit-label">Mins</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="hero-right">
+    <!-- Reveal cards -->
+    <div class="reveal-card">
+      <div class="card-front">
+        <div class="mystery-icon">🔥</div>
+        <p>Hover to reveal</p>
+      </div>
+      <div class="card-back">
+        <div class="avatar">BR</div>
+        <div class="name">Boston Rob</div>
+        <div class="tribe">Manu Tribe</div>
+        <div class="points">245 pts</div>
+      </div>
+    </div>
+    
+    <div class="reveal-card">
+      <div class="card-front">
+        <div class="mystery-icon">🔥</div>
+        <p>Hover to reveal</p>
+      </div>
+      <div class="card-back">
+        <div class="avatar">PC</div>
+        <div class="name">Parvati</div>
+        <div class="tribe">Kama Tribe</div>
+        <div class="points">231 pts</div>
+      </div>
+    </div>
+    
+    <div class="reveal-card">
+      <div class="card-front">
+        <div class="mystery-icon">🔥</div>
+        <p>Hover to reveal</p>
+      </div>
+      <div class="card-back">
+        <div class="avatar">TV</div>
+        <div class="name">Tony Vlachos</div>
+        <div class="tribe">Lesu Tribe</div>
+        <div class="points">218 pts</div>
+      </div>
+    </div>
+    
+    <div class="reveal-card">
+      <div class="card-front">
+        <div class="mystery-icon">🔥</div>
+        <p>Hover to reveal</p>
+      </div>
+      <div class="card-back">
+        <div class="avatar">SD</div>
+        <div class="name">Sandra</div>
+        <div class="tribe">Manu Tribe</div>
+        <div class="points">205 pts</div>
+      </div>
+    </div>
+    
+    <!-- Torch glow -->
+    <div class="torch-glow"></div>
+    
+    <!-- Main torch SVG -->
+    <svg class="main-torch" width="90" height="260" viewBox="0 0 90 260">
+      <defs>
+        <linearGradient id="handleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#8B6914"/>
+          <stop offset="50%" style="stop-color:#A67C52"/>
+          <stop offset="100%" style="stop-color:#654321"/>
+        </linearGradient>
+      </defs>
+      <!-- Handle -->
+      <path d="M38 95 L42 260 L48 260 L52 95 Z" fill="url(#handleGrad)" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Flames -->
+      <g class="flame-group" transform-origin="45 95">
+        <path class="flame-outer" d="M45 8 C65 28, 75 48, 70 68 C66 82, 56 92, 45 100 C34 92, 24 82, 20 68 C15 48, 25 28, 45 8" fill="#E53E3E" stroke="#1a1a1a" stroke-width="2"/>
+        <path class="flame-middle" d="M45 22 C58 38, 64 52, 60 70 C56 82, 50 90, 45 95 C40 90, 34 82, 30 70 C26 52, 32 38, 45 22" fill="#ED8936"/>
+        <path class="flame-inner" d="M45 36 C54 48, 56 58, 54 72 C51 80, 48 86, 45 90 C42 86, 39 80, 36 72 C34 58, 36 48, 45 36" fill="#F6E05E"/>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<script>
+  function updateCountdown() {
+    const target = new Date('2026-02-25T20:00:00-05:00').getTime();
+    const now = Date.now();
+    const diff = target - now;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    document.getElementById('days').textContent = days;
+    document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+    document.getElementById('mins').textContent = String(mins).padStart(2, '0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+
+</body>
+</html>

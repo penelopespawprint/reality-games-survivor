@@ -336,7 +336,6 @@ export function getJobStatus(): Array<{
 
   return status;
 }
-
 export default {
   startScheduler,
   stopScheduler,
@@ -345,3 +344,4 @@ export default {
   scheduleAutoRandomizeRankings,
   scheduleDraftFinalize,
 };
+

@@ -1,0 +1,277 @@
+================================================================================
+ROW LEVEL SECURITY (RLS) ARCHITECTURE
+Survivor Fantasy League - Database Security Model
+================================================================================
+
+CLIENT LAYERS
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         WEB FRONTEND (React)                            │
+│                    Uses: Anon Client (RLS Enforced)                     │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       EXPRESS API (Backend)                             │
+│              Uses: Service Role Client (RLS Bypassed)                   │
+│              • Validates business rules before writes                   │
+│              • Uses service role for all mutations                      │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    SUPABASE POSTGRESQL + RLS                            │
+│                       24 Tables, 3 Access Levels                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+RLS POLICY ARCHITECTURE
+================================================================================
+
+ACCESS LEVEL 1: PUBLIC DATA (Read-Only for All Authenticated Users)
+────────────────────────────────────────────────────────────────────────
+✅ seasons            SELECT for all → true
+✅ episodes           SELECT for all → true
+✅ castaways          SELECT for all → true
+✅ scoring_rules      SELECT for all → true
+
+Policy Example:
+  CREATE POLICY seasons_select_all ON seasons
+    FOR SELECT USING (true);
+
+
+ACCESS LEVEL 2: USER-OWNED DATA (Own Data Only)
+────────────────────────────────────────────────────────────────────────
+✅ notifications      SELECT/UPDATE → user_id = auth.uid()
+✅ sms_commands       SELECT → user_id = auth.uid()
+✅ payments           SELECT → user_id = auth.uid()
+✅ draft_rankings     CRUD → user_id = auth.uid()
+✅ waiver_rankings    CRUD → user_id = auth.uid()
+✅ notification_prefs SELECT/UPDATE/INSERT → user_id = auth.uid()
+✅ results_tokens     SELECT → user_id = auth.uid()
+
+Policy Example:
+  CREATE POLICY notifications_select_own ON notifications
+    FOR SELECT USING (user_id = (SELECT auth.uid()));
+
+
+ACCESS LEVEL 3: LEAGUE-SCOPED DATA (Visible to League Members)
+────────────────────────────────────────────────────────────────────────
+✅ rosters            SELECT → is_league_member(league_id)
+                      INSERT/UPDATE → user_id = auth.uid()
+
+✅ weekly_picks       SELECT (locked) → is_league_member(league_id)
+                      SELECT (pending) → user_id = auth.uid()
+                      INSERT/UPDATE → SERVICE ROLE ONLY (via trigger)
+
+✅ league_members     SELECT → is_league_member(league_id)
+                      INSERT → user_id = auth.uid()
+                      DELETE → user_id = auth.uid()
+
+✅ league_messages    SELECT/INSERT → is_league_member(league_id)
+                      DELETE → user_id = auth.uid()
+
+✅ waiver_results     SELECT → is_league_member(league_id)
+
+Helper Function:
+  CREATE FUNCTION is_league_member(league_uuid UUID)
+  RETURNS BOOLEAN AS $$
+    SELECT EXISTS (
+      SELECT 1 FROM league_members
+      WHERE league_id = league_uuid
+        AND user_id = (SELECT auth.uid())
+    )
+  $$ LANGUAGE SQL STABLE SECURITY DEFINER;
+
+
+ACCESS LEVEL 4: ADMIN-CONTROLLED DATA
+────────────────────────────────────────────────────────────────────────
+✅ episode_scores     SELECT → status = 'finalized'
+                      INSERT/UPDATE/DELETE → is_admin() OR service_role
+
+✅ scoring_sessions   SELECT → status = 'finalized'
+                      INSERT/UPDATE/DELETE → is_admin() OR service_role
+
+✅ announcements      SELECT → is_active AND not expired
+                      INSERT/UPDATE/DELETE → is_admin() OR service_role
+
+Helper Function:
+  CREATE FUNCTION is_admin()
+  RETURNS BOOLEAN AS $$
+    SELECT EXISTS (
+      SELECT 1 FROM users
+      WHERE id = (SELECT auth.uid())
+        AND role = 'admin'
+    )
+  $$ LANGUAGE SQL STABLE SECURITY DEFINER;
+
+
+ACCESS LEVEL 5: SERVICE-ONLY DATA (Infrastructure)
+────────────────────────────────────────────────────────────────────────
+✅ email_queue        ALL → service_role ONLY (admin can SELECT)
+✅ failed_emails      ALL → service_role ONLY (admin can SELECT)
+✅ cron_job_logs      ALL → service_role OR is_admin()
+✅ verification_codes ALL → service_role ONLY (security - no user access)
+
+Policy Example:
+  CREATE POLICY email_queue_service_only ON email_queue
+    FOR ALL USING ((SELECT auth.role()) = 'service_role');
+
+
+ACCESS LEVEL 6: HARDENED WITH TRIGGERS (Extra Protection)
+────────────────────────────────────────────────────────────────────────
+✅ weekly_picks       TRIGGER validates:
+                      • Only service_role can INSERT/UPDATE
+                      • Castaway must be on user's roster
+                      • Castaway must be active (not eliminated)
+                      • Episode must not be locked
+                      • User must be league member
+
+Trigger:
+  CREATE TRIGGER validate_weekly_pick_trigger
+    BEFORE INSERT OR UPDATE ON weekly_picks
+    FOR EACH ROW
+    EXECUTE FUNCTION validate_weekly_pick();
+
+  Function raises exception if validation fails:
+    RAISE EXCEPTION 'Castaway is not on your roster';
+
+
+SERVICE ROLE BYPASS (All Tables)
+────────────────────────────────────────────────────────────────────────
+Every table has this policy:
+
+  CREATE POLICY service_bypass_[table_name] ON [table_name]
+    FOR ALL USING ((SELECT auth.role()) = 'service_role');
+
+Why?
+  • Backend needs to perform system operations
+  • Auto-pick job updates all users' picks
+  • Draft finalization writes across users
+  • Email queue processing
+  • Scoring finalization
+
+================================================================================
+SECURITY BOUNDARIES
+================================================================================
+
+FRONTEND (Anon Client)
+─────────────────────
+✅ CAN:
+  • Read public data (seasons, episodes, castaways, scoring_rules)
+  • Read own private data (notifications, picks, payments)
+  • Read league data (rosters, locked picks in same league)
+  • Read finalized scores
+  • Insert own data (draft_rankings, league_members if not paid)
+
+❌ CANNOT:
+  • Read other users' private data
+  • Read infrastructure tables (email_queue, cron_job_logs)
+  • Write to weekly_picks (must use API)
+  • Read password hashes (if properly queried)
+  • Read pending picks of other users
+
+
+BACKEND API (Service Role)
+─────────────────────────
+✅ CAN:
+  • Everything (bypasses all RLS)
+  • System operations (auto-pick, draft, scoring)
+  • Cross-user operations
+  • Infrastructure table access
+
+❌ MUST:
+  • Validate business rules before writes
+  • Never expose service key to frontend
+  • Use service role for ALL mutations
+  • Validate user permissions before operations
+
+
+ADMIN DASHBOARD
+─────────────────────
+✅ CAN:
+  • View all data (via is_admin() function)
+  • Manage seasons, episodes, castaways
+  • Finalize scoring
+  • View job logs
+  • Debug email queue (read only)
+
+❌ CANNOT:
+  • Modify email queue directly
+  • Access without admin role
+
+
+================================================================================
+TESTING MATRIX
+================================================================================
+
+Test Case                           | Expected Result              | Status
+─────────────────────────────────────────────────────────────────────────────
+User A reads User B notifications   | Empty / Error                | ✅
+User A reads User B payments        | Empty / Error                | ✅
+User A reads User B pending picks   | Empty / Error                | ✅
+User A reads public seasons         | Success (all seasons)        | ✅
+User A reads league mate roster     | Success (if same league)     | ✅
+User A reads email_queue            | Empty / Error                | ✅ (after fix)
+User A inserts weekly_pick directly | Error (must use API)         | ✅
+Service role reads all users        | Success (all users)          | ✅
+Service role updates any pick       | Success                      | ✅
+Admin reads cron_job_logs           | Success (all logs)           | ✅
+Non-admin reads cron_job_logs       | Empty / Error                | ✅ (after fix)
+Frontend queries leagues            | Success (no password_hash)   | ✅ (after fix)
+
+================================================================================
+VULNERABILITY SUMMARY
+================================================================================
+
+BEFORE FIXES:
+🔴 email_queue          → NO RLS (anyone can read all emails)
+🔴 failed_emails        → NO RLS (anyone can read failures)
+🔴 cron_job_logs        → NO RLS (anyone can see system logs)
+⚠️  leagues (frontend)  → SELECT '*' exposes password_hash
+⚠️  notification_prefs  → Missing INSERT policy
+⚠️  results_tokens      → Missing service bypass
+
+AFTER FIXES:
+✅ email_queue          → Service-only + admin read
+✅ failed_emails        → Service-only + admin read
+✅ cron_job_logs        → Service/admin only
+✅ leagues (frontend)   → Explicit columns (no password_hash)
+✅ notification_prefs   → Full CRUD + service bypass
+✅ results_tokens       → User read + service bypass + admin
+
+================================================================================
+DEPLOYMENT STEPS
+================================================================================
+
+1. Apply Migration 027 (Infrastructure RLS)
+   npx supabase db push --file supabase/migrations/027_fix_infrastructure_rls.sql
+
+2. Apply Migration 028 (Complete Policies)
+   npx supabase db push --file supabase/migrations/028_complete_missing_rls_policies.sql
+
+3. Fix Frontend Queries
+   • web/src/pages/EpisodeResults.tsx:79
+   • web/src/pages/Leaderboard.tsx:60
+   Change: .select('*') → .select('id, name, code, ...')
+
+4. Run Test Suite
+   npx tsx server/src/tests/rls-security-test.ts
+
+5. Verify in Production
+   • Test with multiple users
+   • Verify data isolation
+   • Check admin dashboard
+   • Monitor error logs
+
+================================================================================
+REFERENCE FILES
+================================================================================
+
+📄 Full Report:           /QA-REPORT-RLS-SECURITY.md (4,500+ lines)
+📄 Executive Summary:     /RLS-SECURITY-SUMMARY.md
+📄 Best Practices:        /server/docs/RLS-BEST-PRACTICES.md
+🔧 Migration 027:         /supabase/migrations/027_fix_infrastructure_rls.sql
+🔧 Migration 028:         /supabase/migrations/028_complete_missing_rls_policies.sql
+🧪 Test Suite:            /server/src/tests/rls-security-test.ts
+
+================================================================================

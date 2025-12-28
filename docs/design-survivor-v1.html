@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survivor Fantasy League - 5 Variations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300&family=Lora:ital,wght@0,400;0,500;1,400&family=Barlow:wght@200;300;400;500&family=Raleway:wght@200;300;400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --burgundy: #8B2635;
+      --burgundy-dark: #6D1E2A;
+      --cream: #FAF7F2;
+      --cream-dark: #EDE6DB;
+      --gold: #D4A853;
+      --gold-light: #E8C87A;
+      --text-dark: #2A2522;
+      --text-mid: #5A544E;
+      --text-light: #8A857E;
+    }
+    
+    body { background: var(--cream); }
+    
+    .separator {
+      padding: 50px;
+      background: var(--burgundy);
+      text-align: center;
+    }
+    .separator h2 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 6px;
+    }
+    .separator p {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 16px;
+      font-style: italic;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Exact torch SVG from logo */
+    .torch-svg {
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Flame animation on load */
+    @keyframes flameGrow {
+      0% { transform: scaleY(0); opacity: 0; }
+      50% { transform: scaleY(0.5); opacity: 0.7; }
+      100% { transform: scaleY(1); opacity: 1; }
+    }
+    
+    @keyframes flameFlicker {
+      0%, 100% { transform: scaleY(1) scaleX(1); }
+      25% { transform: scaleY(1.05) scaleX(0.97); }
+      50% { transform: scaleY(0.95) scaleX(1.02); }
+      75% { transform: scaleY(1.03) scaleX(0.98); }
+    }
+    
+    .flame-group {
+      transform-origin: bottom center;
+      animation: flameGrow 1.2s ease-out forwards, flameFlicker 0.8s ease-in-out 1.2s infinite;
+    }
+
+    /* ========================================
+       VARIATION 1: Classic with Reveal Cards
+    ======================================== */
+    .v1 {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 100%);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v1 nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+      border-bottom: 1px solid rgba(139, 38, 53, 0.1);
+    }
+    
+    .v1 .logo img { height: 45px; }
+    
+    .v1 .nav-links {
+      display: flex;
+      gap: 35px;
+    }
+    
+    .v1 .nav-links a {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    
+    .v1 .nav-links a:hover { color: var(--burgundy); }
+    
+    .v1 .nav-cta { display: flex; gap: 12px; }
+    
+    .v1 .btn {
+      padding: 10px 24px;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    
+    .v1 .btn-outline {
+      background: transparent;
+      border: 1px solid var(--burgundy);
+      color: var(--burgundy);
+    }
+    .v1 .btn-outline:hover { background: var(--burgundy); color: white; }
+    
+    .v1 .btn-filled {
+      background: var(--burgundy);
+      border: 1px solid var(--burgundy);
+      color: white;
+    }
+    .v1 .btn-filled:hover { background: var(--burgundy-dark); }
+    
+    .v1 .hero {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      padding: 60px 50px;
+      align-items: center;
+    }
+    
+    .v1 .hero-content { max-width: 500px; }
+    
+    .v1 .torch-accent {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+    
+    .v1 .mini-torch { width: 20px; height: 45px; }
+    
+    .v1 .accent-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--burgundy), transparent);
+      margin-bottom: 8px;
+    }
+    
+    .v1 h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 58px;
+      line-height: 1.1;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    
+    .v1 h1 em { color: var(--burgundy); font-style: italic; }
+    
+    .v1 .tagline {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 35px;
+    }
+    
+    .v1 .cta-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 40px;
+    }
+    
+    .v1 .countdown {
+      background: white;
+      padding: 20px 28px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      display: inline-flex;
+      align-items: center;
+      gap: 25px;
+    }
+    
+    .v1 .countdown .label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    .v1 .countdown .time { display: flex; gap: 18px; }
+    
+    .v1 .countdown .unit { text-align: center; }
+    
+    .v1 .countdown .number {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400;
+      font-size: 32px;
+      color: var(--burgundy);
+    }
+    
+    .v1 .countdown .unit-label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    /* Right side - Torch with mystery cards */
+    .v1 .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      height: 500px;
+    }
+    
+    .v1 .main-torch {
+      width: 100px;
+      height: 280px;
+      position: relative;
+      z-index: 10;
+    }
+    
+    /* Mystery reveal cards */
+    .v1 .mystery-card {
+      position: absolute;
+      width: 140px;
+      height: 180px;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(139, 38, 53, 0.3);
+      overflow: hidden;
+    }
+    
+    .v1 .mystery-card::before {
+      content: '?';
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 60px;
+      color: rgba(255,255,255,0.3);
+      transition: all 0.4s;
+    }
+    
+    .v1 .mystery-card .reveal {
+      position: absolute;
+      inset: 0;
+      background: white;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: rotateY(90deg);
+      transition: all 0.5s;
+    }
+    
+    .v1 .mystery-card:hover {
+      transform: scale(1.08);
+      box-shadow: 0 20px 50px rgba(139, 38, 53, 0.4);
+    }
+    
+    .v1 .mystery-card:hover::before { opacity: 0; }
+    
+    .v1 .mystery-card:hover .reveal {
+      opacity: 1;
+      transform: rotateY(0);
+    }
+    
+    .v1 .mystery-card .avatar {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 500;
+      font-size: 18px;
+      color: white;
+      margin-bottom: 10px;
+    }
+    
+    .v1 .mystery-card .name {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+      font-size: 16px;
+      color: var(--text-dark);
+      text-align: center;
+    }
+    
+    .v1 .mystery-card .tribe {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-top: 4px;
+    }
+    
+    .v1 .mystery-card .points {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      color: var(--burgundy);
+      margin-top: 8px;
+    }
+    
+    .v1 .card-1 { top: 30px; left: 20px; transform: rotate(-8deg); }
+    .v1 .card-2 { top: 50px; right: 20px; transform: rotate(6deg); }
+    .v1 .card-3 { bottom: 60px; left: 0; transform: rotate(-4deg); }
+    .v1 .card-4 { bottom: 40px; right: 0; transform: rotate(10deg); }
+
+    /* ========================================
+       VARIATION 2: Stacked Cards Behind Torch
+    ======================================== */
+    .v2 {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 70% 30%, rgba(212, 168, 83, 0.08) 0%, transparent 50%), var(--cream);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v2 nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+    }
+    
+    .v2 .logo img { height: 45px; }
+    .v2 .nav-links { display: flex; gap: 35px; }
+    .v2 .nav-links a {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+    }
+    .v2 .nav-links a:hover { color: var(--burgundy); }
+    .v2 .nav-cta { display: flex; gap: 12px; }
+    .v2 .btn {
+      padding: 10px 24px;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .v2 .btn-outline { background: transparent; border: 1px solid var(--burgundy); color: var(--burgundy); }
+    .v2 .btn-outline:hover { background: var(--burgundy); color: white; }
+    .v2 .btn-filled { background: var(--burgundy); border: 1px solid var(--burgundy); color: white; }
+    
+    .v2 .hero {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 40px 50px;
+      align-items: center;
+    }
+    
+    .v2 .hero-content { max-width: 480px; }
+    
+    .v2 h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 52px;
+      line-height: 1.15;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    .v2 h1 em { color: var(--burgundy); font-style: italic; }
+    
+    .v2 .tagline {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 30px;
+    }
+    
+    .v2 .cta-group { display: flex; gap: 15px; margin-bottom: 35px; }
+    
+    .v2 .countdown {
+      display: flex;
+      gap: 25px;
+    }
+    .v2 .countdown .unit { text-align: center; }
+    .v2 .countdown .number {
+      font-family: 'Playfair Display', serif;
+      font-size: 40px;
+      color: var(--burgundy);
+    }
+    .v2 .countdown .label {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    .v2 .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      height: 480px;
+    }
+    
+    .v2 .torch-container {
+      position: relative;
+      z-index: 10;
+    }
+    
+    .v2 .main-torch { width: 90px; height: 260px; }
+    
+    /* Stacked cards behind torch */
+    .v2 .card-stack {
+      position: absolute;
+      width: 300px;
+      height: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .v2 .stack-card {
+      position: absolute;
+      width: 160px;
+      height: 200px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      overflow: hidden;
+    }
+    
+    .v2 .stack-card .card-front {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .v2 .stack-card .card-front .torch-icon { width: 40px; height: 80px; opacity: 0.5; }
+    
+    .v2 .stack-card .card-back {
+      position: absolute;
+      inset: 0;
+      background: white;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .v2 .stack-card:hover .card-back { opacity: 1; }
+    
+    .v2 .stack-card .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 500;
+      color: white;
+      margin-bottom: 12px;
+    }
+    .v2 .stack-card .name {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      color: var(--text-dark);
+    }
+    .v2 .stack-card .tribe {
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    
+    .v2 .stack-card:nth-child(1) { transform: rotate(-15deg) translateX(-80px); z-index: 1; }
+    .v2 .stack-card:nth-child(2) { transform: rotate(-5deg) translateX(-30px); z-index: 2; }
+    .v2 .stack-card:nth-child(3) { transform: rotate(5deg) translateX(30px); z-index: 2; }
+    .v2 .stack-card:nth-child(4) { transform: rotate(15deg) translateX(80px); z-index: 1; }
+    
+    .v2 .stack-card:hover { transform: scale(1.1) rotate(0deg) translateY(-20px) !important; z-index: 20 !important; }
+
+    /* ========================================
+       VARIATION 3: Circular Reveal Around Torch
+    ======================================== */
+    .v3 {
+      min-height: 100vh;
+      background: var(--cream);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v3 nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+      border-bottom: 1px solid rgba(139, 38, 53, 0.08);
+    }
+    .v3 .logo img { height: 45px; }
+    .v3 .nav-links { display: flex; gap: 35px; }
+    .v3 .nav-links a {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+    }
+    .v3 .nav-links a:hover { color: var(--burgundy); }
+    .v3 .nav-cta { display: flex; gap: 12px; }
+    .v3 .btn {
+      padding: 10px 24px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .v3 .btn-outline { background: transparent; border: 1px solid var(--burgundy); color: var(--burgundy); }
+    .v3 .btn-outline:hover { background: var(--burgundy); color: white; }
+    .v3 .btn-filled { background: var(--burgundy); border: 1px solid var(--burgundy); color: white; }
+    
+    .v3 .hero {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 40px 50px;
+      align-items: center;
+    }
+    
+    .v3 .hero-content { max-width: 460px; }
+    
+    .v3 h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-weight: 400;
+      font-size: 48px;
+      line-height: 1.2;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    .v3 h1 em { color: var(--burgundy); font-style: italic; }
+    
+    .v3 .tagline {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 30px;
+    }
+    
+    .v3 .features {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+    .v3 .feature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .v3 .feature-torch { width: 16px; height: 35px; }
+    .v3 .feature-text {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 14px;
+      color: var(--text-mid);
+    }
+    
+    .v3 .cta-group { display: flex; gap: 15px; }
+    
+    .v3 .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      height: 480px;
+    }
+    
+    .v3 .orbit-container {
+      position: relative;
+      width: 400px;
+      height: 400px;
+    }
+    
+    .v3 .center-torch {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 220px;
+      z-index: 10;
+    }
+    
+    /* Orbiting cards */
+    .v3 .orbit-card {
+      position: absolute;
+      width: 100px;
+      height: 120px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.4s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid transparent;
+    }
+    
+    .v3 .orbit-card:hover {
+      transform: scale(1.15);
+      border-color: var(--burgundy);
+      box-shadow: 0 15px 40px rgba(139, 38, 53, 0.2);
+    }
+    
+    .v3 .orbit-card .avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Jost', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      color: white;
+      margin-bottom: 8px;
+    }
+    .v3 .orbit-card .name {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 12px;
+      color: var(--text-dark);
+      text-align: center;
+    }
+    .v3 .orbit-card .tribe {
+      font-family: 'Jost', sans-serif;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    
+    .v3 .orbit-card:nth-child(2) { top: 0; left: 50%; transform: translateX(-50%); }
+    .v3 .orbit-card:nth-child(3) { top: 50%; right: 0; transform: translateY(-50%); }
+    .v3 .orbit-card:nth-child(4) { bottom: 0; left: 50%; transform: translateX(-50%); }
+    .v3 .orbit-card:nth-child(5) { top: 50%; left: 0; transform: translateY(-50%); }
+
+    /* ========================================
+       VARIATION 4: Sliding Panel Reveal
+    ======================================== */
+    .v4 {
+      min-height: 100vh;
+      background: linear-gradient(to right, var(--cream) 60%, var(--cream-dark) 100%);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v4 nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+    }
+    .v4 .logo img { height: 45px; }
+    .v4 .nav-links { display: flex; gap: 35px; }
+    .v4 .nav-links a {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+    }
+    .v4 .nav-links a:hover { color: var(--burgundy); }
+    .v4 .nav-cta { display: flex; gap: 12px; }
+    .v4 .btn {
+      padding: 10px 24px;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .v4 .btn-outline { background: transparent; border: 1px solid var(--burgundy); color: var(--burgundy); }
+    .v4 .btn-outline:hover { background: var(--burgundy); color: white; }
+    .v4 .btn-filled { background: var(--burgundy); border: 1px solid var(--burgundy); color: white; }
+    
+    .v4 .hero {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 40px 50px;
+      align-items: center;
+    }
+    
+    .v4 .hero-content { max-width: 480px; }
+    
+    .v4 h1 {
+      font-family: 'Spectral', serif;
+      font-weight: 300;
+      font-size: 52px;
+      line-height: 1.15;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    .v4 h1 em { color: var(--burgundy); font-style: italic; }
+    
+    .v4 .tagline {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 30px;
+    }
+    
+    .v4 .cta-group { display: flex; gap: 15px; margin-bottom: 35px; }
+    
+    .v4 .countdown {
+      display: flex;
+      gap: 20px;
+    }
+    .v4 .countdown .unit {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .v4 .countdown .number {
+      font-family: 'Spectral', serif;
+      font-size: 32px;
+      color: var(--burgundy);
+    }
+    .v4 .countdown .label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    .v4 .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      height: 480px;
+    }
+    
+    .v4 .slider-container {
+      position: relative;
+      width: 350px;
+      height: 420px;
+    }
+    
+    .v4 .torch-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 220px;
+      z-index: 20;
+    }
+    
+    /* Sliding panels */
+    .v4 .slide-panel {
+      position: absolute;
+      width: 130px;
+      height: 380px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+    }
+    
+    .v4 .slide-panel .panel-cover {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, var(--burgundy) 0%, var(--burgundy-dark) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.4s;
+    }
+    
+    .v4 .slide-panel .panel-cover .torch-small { width: 30px; height: 70px; opacity: 0.4; }
+    
+    .v4 .slide-panel .panel-content {
+      position: absolute;
+      inset: 0;
+      padding: 30px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .v4 .slide-panel .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 500;
+      font-size: 18px;
+      color: white;
+      margin-bottom: 15px;
+    }
+    .v4 .slide-panel .name {
+      font-family: 'Spectral', serif;
+      font-size: 16px;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    .v4 .slide-panel .tribe {
+      font-family: 'Barlow', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 15px;
+    }
+    .v4 .slide-panel .stats {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+    .v4 .slide-panel .stat {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Barlow', sans-serif;
+      font-size: 11px;
+    }
+    .v4 .slide-panel .stat-label { color: var(--text-light); }
+    .v4 .slide-panel .stat-value { color: var(--burgundy); font-weight: 500; }
+    
+    .v4 .slide-panel:nth-child(1) { left: 0; }
+    .v4 .slide-panel:nth-child(2) { right: 0; }
+    
+    .v4 .slide-panel:hover .panel-cover { opacity: 0; }
+    .v4 .slide-panel:hover { transform: scale(1.05); }
+
+    /* ========================================
+       VARIATION 5: Flip Card Grid
+    ======================================== */
+    .v5 {
+      min-height: 100vh;
+      background: var(--cream);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .v5 nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+      border-bottom: 1px solid rgba(139, 38, 53, 0.08);
+    }
+    .v5 .logo img { height: 45px; }
+    .v5 .nav-links { display: flex; gap: 35px; }
+    .v5 .nav-links a {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+    }
+    .v5 .nav-links a:hover { color: var(--burgundy); }
+    .v5 .nav-cta { display: flex; gap: 12px; }
+    .v5 .btn {
+      padding: 10px 24px;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .v5 .btn-outline { background: transparent; border: 1px solid var(--burgundy); color: var(--burgundy); }
+    .v5 .btn-outline:hover { background: var(--burgundy); color: white; }
+    .v5 .btn-filled { background: var(--burgundy); border: 1px solid var(--burgundy); color: white; }
+    
+    .v5 .hero {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      padding: 40px 50px;
+      align-items: center;
+      gap: 40px;
+    }
+    
+    .v5 .hero-content { max-width: 450px; }
+    
+    .v5 .torch-header {
+      display: flex;
+      align-items: flex-end;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .v5 .header-torch { width: 25px; height: 55px; }
+    
+    .v5 h1 {
+      font-family: 'Lora', serif;
+      font-weight: 400;
+      font-size: 46px;
+      line-height: 1.2;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+    .v5 h1 em { color: var(--burgundy); font-style: italic; }
+    
+    .v5 .tagline {
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 30px;
+    }
+    
+    .v5 .cta-group { display: flex; gap: 15px; }
+    
+    .v5 .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .v5 .flip-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+    
+    .v5 .flip-card {
+      width: 120px;
+      height: 150px;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+    
+    .v5 .flip-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+    
+    .v5 .flip-card:hover .flip-inner { transform: rotateY(180deg); }
+    
+    .v5 .flip-front, .v5 .flip-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+    }
+    
+    .v5 .flip-front {
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .v5 .flip-front .torch-icon { width: 30px; height: 65px; opacity: 0.4; }
+    
+    .v5 .flip-back {
+      background: white;
+      transform: rotateY(180deg);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+    }
+    
+    .v5 .flip-back .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--burgundy), var(--burgundy-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+      color: white;
+      margin-bottom: 10px;
+    }
+    .v5 .flip-back .name {
+      font-family: 'Lora', serif;
+      font-size: 13px;
+      color: var(--text-dark);
+      text-align: center;
+    }
+    .v5 .flip-back .tribe {
+      font-family: 'Raleway', sans-serif;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    
+    /* Center card is the torch */
+    .v5 .flip-card.torch-card .flip-inner { transform: none !important; }
+    .v5 .flip-card.torch-card .flip-front {
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .v5 .flip-card.torch-card .main-torch { width: 60px; height: 150px; }
+  </style>
+</head>
+<body>
+
+<!-- VARIATION 1 -->
+<section class="v1">
+  <nav>
+    <div class="logo"><img src="web/public/logo.png" alt="RGFL"></div>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">How to Play</a>
+      <a href="#">Castaways</a>
+      <a href="#">Leaderboard</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Log In</a>
+      <a href="#" class="btn btn-filled">Sign Up</a>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="hero-content">
+      <div class="torch-accent">
+        <svg class="mini-torch" viewBox="0 0 40 100">
+          <g class="flame-group">
+            <path d="M20 5 C10 15, 8 25, 12 35 C8 30, 5 35, 8 45 C3 40, 2 50, 10 55 L20 60 L30 55 C38 50, 37 40, 32 45 C35 35, 32 30, 28 35 C32 25, 30 15, 20 5Z" fill="#FF4500"/>
+            <path d="M20 12 C14 20, 12 28, 15 36 C12 32, 10 36, 13 42 L20 48 L27 42 C30 36, 28 32, 25 36 C28 28, 26 20, 20 12Z" fill="#FFA500"/>
+            <path d="M20 22 C16 28, 15 34, 18 40 L20 44 L22 40 C25 34, 24 28, 20 22Z" fill="#FFD700"/>
+          </g>
+          <path d="M14 58 L12 95 C12 98, 28 98, 28 95 L26 58 Z" fill="#8B4513" stroke="#2A2522" stroke-width="2"/>
+        </svg>
+        <div class="accent-line"></div>
+      </div>
+      <h1>Draft Your<br><em>Dream Team</em></h1>
+      <p class="tagline">Build the ultimate roster of Survivor castaways. Two players, infinite possibilities. Outwit, outplay, outlast.</p>
+      <div class="cta-group">
+        <a href="#" class="btn btn-filled">Create Your League</a>
+        <a href="#" class="btn btn-outline">Join a League</a>
+      </div>
+      <div class="countdown">
+        <div class="label">Season 50 Premiere</div>
+        <div class="time">
+          <div class="unit"><div class="number">60</div><div class="unit-label">Days</div></div>
+          <div class="unit"><div class="number">12</div><div class="unit-label">Hours</div></div>
+          <div class="unit"><div class="number">45</div><div class="unit-label">Mins</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <!-- Mystery reveal cards -->
+      <div class="mystery-card card-1">
+        <div class="reveal">
+          <div class="avatar">BR</div>
+          <div class="name">Boston Rob</div>
+          <div class="tribe">Manu Tribe</div>
+          <div class="points">245 pts</div>
+        </div>
+      </div>
+      <div class="mystery-card card-2">
+        <div class="reveal">
+          <div class="avatar">PC</div>
+          <div class="name">Parvati</div>
+          <div class="tribe">Kama Tribe</div>
+          <div class="points">231 pts</div>
+        </div>
+      </div>
+      <div class="mystery-card card-3">
+        <div class="reveal">
+          <div class="avatar">TV</div>
+          <div class="name">Tony V</div>
+          <div class="tribe">Lesu Tribe</div>
+          <div class="points">218 pts</div>
+        </div>
+      </div>
+      <div class="mystery-card card-4">
+        <div class="reveal">
+          <div class="avatar">SD</div>
+          <div class="name">Sandra</div>
+          <div class="tribe">Manu Tribe</div>
+          <div class="points">205 pts</div>
+        </div>
+      </div>
+      <!-- Main torch -->
+      <svg class="main-torch" viewBox="0 0 80 220">
+        <g class="flame-group">
+          <path d="M40 5 C20 25, 15 45, 22 65 C12 55, 5 65, 12 85 C2 75, 0 95, 15 110 L40 120 L65 110 C80 95, 78 75, 68 85 C75 65, 68 55, 58 65 C65 45, 60 25, 40 5Z" fill="#FF4500" stroke="#1a1a1a" stroke-width="2"/>
+          <path d="M40 20 C28 35, 24 50, 30 68 C22 60, 18 68, 24 80 L40 92 L56 80 C62 68, 58 60, 50 68 C56 50, 52 35, 40 20Z" fill="#FFA500"/>
+          <path d="M40 40 C34 52, 32 62, 36 75 L40 82 L44 75 C48 62, 46 52, 40 40Z" fill="#FFD700"/>
+        </g>
+        <path d="M28 115 L24 210 C24 215, 56 215, 56 210 L52 115 Z" fill="#8B4513" stroke="#2A2522" stroke-width="3"/>
+        <path d="M30 125 L32 200 M50 125 L48 200" stroke="#6B3810" stroke-width="2" opacity="0.3"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<div class="separator"><h2>Variation 2</h2><p>Stacked cards behind torch</p></div>
+
+<!-- VARIATION 2 -->
+<section class="v2">
+  <nav>
+    <div class="logo"><img src="web/public/logo.png" alt="RGFL"></div>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">How to Play</a>
+      <a href="#">Castaways</a>
+      <a href="#">Leaderboard</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Log In</a>
+      <a href="#" class="btn btn-filled">Sign Up</a>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="hero-content">
+      <h1>Outwit. Outplay.<br><em>Out-Fantasy.</em></h1>
+      <p class="tagline">Draft your dream team of castaways, make weekly picks, and compete against fans worldwide.</p>
+      <div class="cta-group">
+        <a href="#" class="btn btn-filled">Start Playing</a>
+        <a href="#" class="btn btn-outline">How It Works</a>
+      </div>
+      <div class="countdown">
+        <div class="unit"><div class="number">60</div><div class="label">Days</div></div>
+        <div class="unit"><div class="number">12</div><div class="label">Hours</div></div>
+        <div class="unit"><div class="number">45</div><div class="label">Mins</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="card-stack">
+        <div class="stack-card">
+          <div class="card-front">
+            <svg class="torch-icon" viewBox="0 0 40 100">
+              <path d="M20 5 C10 15, 8 25, 12 35 C8 30, 5 35, 8 45 L20 55 L32 45 C35 35, 32 30, 28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/>
+              <path d="M14 52 L12 95 L28 95 L26 52 Z" fill="#8B4513"/>
+            </svg>
+          </div>
+          <div class="card-back">
+            <div class="avatar">BR</div>
+            <div class="name">Boston Rob</div>
+            <div class="tribe">Manu</div>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="card-front">
+            <svg class="torch-icon" viewBox="0 0 40 100">
+              <path d="M20 5 C10 15, 8 25, 12 35 C8 30, 5 35, 8 45 L20 55 L32 45 C35 35, 32 30, 28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/>
+              <path d="M14 52 L12 95 L28 95 L26 52 Z" fill="#8B4513"/>
+            </svg>
+          </div>
+          <div class="card-back">
+            <div class="avatar">PC</div>
+            <div class="name">Parvati</div>
+            <div class="tribe">Kama</div>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="card-front">
+            <svg class="torch-icon" viewBox="0 0 40 100">
+              <path d="M20 5 C10 15, 8 25, 12 35 C8 30, 5 35, 8 45 L20 55 L32 45 C35 35, 32 30, 28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/>
+              <path d="M14 52 L12 95 L28 95 L26 52 Z" fill="#8B4513"/>
+            </svg>
+          </div>
+          <div class="card-back">
+            <div class="avatar">TV</div>
+            <div class="name">Tony V</div>
+            <div class="tribe">Lesu</div>
+          </div>
+        </div>
+        <div class="stack-card">
+          <div class="card-front">
+            <svg class="torch-icon" viewBox="0 0 40 100">
+              <path d="M20 5 C10 15, 8 25, 12 35 C8 30, 5 35, 8 45 L20 55 L32 45 C35 35, 32 30, 28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/>
+              <path d="M14 52 L12 95 L28 95 L26 52 Z" fill="#8B4513"/>
+            </svg>
+          </div>
+          <div class="card-back">
+            <div class="avatar">SD</div>
+            <div class="name">Sandra</div>
+            <div class="tribe">Manu</div>
+          </div>
+        </div>
+      </div>
+      <div class="torch-container">
+        <svg class="main-torch" viewBox="0 0 80 220">
+          <g class="flame-group">
+            <path d="M40 5 C20 25, 15 45, 22 65 C12 55, 5 65, 12 85 C2 75, 0 95, 15 110 L40 120 L65 110 C80 95, 78 75, 68 85 C75 65, 68 55, 58 65 C65 45, 60 25, 40 5Z" fill="#FF4500" stroke="#1a1a1a" stroke-width="2"/>
+            <path d="M40 20 C28 35, 24 50, 30 68 C22 60, 18 68, 24 80 L40 92 L56 80 C62 68, 58 60, 50 68 C56 50, 52 35, 40 20Z" fill="#FFA500"/>
+            <path d="M40 40 C34 52, 32 62, 36 75 L40 82 L44 75 C48 62, 46 52, 40 40Z" fill="#FFD700"/>
+          </g>
+          <path d="M28 115 L24 210 C24 215, 56 215, 56 210 L52 115 Z" fill="#8B4513" stroke="#2A2522" stroke-width="3"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator"><h2>Variation 3</h2><p>Orbiting cards around torch</p></div>
+
+<!-- VARIATION 3 -->
+<section class="v3">
+  <nav>
+    <div class="logo"><img src="web/public/logo.png" alt="RGFL"></div>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">How to Play</a>
+      <a href="#">Castaways</a>
+      <a href="#">Leaderboard</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Log In</a>
+      <a href="#" class="btn btn-filled">Sign Up</a>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="hero-content">
+      <h1>Keep Your Torch<br><em>Lit</em></h1>
+      <p class="tagline">Draft castaways, score points, and survive the competition all season long.</p>
+      <div class="features">
+        <div class="feature">
+          <svg class="feature-torch" viewBox="0 0 30 70">
+            <g class="flame-group"><path d="M15 3 C8 10, 6 18, 10 26 L15 32 L20 26 C24 18, 22 10, 15 3Z" fill="#FF4500"/><path d="M15 10 C11 15, 10 20, 13 26 L15 28 L17 26 C20 20, 19 15, 15 10Z" fill="#FFD700"/></g>
+            <path d="M11 30 L10 65 L20 65 L19 30 Z" fill="#8B4513" stroke="#2A2522" stroke-width="1.5"/>
+          </svg>
+          <span class="feature-text">Draft 2 castaways after Episode 1</span>
+        </div>
+        <div class="feature">
+          <svg class="feature-torch" viewBox="0 0 30 70">
+            <g class="flame-group"><path d="M15 3 C8 10, 6 18, 10 26 L15 32 L20 26 C24 18, 22 10, 15 3Z" fill="#FF4500"/><path d="M15 10 C11 15, 10 20, 13 26 L15 28 L17 26 C20 20, 19 15, 15 10Z" fill="#FFD700"/></g>
+            <path d="M11 30 L10 65 L20 65 L19 30 Z" fill="#8B4513" stroke="#2A2522" stroke-width="1.5"/>
+          </svg>
+          <span class="feature-text">Make weekly picks before each episode</span>
+        </div>
+        <div class="feature">
+          <svg class="feature-torch" viewBox="0 0 30 70">
+            <g class="flame-group"><path d="M15 3 C8 10, 6 18, 10 26 L15 32 L20 26 C24 18, 22 10, 15 3Z" fill="#FF4500"/><path d="M15 10 C11 15, 10 20, 13 26 L15 28 L17 26 C20 20, 19 15, 15 10Z" fill="#FFD700"/></g>
+            <path d="M11 30 L10 65 L20 65 L19 30 Z" fill="#8B4513" stroke="#2A2522" stroke-width="1.5"/>
+          </svg>
+          <span class="feature-text">100+ scoring events per episode</span>
+        </div>
+      </div>
+      <div class="cta-group">
+        <a href="#" class="btn btn-filled">Get Started</a>
+        <a href="#" class="btn btn-outline">Learn More</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="orbit-container">
+        <svg class="center-torch" viewBox="0 0 70 200">
+          <g class="flame-group">
+            <path d="M35 5 C18 22, 12 40, 20 60 C10 50, 5 60, 12 78 C2 68, 0 88, 14 100 L35 110 L56 100 C70 88, 68 68, 58 78 C65 60, 60 50, 50 60 C58 40, 52 22, 35 5Z" fill="#FF4500" stroke="#1a1a1a" stroke-width="2"/>
+            <path d="M35 18 C25 32, 22 45, 28 62 L35 72 L42 62 C48 45, 45 32, 35 18Z" fill="#FFA500"/>
+            <path d="M35 35 C30 45, 28 55, 33 68 L35 72 L37 68 C42 55, 40 45, 35 35Z" fill="#FFD700"/>
+          </g>
+          <path d="M25 105 L22 190 C22 195, 48 195, 48 190 L45 105 Z" fill="#8B4513" stroke="#2A2522" stroke-width="2.5"/>
+        </svg>
+        <div class="orbit-card"><div class="avatar">BR</div><div class="name">Boston Rob</div><div class="tribe">Manu</div></div>
+        <div class="orbit-card"><div class="avatar">PC</div><div class="name">Parvati</div><div class="tribe">Kama</div></div>
+        <div class="orbit-card"><div class="avatar">TV</div><div class="name">Tony V</div><div class="tribe">Lesu</div></div>
+        <div class="orbit-card"><div class="avatar">SD</div><div class="name">Sandra</div><div class="tribe">Manu</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator"><h2>Variation 4</h2><p>Sliding panel reveal</p></div>
+
+<!-- VARIATION 4 -->
+<section class="v4">
+  <nav>
+    <div class="logo"><img src="web/public/logo.png" alt="RGFL"></div>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">How to Play</a>
+      <a href="#">Castaways</a>
+      <a href="#">Leaderboard</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Log In</a>
+      <a href="#" class="btn btn-filled">Sign Up</a>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="hero-content">
+      <h1>The Ultimate<br>Survivor <em>Fantasy</em></h1>
+      <p class="tagline">Build your team, compete with friends, and see if your torch outlasts them all.</p>
+      <div class="cta-group">
+        <a href="#" class="btn btn-filled">Create League</a>
+        <a href="#" class="btn btn-outline">Join League</a>
+      </div>
+      <div class="countdown">
+        <div class="unit"><div class="number">60</div><div class="label">Days</div></div>
+        <div class="unit"><div class="number">12</div><div class="label">Hours</div></div>
+        <div class="unit"><div class="number">45</div><div class="label">Mins</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="slider-container">
+        <div class="slide-panel">
+          <div class="panel-cover">
+            <svg class="torch-small" viewBox="0 0 40 100">
+              <path d="M20 5 C10 15, 8 25, 12 35 L20 45 L28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/>
+              <path d="M14 42 L12 95 L28 95 L26 42 Z" fill="#8B4513"/>
+            </svg>
+          </div>
+          <div class="panel-content">
+            <div class="avatar">BR</div>
+            <div class="name">Boston Rob</div>
+            <div class="tribe">Manu Tribe</div>
+            <div class="stats">
+              <div class="stat"><span class="stat-label">Points</span><span class="stat-value">245</span></div>
+              <div class="stat"><span class="stat-label">Rank</span><span class="stat-value">#1</span></div>
+              <div class="stat"><span class="stat-label">Wins</span><span class="stat-value">4</span></div>
+            </div>
+          </div>
+        </div>
+        <svg class="torch-center" viewBox="0 0 70 200">
+          <g class="flame-group">
+            <path d="M35 5 C18 22, 12 40, 20 60 C10 50, 5 60, 12 78 C2 68, 0 88, 14 100 L35 110 L56 100 C70 88, 68 68, 58 78 C65 60, 60 50, 50 60 C58 40, 52 22, 35 5Z" fill="#FF4500" stroke="#1a1a1a" stroke-width="2"/>
+            <path d="M35 18 C25 32, 22 45, 28 62 L35 72 L42 62 C48 45, 45 32, 35 18Z" fill="#FFA500"/>
+            <path d="M35 35 C30 45, 28 55, 33 68 L35 72 L37 68 C42 55, 40 45, 35 35Z" fill="#FFD700"/>
+          </g>
+          <path d="M25 105 L22 190 C22 195, 48 195, 48 190 L45 105 Z" fill="#8B4513" stroke="#2A2522" stroke-width="2.5"/>
+        </svg>
+        <div class="slide-panel">
+          <div class="panel-cover">
+            <svg class="torch-small" viewBox="0 0 40 100">
+              <path d="M20 5 C10 15, 8 25, 12 35 L20 45 L28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/>
+              <path d="M14 42 L12 95 L28 95 L26 42 Z" fill="#8B4513"/>
+            </svg>
+          </div>
+          <div class="panel-content">
+            <div class="avatar">PC</div>
+            <div class="name">Parvati</div>
+            <div class="tribe">Kama Tribe</div>
+            <div class="stats">
+              <div class="stat"><span class="stat-label">Points</span><span class="stat-value">231</span></div>
+              <div class="stat"><span class="stat-label">Rank</span><span class="stat-value">#2</span></div>
+              <div class="stat"><span class="stat-label">Wins</span><span class="stat-value">1</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator"><h2>Variation 5</h2><p>Flip card grid with center torch</p></div>
+
+<!-- VARIATION 5 -->
+<section class="v5">
+  <nav>
+    <div class="logo"><img src="web/public/logo.png" alt="RGFL"></div>
+    <div class="nav-links">
+      <a href="#">Home</a>
+      <a href="#">How to Play</a>
+      <a href="#">Castaways</a>
+      <a href="#">Leaderboard</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Log In</a>
+      <a href="#" class="btn btn-filled">Sign Up</a>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="hero-content">
+      <div class="torch-header">
+        <svg class="header-torch" viewBox="0 0 40 100">
+          <g class="flame-group">
+            <path d="M20 5 C10 15, 8 25, 12 38 C8 32, 5 38, 10 50 L20 58 L30 50 C35 38, 32 32, 28 38 C32 25, 30 15, 20 5Z" fill="#FF4500" stroke="#1a1a1a" stroke-width="1.5"/>
+            <path d="M20 15 C14 23, 12 30, 16 40 L20 46 L24 40 C28 30, 26 23, 20 15Z" fill="#FFA500"/>
+            <path d="M20 25 C17 32, 16 38, 19 44 L20 46 L21 44 C24 38, 23 32, 20 25Z" fill="#FFD700"/>
+          </g>
+          <path d="M14 55 L12 95 C12 98, 28 98, 28 95 L26 55 Z" fill="#8B4513" stroke="#2A2522" stroke-width="2"/>
+        </svg>
+      </div>
+      <h1>Draft. Pick.<br><em>Dominate.</em></h1>
+      <p class="tagline">The ultimate fantasy experience for Survivor fans. Create or join a league and prove you have what it takes.</p>
+      <div class="cta-group">
+        <a href="#" class="btn btn-filled">Get Started Free</a>
+        <a href="#" class="btn btn-outline">How to Play</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="flip-grid">
+        <div class="flip-card"><div class="flip-inner"><div class="flip-front"><svg class="torch-icon" viewBox="0 0 40 100"><path d="M20 5 C10 15, 8 25, 12 35 L20 45 L28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/><path d="M14 42 L12 95 L28 95 L26 42 Z" fill="#8B4513"/></svg></div><div class="flip-back"><div class="avatar">BR</div><div class="name">Boston Rob</div><div class="tribe">Manu</div></div></div></div>
+        <div class="flip-card"><div class="flip-inner"><div class="flip-front"><svg class="torch-icon" viewBox="0 0 40 100"><path d="M20 5 C10 15, 8 25, 12 35 L20 45 L28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/><path d="M14 42 L12 95 L28 95 L26 42 Z" fill="#8B4513"/></svg></div><div class="flip-back"><div class="avatar">PC</div><div class="name">Parvati</div><div class="tribe">Kama</div></div></div></div>
+        <div class="flip-card"><div class="flip-inner"><div class="flip-front"><svg class="torch-icon" viewBox="0 0 40 100"><path d="M20 5 C10 15, 8 25, 12 35 L20 45 L28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/><path d="M14 42 L12 95 L28 95 L26 42 Z" fill="#8B4513"/></svg></div><div class="flip-back"><div class="avatar">TV</div><div class="name">Tony V</div><div class="tribe">Lesu</div></div></div></div>
+        <div class="flip-card"><div class="flip-inner"><div class="flip-front"><svg class="torch-icon" viewBox="0 0 40 100"><path d="M20 5 C10 15, 8 25, 12 35 L20 45 L28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/><path d="M14 42 L12 95 L28 95 L26 42 Z" fill="#8B4513"/></svg></div><div class="flip-back"><div class="avatar">SD</div><div class="name">Sandra</div><div class="tribe">Manu</div></div></div></div>
+        <!-- Center torch -->
+        <div class="flip-card torch-card">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <svg class="main-torch" viewBox="0 0 60 160">
+                <g class="flame-group">
+                  <path d="M30 5 C15 18, 10 32, 18 48 C10 40, 5 48, 12 62 C4 54, 2 70, 14 80 L30 88 L46 80 C58 70, 56 54, 48 62 C55 48, 50 40, 42 48 C50 32, 45 18, 30 5Z" fill="#FF4500" stroke="#1a1a1a" stroke-width="1.5"/>
+                  <path d="M30 15 C22 26, 18 36, 24 50 L30 58 L36 50 C42 36, 38 26, 30 15Z" fill="#FFA500"/>
+                  <path d="M30 28 C26 36, 24 44, 28 54 L30 58 L32 54 C36 44, 34 36, 30 28Z" fill="#FFD700"/>
+                </g>
+                <path d="M22 85 L20 155 C20 158, 40 158, 40 155 L38 85 Z" fill="#8B4513" stroke="#2A2522" stroke-width="2"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="flip-card"><div class="flip-inner"><div class="flip-front"><svg class="torch-icon" viewBox="0 0 40 100"><path d="M20 5 C10 15, 8 25, 12 35 L20 45 L28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/><path d="M14 42 L12 95 L28 95 L26 42 Z" fill="#8B4513"/></svg></div><div class="flip-back"><div class="avatar">CK</div><div class="name">Cirie K</div><div class="tribe">Lesu</div></div></div></div>
+        <div class="flip-card"><div class="flip-inner"><div class="flip-front"><svg class="torch-icon" viewBox="0 0 40 100"><path d="M20 5 C10 15, 8 25, 12 35 L20 45 L28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/><path d="M14 42 L12 95 L28 95 L26 42 Z" fill="#8B4513"/></svg></div><div class="flip-back"><div class="avatar">JF</div><div class="name">Jeremy</div><div class="tribe">Kama</div></div></div></div>
+        <div class="flip-card"><div class="flip-inner"><div class="flip-front"><svg class="torch-icon" viewBox="0 0 40 100"><path d="M20 5 C10 15, 8 25, 12 35 L20 45 L28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/><path d="M14 42 L12 95 L28 95 L26 42 Z" fill="#8B4513"/></svg></div><div class="flip-back"><div class="avatar">KW</div><div class="name">Kim</div><div class="tribe">Manu</div></div></div></div>
+        <div class="flip-card"><div class="flip-inner"><div class="flip-front"><svg class="torch-icon" viewBox="0 0 40 100"><path d="M20 5 C10 15, 8 25, 12 35 L20 45 L28 35 C32 25, 30 15, 20 5Z" fill="#FFD700"/><path d="M14 42 L12 95 L28 95 L26 42 Z" fill="#8B4513"/></svg></div><div class="flip-back"><div class="avatar">YC</div><div class="name">Yul</div><div class="tribe">Lesu</div></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Live countdown
+  function updateCountdowns() {
+    const target = new Date('2026-02-25T20:00:00-05:00').getTime();
+    const now = new Date().getTime();
+    const diff = target - now;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    document.querySelectorAll('.countdown .number, .countdown .unit .number').forEach((el, i) => {
+      const idx = i % 3;
+      if (idx === 0) el.textContent = days;
+      else if (idx === 1) el.textContent = String(hours).padStart(2, '0');
+      else el.textContent = String(mins).padStart(2, '0');
+    });
+  }
+  updateCountdowns();
+  setInterval(updateCountdowns, 1000);
+</script>
+
+</body>
+</html>

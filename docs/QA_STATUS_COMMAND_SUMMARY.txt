@@ -1,0 +1,308 @@
+================================================================================
+SMS STATUS COMMAND - QA TEST SUMMARY
+================================================================================
+Test Date: December 27, 2025
+Component: /server/src/routes/webhooks.ts (lines 467-488)
+Status: CRITICAL ISSUES FOUND
+================================================================================
+
+VERIFICATION REQUIREMENTS:
+--------------------------
+[❌] 1. Shows whether current week's pick is submitted
+[❌] 2. Shows whether current week's pick is missed
+[❌] 3. Shows current points total
+[✅] 4. Shows recent picks history
+[✅] 5. Command is logged in sms_commands table
+
+PASS RATE: 40% (2/5 critical requirements)
+
+================================================================================
+CRITICAL FINDINGS:
+================================================================================
+
+DEFECT #1: No Current Week Pick Status (P0 - CRITICAL)
+-------------------------------------------------------
+IMPACT: Users cannot determine if they need to submit a pick before deadline
+ROOT CAUSE: Query doesn't filter to current episode
+EVIDENCE:
+  - Query: weekly_picks ordered by picked_at DESC LIMIT 5
+  - No WHERE clause for current episode
+  - No check against picks_lock_at deadline
+
+WHAT USER EXPECTS:
+  "Week 5 Status:
+   ✓ Pick submitted: Tony Vlachos (My League)
+   ⚠ No pick yet (Global League)
+   Picks lock: Wed 3:00 PM PST"
+
+WHAT USER ACTUALLY GETS:
+  "Recent picks:
+   Tony Vlachos - My League
+   Sarah Lacina - Global League"
+
+GAP: Completely missing current week context
+
+--------------------------------------------------------------------------------
+
+DEFECT #2: No Points Total Display (P0 - CRITICAL)
+---------------------------------------------------
+IMPACT: Users get no feedback on game performance
+ROOT CAUSE: Query doesn't join to league_members table
+EVIDENCE:
+  - Query: SELECT castaways(name), leagues(name) FROM weekly_picks
+  - Never queries league_members.total_points
+  - Never queries league_members.rank
+
+WHAT USER EXPECTS:
+  "Your total points: 245 (#3 in league)"
+
+WHAT USER ACTUALLY GETS:
+  [Nothing about points]
+
+GAP: Primary game metric completely absent
+
+--------------------------------------------------------------------------------
+
+DEFECT #3: No Episode/Week Context (P1 - HIGH)
+-----------------------------------------------
+IMPACT: Historical picks are meaningless without context
+EVIDENCE:
+  - Query doesn't SELECT episodes(number)
+  - Response shows only castaway + league names
+
+WHAT USER SEES:
+  "Recent picks:
+   Tony Vlachos - My League
+   Sarah Lacina - My League"
+
+USER QUESTION: "Were these both this week? Last week? Different weeks?"
+ANSWER: Impossible to tell from response
+
+--------------------------------------------------------------------------------
+
+DEFECT #4: No Pick Status Indicators (P1 - HIGH)
+-------------------------------------------------
+IMPACT: Users don't know if picks were auto-picked
+EVIDENCE:
+  - weekly_picks.status (pending/locked/auto_picked) exists but not queried
+  - All picks look identical in response
+
+SHOULD SHOW:
+  "Week 4: Sarah Lacina (My League) [AUTO-PICKED]"
+  User knows they missed deadline for Week 4
+
+ACTUALLY SHOWS:
+  "Sarah Lacina - My League"
+  User thinks they submitted manually
+
+================================================================================
+POSITIVE FINDINGS:
+================================================================================
+
+[✅] Command logging to sms_commands table works correctly
+     - All fields populated (phone, user_id, command, raw_message, response_sent)
+     - Timestamp recorded automatically
+
+[✅] Phone validation works
+     - Unregistered phones get clear error message
+
+[✅] TwiML response format correct
+     - XML properly escaped, valid format
+
+[✅] User authorization secure
+     - Query filtered by user_id from phone lookup
+
+================================================================================
+EDGE CASES TESTED:
+================================================================================
+
+CASE 1: User in zero leagues
+  ACTUAL: "No recent picks found."
+  SHOULD BE: "You haven't joined any leagues yet."
+  VERDICT: Misleading but not broken
+
+CASE 2: Draft hasn't happened yet (no episodes)
+  ACTUAL: "No recent picks found."
+  SHOULD BE: "Season 50 premieres Feb 25. Draft opens after Episode 1."
+  VERDICT: Confusing for new users
+
+CASE 3: Both castaways eliminated
+  ACTUAL: "No recent picks found."
+  SHOULD BE: "Your torch has been snuffed! Final rank: 8th (245 points)"
+  VERDICT: No indication of elimination status
+
+CASE 4: Picks lock in 30 minutes
+  ACTUAL: No urgency indicator
+  SHOULD BE: "⚠ URGENT: Picks lock in 30 min! Submit at rgfl.app"
+  VERDICT: Missed opportunity for critical notification
+
+CASE 5: Multi-league, mixed pick status
+  ACTUAL: Shows recent picks without current context
+  SHOULD BE: Per-league breakdown with status indicators
+  VERDICT: Completely fails to help user
+
+================================================================================
+COMPARISON WITH OTHER COMMANDS:
+================================================================================
+
+PICK Command (lines 381-464):
+  ✓ Checks for current episode
+  ✓ Validates deadline not passed
+  ✓ Shows episode number in response
+  BETTER THAN STATUS
+
+TEAM Command (lines 491-511):
+  ✓ Shows castaway status (active/eliminated)
+  ✓ Groups by league
+  BETTER THAN STATUS
+
+STATUS Command (lines 467-488):
+  ❌ No current episode check
+  ❌ No deadline awareness
+  ❌ No status indicators
+  WORST OF THREE
+
+IRONY: The PICK command knows more about current game state than STATUS
+
+================================================================================
+TECHNICAL ANALYSIS:
+================================================================================
+
+CURRENT IMPLEMENTATION:
+  1. Lookup user by phone
+  2. Query weekly_picks for last 5 picks (all-time)
+  3. Return castaway name + league name
+  4. Log command
+
+WHAT'S MISSING:
+  1. Query for current episode (WHERE picks_lock_at > NOW())
+  2. Check picks submitted for current episode
+  3. Query league_members for total_points
+  4. Format response with actionable context
+
+LINES OF CODE TO FIX: ~40
+ESTIMATED FIX TIME: 4-6 hours
+COMPLEXITY: LOW (straightforward queries)
+
+================================================================================
+RECOMMENDED IMPLEMENTATION:
+================================================================================
+
+STEP 1: Get current episode
+  SELECT id, number, picks_lock_at FROM episodes
+  WHERE picks_lock_at >= NOW()
+  ORDER BY picks_lock_at ASC LIMIT 1
+
+STEP 2: Get user's leagues with points
+  SELECT league_id, total_points, rank, leagues(name)
+  FROM league_members
+  WHERE user_id = ?
+
+STEP 3: For each league, check current week pick
+  SELECT castaway_id, status, castaways(name)
+  FROM weekly_picks
+  WHERE user_id = ? AND league_id = ? AND episode_id = ?
+
+STEP 4: Format response
+  "Week 5 Status:
+   ✓ Tony Vlachos (My League) - 245 pts (#3)
+   ⚠ No pick yet (Global League) - 198 pts (#47)
+
+   Picks lock Wed 3pm PST"
+
+================================================================================
+RISK ASSESSMENT:
+================================================================================
+
+USER IMPACT: HIGH
+  - Feature exists but doesn't deliver expected value
+  - Users expect status, get history instead
+  - Undermines SMS command value proposition
+
+BUSINESS IMPACT: MEDIUM
+  - Users may stop using SMS commands
+  - Reduces mobile accessibility
+  - Hurts user retention during busy weeks
+
+TECHNICAL DEBT: LOW
+  - Straightforward fix
+  - No architectural changes needed
+  - Just need better queries + formatting
+
+LAUNCH BLOCKER: NO
+  - Not P0, app still functions
+  - Should fix in Week 2 of pre-launch testing
+
+================================================================================
+RECOMMENDATIONS:
+================================================================================
+
+PRIORITY 1 (Must Fix):
+  [1] Add current week pick status check
+  [2] Add total points display from league_members
+  [3] Add episode/week numbers to picks
+
+PRIORITY 2 (Should Fix):
+  [4] Add status indicators (auto-picked, manual)
+  [5] Add deadline urgency warnings
+  [6] Improve multi-league UX
+
+PRIORITY 3 (Nice to Have):
+  [7] Show rank in league
+  [8] Show elimination status
+  [9] Add calls to action for missing picks
+
+TIMELINE:
+  - Fix in Week 2 (after P0 blockers resolved)
+  - Testing: 2 hours
+  - Development: 4-6 hours
+  - QA: 2 hours
+  - Total: ~1 day
+
+================================================================================
+RELATED BUGS:
+================================================================================
+
+BUG #1: Missing week_number field on episodes (P0-5)
+  IMPACT: Cannot show "Week X" in response
+  WORKAROUND: Use episode.number instead
+
+BUG #2: Frontend bypasses API validation (P0-4)
+  RELATED: Both involve weekly_picks security
+  NOTE: Backend SMS command uses correct validation
+
+================================================================================
+CONCLUSION:
+================================================================================
+
+The SMS STATUS command is FUNCTIONALLY INCOMPLETE.
+
+WHAT IT DOES:
+  ✓ Shows recent picks (last 5)
+  ✓ Logs commands
+  ✓ Validates users
+
+WHAT IT DOESN'T DO:
+  ❌ Show current week status (PRIMARY USE CASE)
+  ❌ Show points total (PRIMARY METRIC)
+  ❌ Provide actionable information
+
+SEVERITY: MEDIUM (not launch blocker but hurts user experience)
+PRIORITY: Fix in Week 2
+ESTIMATED EFFORT: 4-6 hours
+
+USER WILL TEXT:
+  "STATUS"
+
+USER EXPECTS:
+  "Do I need to submit my pick?"
+
+USER GETS:
+  "Here's a list of names from various weeks"
+
+GAP:
+  MASSIVE
+
+================================================================================
+FULL REPORT: QA_REPORT_SMS_STATUS_COMMAND.md
+================================================================================

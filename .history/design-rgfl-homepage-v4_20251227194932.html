@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reality Games Fantasy League</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --burgundy: #8B2635;
+      --burgundy-dark: #6D1E2A;
+      --cream: #FAF7F2;
+      --cream-dark: #EDE6DB;
+      --gold: #D4A853;
+      --text-dark: #2A2522;
+      --text-mid: #5A544E;
+      --text-light: #8A857E;
+    }
+    
+    html { scroll-behavior: smooth; }
+    
+    body {
+      background: var(--cream);
+      font-family: 'Playfair Display', serif;
+      overflow-x: hidden;
+    }
+    
+    /* ========================================
+       SCREEN 1: HERO
+    ======================================== */
+    .screen-hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 30px;
+    }
+    
+    /* Floating show tags */
+    .floating-shows {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    
+    .show-tag {
+      position: absolute;
+      padding: 10px 18px;
+      border-radius: 25px;
+      font-family: 'Playfair Display', serif;
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      opacity: 0.85;
+      cursor: pointer;
+      pointer-events: auto;
+      text-decoration: none;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+    
+    .show-tag:hover {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    
+    /* Show colors */
+    .show-survivor { background: #2D5A27; color: white; animation: float1 5s ease-in-out infinite; }
+    .show-bachelor { background: #C41E3A; color: white; animation: float2 6s ease-in-out infinite; }
+    .show-bigbrother { background: #1E90FF; color: white; animation: float3 5.5s ease-in-out infinite; }
+    .show-amazingrace { background: #FFD700; color: #333; animation: float4 6.5s ease-in-out infinite; }
+    .show-loveisland { background: #FF69B4; color: white; animation: float5 5.2s ease-in-out infinite; }
+    .show-challenge { background: #FF4500; color: white; animation: float6 6.2s ease-in-out infinite; }
+    .show-voice { background: #8B0000; color: white; animation: float7 5.8s ease-in-out infinite; }
+    
+    /* Positions */
+    .show-tag:nth-child(1) { top: 12%; left: 6%; }
+    .show-tag:nth-child(2) { top: 18%; right: 8%; }
+    .show-tag:nth-child(3) { top: 38%; left: 4%; }
+    .show-tag:nth-child(4) { top: 55%; right: 5%; }
+    .show-tag:nth-child(5) { top: 72%; left: 8%; }
+    .show-tag:nth-child(6) { top: 82%; right: 10%; }
+    .show-tag:nth-child(7) { top: 28%; right: 4%; }
+    
+    /* Duplicate set */
+    .show-tag:nth-child(8) { top: 8%; right: 18%; }
+    .show-tag:nth-child(9) { top: 45%; left: 12%; }
+    .show-tag:nth-child(10) { top: 65%; right: 15%; }
+    .show-tag:nth-child(11) { top: 88%; left: 15%; }
+    .show-tag:nth-child(12) { top: 22%; left: 15%; }
+    .show-tag:nth-child(13) { top: 78%; right: 6%; }
+    .show-tag:nth-child(14) { top: 50%; left: 6%; }
+    
+    @keyframes float1 { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-18px) rotate(2deg); } }
+    @keyframes float2 { 0%, 100% { transform: translateY(0) rotate(3deg); } 50% { transform: translateY(-22px) rotate(-2deg); } }
+    @keyframes float3 { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-15px) rotate(3deg); } }
+    @keyframes float4 { 0%, 100% { transform: translateY(0) rotate(2deg); } 50% { transform: translateY(-20px) rotate(-3deg); } }
+    @keyframes float5 { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-16px) rotate(1deg); } }
+    @keyframes float6 { 0%, 100% { transform: translateY(0) rotate(1deg); } 50% { transform: translateY(-24px) rotate(-2deg); } }
+    @keyframes float7 { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-19px) rotate(2deg); } }
+    
+    /* Logo with lit torch - BIGGER */
+    .hero-logo {
+      position: relative;
+      margin-bottom: 40px;
+      z-index: 10;
+    }
+    
+    .hero-logo img {
+      height: 220px;
+      display: block;
+    }
+    
+    .hero-torch-overlay {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+    
+    .hero-flame { transform-origin: center bottom; }
+    .hero-flame-1 { animation: heroFlicker1 0.45s ease-in-out infinite alternate; }
+    .hero-flame-2 { animation: heroFlicker2 0.4s ease-in-out infinite alternate; }
+    .hero-flame-3 { animation: heroFlicker3 0.35s ease-in-out infinite alternate; }
+    
+    @keyframes heroFlicker1 { 0% { transform: scaleY(1) scaleX(1); } 100% { transform: scaleY(1.06) scaleX(0.96); } }
+    @keyframes heroFlicker2 { 0% { transform: scaleY(1); } 100% { transform: scaleY(1.08) translateY(-1px); } }
+    @keyframes heroFlicker3 { 0% { transform: scaleY(1); } 100% { transform: scaleY(1.1); } }
+    
+    .hero-glow {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 55px;
+      height: 65px;
+      background: radial-gradient(ellipse at center, rgba(237, 137, 54, 0.5) 0%, transparent 70%);
+      filter: blur(12px);
+      animation: heroGlowPulse 1.5s ease-in-out infinite alternate;
+    }
+    
+    @keyframes heroGlowPulse { 0% { opacity: 0.6; } 100% { opacity: 1; } }
+    
+    /* Hero copy */
+    .hero-copy {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 24px;
+      line-height: 1.7;
+      letter-spacing: -0.01em;
+      color: var(--text-mid);
+      text-align: center;
+      max-width: 650px;
+      z-index: 10;
+    }
+    
+    /* Scroll indicator */
+    .scroll-indicator {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      animation: scrollBounce 2s ease-in-out infinite;
+    }
+    
+    .scroll-indicator span {
+      font-family: 'Playfair Display', serif;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-light);
+    }
+    
+    .scroll-indicator .arrow {
+      width: 20px;
+      height: 20px;
+      border-right: 2px solid var(--burgundy);
+      border-bottom: 2px solid var(--burgundy);
+      transform: rotate(45deg);
+      opacity: 0.5;
+    }
+    
+    @keyframes scrollBounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(8px); } }
+    
+    /* ========================================
+       SCREEN 2: PARALLAX COUNTDOWN
+    ======================================== */
+    .screen-countdown {
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 30px;
+      background: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Parallax background elements */
+    .parallax-bg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    
+    .parallax-element {
+      position: absolute;
+      opacity: 0.06;
+      font-size: 120px;
+      will-change: transform;
+    }
+    
+    .parallax-element:nth-child(1) { top: 10%; left: 5%; }
+    .parallax-element:nth-child(2) { top: 60%; right: 8%; }
+    .parallax-element:nth-child(3) { bottom: 15%; left: 15%; }
+    .parallax-element:nth-child(4) { top: 30%; right: 20%; font-size: 80px; }
+    .parallax-element:nth-child(5) { bottom: 30%; right: 5%; font-size: 100px; }
+    
+    .countdown-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .countdown {
+      display: flex;
+      gap: 45px;
+      margin-bottom: 45px;
+    }
+    
+    .countdown .unit {
+      text-align: center;
+      position: relative;
+    }
+    
+    .countdown .unit:not(:last-child)::after {
+      content: '|';
+      position: absolute;
+      right: -28px;
+      top: 50%;
+      transform: translateY(-55%);
+      font-family: 'Playfair Display', serif;
+      font-weight: 300;
+      font-size: 50px;
+      color: var(--burgundy);
+      opacity: 0.2;
+    }
+    
+    .countdown .number {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 80px;
+      letter-spacing: -0.02em;
+      color: var(--burgundy);
+      line-height: 1;
+    }
+    
+    .countdown .label {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-top: 10px;
+    }
+    
+    /* Kicker */
+    .kicker {
+      font-family: 'Playfair Display', serif;
+      font-weight: 500;
+      font-style: italic;
+      font-size: 28px;
+      letter-spacing: -0.01em;
+      color: var(--burgundy);
+      text-align: center;
+      max-width: 620px;
+    }
+    
+    /* ========================================
+       SCREEN 3: THE TRIBE HAS SPOKEN
+    ======================================== */
+    .screen-tribe {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 50px 30px;
+      background: var(--cream);
+    }
+    
+    .tribe-torch-container {
+      position: relative;
+      margin-bottom: 40px;
+    }
+    
+    .tribe-torch {
+      width: 100px;
+      height: 280px;
+    }
+    
+    .tribe-glow {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 150px;
+      background: radial-gradient(ellipse at center, rgba(237, 137, 54, 0.4) 0%, transparent 70%);
+      filter: blur(20px);
+      transition: opacity 0.8s ease-out;
+    }
+    
+    .tribe-glow.snuffed { opacity: 0; }
+    
+    .tribe-flame {
+      transform-origin: center bottom;
+      transition: transform 0.8s ease-in, opacity 0.8s ease-in;
+    }
+    
+    .tribe-flame.snuffed {
+      transform: scaleY(0) scaleX(0);
+      opacity: 0;
+    }
+    
+    .tribe-flame-1 { animation: tribeFlicker1 0.5s ease-in-out infinite alternate; }
+    .tribe-flame-2 { animation: tribeFlicker2 0.45s ease-in-out infinite alternate; }
+    .tribe-flame-3 { animation: tribeFlicker3 0.4s ease-in-out infinite alternate; }
+    
+    .tribe-flame.snuffed .tribe-flame-1,
+    .tribe-flame.snuffed .tribe-flame-2,
+    .tribe-flame.snuffed .tribe-flame-3 { animation: none; }
+    
+    @keyframes tribeFlicker1 { 0% { transform: scaleY(1) scaleX(1); } 100% { transform: scaleY(1.06) scaleX(0.96); } }
+    @keyframes tribeFlicker2 { 0% { transform: scaleY(1); } 100% { transform: scaleY(1.08) translateY(-2px); } }
+    @keyframes tribeFlicker3 { 0% { transform: scaleY(1); } 100% { transform: scaleY(1.12); } }
+    
+    .tribe-smoke {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s ease-out 0.6s;
+    }
+    
+    .tribe-smoke.visible {
+      opacity: 1;
+      animation: smokeRise 2s ease-out forwards;
+    }
+    
+    .tribe-smoke path {
+      fill: none;
+      stroke: #9a9590;
+      stroke-width: 3;
+      stroke-linecap: round;
+    }
+    
+    @keyframes smokeRise {
+      0% { opacity: 0; transform: translateX(-50%) translateY(0); }
+      20% { opacity: 0.6; }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-55px); }
+    }
+    
+    .tribe-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 500;
+      font-size: 46px;
+      letter-spacing: -0.01em;
+      color: var(--text-dark);
+      margin-bottom: 18px;
+      text-align: center;
+    }
+    
+    .tribe-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-style: italic;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      color: var(--text-mid);
+      margin-bottom: 45px;
+      text-align: center;
+    }
+    
+    .cta-btn {
+      display: inline-block;
+      padding: 22px 65px;
+      background: var(--burgundy);
+      border: none;
+      color: white;
+      font-family: 'Playfair Display', serif;
+      font-weight: 500;
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .cta-btn:hover {
+      background: var(--burgundy-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(139, 38, 53, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+<!-- SCREEN 1: HERO -->
+<section class="screen-hero">
+  <!-- Floating show tags - Survivor links to subdomain -->
+  <div class="floating-shows">
+    <a href="https://survivor.realitygamesfantasyleague.com" class="show-tag show-survivor">🏝️ Survivor</a>
+    <span class="show-tag show-bachelor">🌹 The Bachelor</span>
+    <span class="show-tag show-bigbrother">🏠 Big Brother</span>
+    <span class="show-tag show-amazingrace">🌍 Amazing Race</span>
+    <span class="show-tag show-loveisland">💕 Love Island</span>
+    <span class="show-tag show-challenge">💪 The Challenge</span>
+    <span class="show-tag show-voice">🎤 The Voice</span>
+    <!-- Duplicates -->
+    <span class="show-tag show-bachelor">🌹 The Bachelor</span>
+    <a href="https://survivor.realitygamesfantasyleague.com" class="show-tag show-survivor">🏝️ Survivor</a>
+    <span class="show-tag show-bigbrother">🏠 Big Brother</span>
+    <span class="show-tag show-loveisland">💕 Love Island</span>
+    <span class="show-tag show-amazingrace">🌍 Amazing Race</span>
+    <span class="show-tag show-challenge">💪 The Challenge</span>
+    <span class="show-tag show-voice">🎤 The Voice</span>
+  </div>
+  
+  <!-- Logo - BIGGER -->
+  <div class="hero-logo">
+    <img src="web/public/logo.png" alt="Reality Games Fantasy League">
+    <div class="hero-torch-overlay">
+      <div class="hero-glow"></div>
+      <svg width="48" height="75" viewBox="0 0 48 75">
+        <g class="hero-flame" transform-origin="24 52">
+          <path class="hero-flame-1" d="M24 6 C36 17, 40 28, 37 40 C33 48, 28 52, 24 55 C20 52, 15 48, 11 40 C8 28, 12 17, 24 6" fill="#E53E3E"/>
+          <path class="hero-flame-2" d="M24 13 C32 21, 35 30, 32 40 C29 47, 26 50, 24 52 C22 50, 19 47, 16 40 C13 30, 16 21, 24 13" fill="#ED8936"/>
+          <path class="hero-flame-3" d="M24 20 C29 26, 31 34, 29 44 C27 48, 25 51, 24 52 C23 51, 21 48, 19 44 C17 34, 19 26, 24 20" fill="#F6E05E"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  
+  <p class="hero-copy">
+    Get ready for fantasy done differently. Built by superfans, for superfans—no corporate shortcuts, no afterthoughts, just games designed by people who actually care.
+  </p>
+  
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <div class="arrow"></div>
+  </div>
+</section>
+
+<!-- SCREEN 2: PARALLAX COUNTDOWN -->
+<section class="screen-countdown" id="countdown-section">
+  <!-- Parallax background elements -->
+  <div class="parallax-bg">
+    <span class="parallax-element" data-speed="0.3">🔥</span>
+    <span class="parallax-element" data-speed="0.5">🏝️</span>
+    <span class="parallax-element" data-speed="0.2">🌹</span>
+    <span class="parallax-element" data-speed="0.4">🏠</span>
+    <span class="parallax-element" data-speed="0.35">🎟️</span>
+  </div>
+  
+  <div class="countdown-content">
+    <div class="countdown">
+      <div class="unit">
+        <div class="number" id="days">59</div>
+        <div class="label">Days</div>
+      </div>
+      <div class="unit">
+        <div class="number" id="hours">21</div>
+        <div class="label">Hours</div>
+      </div>
+      <div class="unit">
+        <div class="number" id="mins">44</div>
+        <div class="label">Minutes</div>
+      </div>
+    </div>
+    
+    <p class="kicker">Starting with Survivor 50, the game is in the hands of the fans.</p>
+  </div>
+</section>
+
+<!-- SCREEN 3: THE TRIBE HAS SPOKEN -->
+<section class="screen-tribe" id="tribe-section">
+  <div class="tribe-torch-container">
+    <div class="tribe-glow" id="tribe-glow"></div>
+    <svg class="tribe-torch" viewBox="0 0 100 280">
+      <defs>
+        <linearGradient id="handleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#8B6914"/>
+          <stop offset="50%" style="stop-color:#A67C52"/>
+          <stop offset="100%" style="stop-color:#654321"/>
+        </linearGradient>
+      </defs>
+      <path d="M42 120 L44 270 L56 270 L58 120 Z" fill="url(#handleGrad)" stroke="#1a1a1a" stroke-width="2"/>
+      <g class="tribe-flame" id="tribe-flame" transform-origin="50 120">
+        <path class="tribe-flame-1" d="M50 10 C75 35, 85 55, 78 80 C72 100, 62 112, 50 118 C38 112, 28 100, 22 80 C15 55, 25 35, 50 10" fill="#E53E3E" stroke="#1a1a1a" stroke-width="2"/>
+        <path class="tribe-flame-2" d="M50 25 C68 45, 75 60, 70 82 C65 98, 58 108, 50 112 C42 108, 35 98, 30 82 C25 60, 32 45, 50 25" fill="#ED8936"/>
+        <path class="tribe-flame-3" d="M50 40 C62 55, 66 68, 62 88 C58 100, 54 107, 50 110 C46 107, 42 100, 38 88 C34 68, 38 55, 50 40" fill="#F6E05E"/>
+      </g>
+    </svg>
+    
+    <svg class="tribe-smoke" id="tribe-smoke" width="50" height="80" viewBox="0 0 50 80">
+      <path d="M25 70 Q20 55, 30 42 Q22 32, 28 22 Q20 12, 25 5" stroke-dasharray="4 4"/>
+    </svg>
+  </div>
+  
+  <h2 class="tribe-title">The Tribe Has Spoken</h2>
+  <p class="tribe-subtitle">Your torch doesn't have to be snuffed. Join the league.</p>
+  
+  <a href="https://survivor.realitygamesfantasyleague.com" class="cta-btn">Claim Your Spot</a>
+</section>
+
+<script>
+  // Live countdown
+  function updateCountdown() {
+    const target = new Date('2026-02-25T20:00:00-05:00').getTime();
+    const now = Date.now();
+    const diff = target - now;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    document.getElementById('days').textContent = days;
+    document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+    document.getElementById('mins').textContent = String(mins).padStart(2, '0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+  
+  // Parallax effect
+  const parallaxElements = document.querySelectorAll('.parallax-element');
+  
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    
+    parallaxElements.forEach(el => {
+      const speed = parseFloat(el.dataset.speed) || 0.3;
+      const yPos = -(scrollY * speed);
+      el.style.transform = `translateY(${yPos}px)`;
+    });
+  });
+  
+  // Snuff torch on scroll into view
+  let hasSnuffed = false;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !hasSnuffed) {
+        hasSnuffed = true;
+        setTimeout(() => {
+          document.getElementById('tribe-flame').classList.add('snuffed');
+          document.getElementById('tribe-glow').classList.add('snuffed');
+          setTimeout(() => {
+            document.getElementById('tribe-smoke').classList.add('visible');
+          }, 600);
+        }, 800);
+      }
+    });
+  }, { threshold: 0.5 });
+  
+  observer.observe(document.getElementById('tribe-section'));
+</script>
+
+</body>
+</html>
