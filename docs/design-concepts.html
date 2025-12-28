@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survivor Fantasy League - 5 Design Concepts</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Barlow:wght@200;300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: #1a1a1a;
+    }
+
+    /* ========================================
+       CONCEPT LABEL - Upper Right Corner
+    ======================================== */
+    .concept-label {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: rgba(0,0,0,0.85);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 4px;
+      z-index: 100;
+      text-align: right;
+    }
+
+    .concept-label h3 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .concept-label p {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 0.5px;
+    }
+
+    /* ========================================
+       SEPARATOR BETWEEN CONCEPTS
+    ======================================== */
+    .separator {
+      padding: 60px 40px;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .separator h2 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 12px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .separator .next-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400;
+      font-size: 24px;
+      color: #fff;
+      font-style: italic;
+    }
+
+    /* ========================================
+       SHARED LAYOUT STYLES
+    ======================================== */
+    .concept {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .concept nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 60px;
+    }
+
+    .concept .logo {
+      font-family: 'Playfair Display', serif;
+      font-weight: 500;
+      font-size: 24px;
+      text-decoration: none;
+    }
+
+    .concept .nav-links {
+      display: flex;
+      gap: 40px;
+    }
+
+    .concept .nav-links a {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .concept .nav-cta {
+      display: flex;
+      gap: 16px;
+    }
+
+    .concept .btn {
+      padding: 14px 32px;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 500;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      border-radius: 2px;
+    }
+
+    .concept .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 60px;
+    }
+
+    .concept .hero-tagline {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .concept .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400;
+      font-size: 72px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+
+    .concept .hero-subtitle {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 300;
+      font-size: 18px;
+      max-width: 500px;
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    .concept .hero-cta {
+      display: flex;
+      gap: 20px;
+    }
+
+    .concept .stats {
+      display: flex;
+      gap: 60px;
+      margin-top: 60px;
+      padding-top: 40px;
+    }
+
+    .concept .stat {
+      text-align: center;
+    }
+
+    .concept .stat-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 48px;
+      font-weight: 400;
+    }
+
+    .concept .stat-label {
+      font-family: 'Barlow', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ========================================
+       CONCEPT A: Tribal Fire
+       Deep burgundy with gold accents, dark mood
+    ======================================== */
+    .concept-a {
+      background: linear-gradient(135deg, #1a0a0c 0%, #2d1216 50%, #1a0a0c 100%);
+    }
+
+    .concept-a .concept-label {
+      background: rgba(139, 38, 53, 0.9);
+      border-color: #D4A853;
+    }
+
+    .concept-a .concept-label h3 { color: #D4A853; }
+
+    .concept-a nav { border-bottom: 1px solid rgba(212, 168, 83, 0.2); }
+    .concept-a .logo { color: #D4A853; }
+    .concept-a .nav-links a { color: rgba(255,255,255,0.7); }
+    .concept-a .nav-links a:hover { color: #D4A853; }
+
+    .concept-a .btn-outline {
+      background: transparent;
+      border: 1px solid #D4A853;
+      color: #D4A853;
+    }
+    .concept-a .btn-outline:hover {
+      background: #D4A853;
+      color: #1a0a0c;
+    }
+
+    .concept-a .btn-filled {
+      background: linear-gradient(135deg, #8B2635 0%, #6D1E2A 100%);
+      border: 1px solid #8B2635;
+      color: #fff;
+    }
+    .concept-a .btn-filled:hover {
+      background: linear-gradient(135deg, #A63D4C 0%, #8B2635 100%);
+    }
+
+    .concept-a .hero-tagline { color: #D4A853; }
+    .concept-a .hero-title { color: #fff; }
+    .concept-a .hero-subtitle { color: rgba(255,255,255,0.6); }
+
+    .concept-a .stats { border-top: 1px solid rgba(212, 168, 83, 0.2); }
+    .concept-a .stat-value { color: #D4A853; }
+    .concept-a .stat-label { color: rgba(255,255,255,0.5); }
+
+    /* ========================================
+       CONCEPT B: Ocean Deep
+       Deep navy with teal/cyan accents
+    ======================================== */
+    .concept-b {
+      background: linear-gradient(135deg, #0a1628 0%, #122a4a 50%, #0a1628 100%);
+    }
+
+    .concept-b .concept-label {
+      background: rgba(18, 42, 74, 0.95);
+      border-color: #4ECDC4;
+    }
+
+    .concept-b .concept-label h3 { color: #4ECDC4; }
+
+    .concept-b nav { border-bottom: 1px solid rgba(78, 205, 196, 0.2); }
+    .concept-b .logo { color: #4ECDC4; }
+    .concept-b .nav-links a { color: rgba(255,255,255,0.7); }
+    .concept-b .nav-links a:hover { color: #4ECDC4; }
+
+    .concept-b .btn-outline {
+      background: transparent;
+      border: 1px solid #4ECDC4;
+      color: #4ECDC4;
+    }
+    .concept-b .btn-outline:hover {
+      background: #4ECDC4;
+      color: #0a1628;
+    }
+
+    .concept-b .btn-filled {
+      background: linear-gradient(135deg, #1E5F74 0%, #133B5C 100%);
+      border: 1px solid #1E5F74;
+      color: #fff;
+    }
+    .concept-b .btn-filled:hover {
+      background: linear-gradient(135deg, #2A7A8C 0%, #1E5F74 100%);
+    }
+
+    .concept-b .hero-tagline { color: #4ECDC4; }
+    .concept-b .hero-title { color: #fff; }
+    .concept-b .hero-subtitle { color: rgba(255,255,255,0.6); }
+
+    .concept-b .stats { border-top: 1px solid rgba(78, 205, 196, 0.2); }
+    .concept-b .stat-value { color: #4ECDC4; }
+    .concept-b .stat-label { color: rgba(255,255,255,0.5); }
+
+    /* ========================================
+       CONCEPT C: Modern Minimal
+       Clean cream background, burgundy accents
+    ======================================== */
+    .concept-c {
+      background: linear-gradient(135deg, #FAF7F2 0%, #EDE6DB 100%);
+    }
+
+    .concept-c .concept-label {
+      background: rgba(139, 38, 53, 0.95);
+      border-color: #D4A853;
+    }
+
+    .concept-c .concept-label h3 { color: #D4A853; }
+
+    .concept-c nav { border-bottom: 1px solid rgba(139, 38, 53, 0.15); }
+    .concept-c .logo { color: #8B2635; }
+    .concept-c .nav-links a { color: #5A544E; }
+    .concept-c .nav-links a:hover { color: #8B2635; }
+
+    .concept-c .btn-outline {
+      background: transparent;
+      border: 1px solid #8B2635;
+      color: #8B2635;
+    }
+    .concept-c .btn-outline:hover {
+      background: #8B2635;
+      color: #FAF7F2;
+    }
+
+    .concept-c .btn-filled {
+      background: #8B2635;
+      border: 1px solid #8B2635;
+      color: #FAF7F2;
+    }
+    .concept-c .btn-filled:hover {
+      background: #6D1E2A;
+    }
+
+    .concept-c .hero-tagline { color: #D4A853; }
+    .concept-c .hero-title { color: #2A2522; }
+    .concept-c .hero-subtitle { color: #5A544E; }
+
+    .concept-c .stats { border-top: 1px solid rgba(139, 38, 53, 0.15); }
+    .concept-c .stat-value { color: #8B2635; }
+    .concept-c .stat-label { color: #8A857E; }
+
+    /* ========================================
+       CONCEPT D: Forest Canopy
+       Deep green with gold/amber accents
+    ======================================== */
+    .concept-d {
+      background: linear-gradient(135deg, #0d1f12 0%, #1a3d22 50%, #0d1f12 100%);
+    }
+
+    .concept-d .concept-label {
+      background: rgba(26, 61, 34, 0.95);
+      border-color: #C9A227;
+    }
+
+    .concept-d .concept-label h3 { color: #C9A227; }
+
+    .concept-d nav { border-bottom: 1px solid rgba(201, 162, 39, 0.2); }
+    .concept-d .logo { color: #C9A227; }
+    .concept-d .nav-links a { color: rgba(255,255,255,0.7); }
+    .concept-d .nav-links a:hover { color: #C9A227; }
+
+    .concept-d .btn-outline {
+      background: transparent;
+      border: 1px solid #C9A227;
+      color: #C9A227;
+    }
+    .concept-d .btn-outline:hover {
+      background: #C9A227;
+      color: #0d1f12;
+    }
+
+    .concept-d .btn-filled {
+      background: linear-gradient(135deg, #2D5A3D 0%, #1a3d22 100%);
+      border: 1px solid #2D5A3D;
+      color: #fff;
+    }
+    .concept-d .btn-filled:hover {
+      background: linear-gradient(135deg, #3D7A4D 0%, #2D5A3D 100%);
+    }
+
+    .concept-d .hero-tagline { color: #C9A227; }
+    .concept-d .hero-title { color: #fff; }
+    .concept-d .hero-subtitle { color: rgba(255,255,255,0.6); }
+
+    .concept-d .stats { border-top: 1px solid rgba(201, 162, 39, 0.2); }
+    .concept-d .stat-value { color: #C9A227; }
+    .concept-d .stat-label { color: rgba(255,255,255,0.5); }
+
+    /* ========================================
+       CONCEPT E: Sunset Coral
+       Warm coral/terracotta with cream
+    ======================================== */
+    .concept-e {
+      background: linear-gradient(135deg, #FDF6F0 0%, #F5E6D8 100%);
+    }
+
+    .concept-e .concept-label {
+      background: rgba(205, 92, 92, 0.95);
+      border-color: #F4D03F;
+    }
+
+    .concept-e .concept-label h3 { color: #F4D03F; }
+
+    .concept-e nav { border-bottom: 1px solid rgba(205, 92, 92, 0.2); }
+    .concept-e .logo { color: #CD5C5C; }
+    .concept-e .nav-links a { color: #6B5B4F; }
+    .concept-e .nav-links a:hover { color: #CD5C5C; }
+
+    .concept-e .btn-outline {
+      background: transparent;
+      border: 1px solid #CD5C5C;
+      color: #CD5C5C;
+    }
+    .concept-e .btn-outline:hover {
+      background: #CD5C5C;
+      color: #FDF6F0;
+    }
+
+    .concept-e .btn-filled {
+      background: #CD5C5C;
+      border: 1px solid #CD5C5C;
+      color: #FDF6F0;
+    }
+    .concept-e .btn-filled:hover {
+      background: #B84A4A;
+    }
+
+    .concept-e .hero-tagline { color: #C9A227; }
+    .concept-e .hero-title { color: #3D2E24; }
+    .concept-e .hero-subtitle { color: #6B5B4F; }
+
+    .concept-e .stats { border-top: 1px solid rgba(205, 92, 92, 0.2); }
+    .concept-e .stat-value { color: #CD5C5C; }
+    .concept-e .stat-label { color: #8B7B6B; }
+  </style>
+</head>
+<body>
+
+<!-- ==========================================
+     CONCEPT A: Tribal Fire
+========================================== -->
+<section class="concept concept-a">
+  <div class="concept-label">
+    <h3>Concept A</h3>
+    <p>Tribal Fire | Dark burgundy, gold accents, dramatic mood</p>
+  </div>
+
+  <nav>
+    <a href="#" class="logo">Survivor Fantasy</a>
+    <div class="nav-links">
+      <a href="#">How It Works</a>
+      <a href="#">Leagues</a>
+      <a href="#">Scoring</a>
+      <a href="#">Season 50</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Sign In</a>
+      <a href="#" class="btn btn-filled">Join Now</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-tagline">Season 50 Registration Open</div>
+    <h1 class="hero-title">Outwit. Outplay.<br>Outlast.</h1>
+    <p class="hero-subtitle">Draft your castaways, make weekly picks, and compete against friends in the ultimate Survivor fantasy experience.</p>
+    <div class="hero-cta">
+      <a href="#" class="btn btn-filled">Start Playing Free</a>
+      <a href="#" class="btn btn-outline">Learn More</a>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">2,847</div>
+        <div class="stat-label">Active Players</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">412</div>
+        <div class="stat-label">Leagues</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">24</div>
+        <div class="stat-label">Castaways</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Next Concept</h2>
+  <div class="next-name">Ocean Deep</div>
+</div>
+
+<!-- ==========================================
+     CONCEPT B: Ocean Deep
+========================================== -->
+<section class="concept concept-b">
+  <div class="concept-label">
+    <h3>Concept B</h3>
+    <p>Ocean Deep | Navy blue, teal accents, island vibes</p>
+  </div>
+
+  <nav>
+    <a href="#" class="logo">Survivor Fantasy</a>
+    <div class="nav-links">
+      <a href="#">How It Works</a>
+      <a href="#">Leagues</a>
+      <a href="#">Scoring</a>
+      <a href="#">Season 50</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Sign In</a>
+      <a href="#" class="btn btn-filled">Join Now</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-tagline">Season 50 Registration Open</div>
+    <h1 class="hero-title">Outwit. Outplay.<br>Outlast.</h1>
+    <p class="hero-subtitle">Draft your castaways, make weekly picks, and compete against friends in the ultimate Survivor fantasy experience.</p>
+    <div class="hero-cta">
+      <a href="#" class="btn btn-filled">Start Playing Free</a>
+      <a href="#" class="btn btn-outline">Learn More</a>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">2,847</div>
+        <div class="stat-label">Active Players</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">412</div>
+        <div class="stat-label">Leagues</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">24</div>
+        <div class="stat-label">Castaways</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Next Concept</h2>
+  <div class="next-name">Modern Minimal</div>
+</div>
+
+<!-- ==========================================
+     CONCEPT C: Modern Minimal
+========================================== -->
+<section class="concept concept-c">
+  <div class="concept-label">
+    <h3>Concept C</h3>
+    <p>Modern Minimal | Clean cream background, burgundy accents, elegant typography</p>
+  </div>
+
+  <nav>
+    <a href="#" class="logo">Survivor Fantasy</a>
+    <div class="nav-links">
+      <a href="#">How It Works</a>
+      <a href="#">Leagues</a>
+      <a href="#">Scoring</a>
+      <a href="#">Season 50</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Sign In</a>
+      <a href="#" class="btn btn-filled">Join Now</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-tagline">Season 50 Registration Open</div>
+    <h1 class="hero-title">Outwit. Outplay.<br>Outlast.</h1>
+    <p class="hero-subtitle">Draft your castaways, make weekly picks, and compete against friends in the ultimate Survivor fantasy experience.</p>
+    <div class="hero-cta">
+      <a href="#" class="btn btn-filled">Start Playing Free</a>
+      <a href="#" class="btn btn-outline">Learn More</a>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">2,847</div>
+        <div class="stat-label">Active Players</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">412</div>
+        <div class="stat-label">Leagues</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">24</div>
+        <div class="stat-label">Castaways</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Next Concept</h2>
+  <div class="next-name">Forest Canopy</div>
+</div>
+
+<!-- ==========================================
+     CONCEPT D: Forest Canopy
+========================================== -->
+<section class="concept concept-d">
+  <div class="concept-label">
+    <h3>Concept D</h3>
+    <p>Forest Canopy | Deep green, gold accents, jungle atmosphere</p>
+  </div>
+
+  <nav>
+    <a href="#" class="logo">Survivor Fantasy</a>
+    <div class="nav-links">
+      <a href="#">How It Works</a>
+      <a href="#">Leagues</a>
+      <a href="#">Scoring</a>
+      <a href="#">Season 50</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Sign In</a>
+      <a href="#" class="btn btn-filled">Join Now</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-tagline">Season 50 Registration Open</div>
+    <h1 class="hero-title">Outwit. Outplay.<br>Outlast.</h1>
+    <p class="hero-subtitle">Draft your castaways, make weekly picks, and compete against friends in the ultimate Survivor fantasy experience.</p>
+    <div class="hero-cta">
+      <a href="#" class="btn btn-filled">Start Playing Free</a>
+      <a href="#" class="btn btn-outline">Learn More</a>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">2,847</div>
+        <div class="stat-label">Active Players</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">412</div>
+        <div class="stat-label">Leagues</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">24</div>
+        <div class="stat-label">Castaways</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>Next Concept</h2>
+  <div class="next-name">Sunset Coral</div>
+</div>
+
+<!-- ==========================================
+     CONCEPT E: Sunset Coral
+========================================== -->
+<section class="concept concept-e">
+  <div class="concept-label">
+    <h3>Concept E</h3>
+    <p>Sunset Coral | Warm terracotta, cream background, tropical warmth</p>
+  </div>
+
+  <nav>
+    <a href="#" class="logo">Survivor Fantasy</a>
+    <div class="nav-links">
+      <a href="#">How It Works</a>
+      <a href="#">Leagues</a>
+      <a href="#">Scoring</a>
+      <a href="#">Season 50</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Sign In</a>
+      <a href="#" class="btn btn-filled">Join Now</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-tagline">Season 50 Registration Open</div>
+    <h1 class="hero-title">Outwit. Outplay.<br>Outlast.</h1>
+    <p class="hero-subtitle">Draft your castaways, make weekly picks, and compete against friends in the ultimate Survivor fantasy experience.</p>
+    <div class="hero-cta">
+      <a href="#" class="btn btn-filled">Start Playing Free</a>
+      <a href="#" class="btn btn-outline">Learn More</a>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">2,847</div>
+        <div class="stat-label">Active Players</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">412</div>
+        <div class="stat-label">Leagues</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">24</div>
+        <div class="stat-label">Castaways</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="separator">
+  <h2>End of Concepts</h2>
+  <div class="next-name">Scroll up to compare</div>
+</div>
+
+</body>
+</html>
