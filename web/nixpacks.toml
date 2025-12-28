@@ -2,10 +2,16 @@
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = ["npm ci"]
+cmds = [
+  "npm ci",
+  "npm list serve || npm install serve"
+]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = [
+  "npm run build",
+  "ls -la dist/"
+]
 
 [start]
-cmd = "npx serve dist -s -l ${PORT:-3000}"
+cmd = "node_modules/.bin/serve dist -s -l ${PORT:-3000}"
