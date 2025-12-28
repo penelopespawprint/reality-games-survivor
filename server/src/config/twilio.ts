@@ -1,6 +1,7 @@
 // Twilio SMS Configuration
 import twilio from 'twilio';
 import { randomInt } from 'crypto';
+import { supabaseAdmin } from './supabase.js';
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -66,8 +67,8 @@ export function normalizePhone(phone: string): string {
  * @param options.isTransactional - True for verification codes and user-initiated actions
  * @returns SMS response with success status
  *
- * Note: Non-transactional messages should check notification_sms preference before calling this.
- * This function does not check preferences - that's the caller's responsibility.
+ * Note: Non-transactional messages are automatically checked against notification_sms preference.
+ * This function enforces STOP compliance at the infrastructure level (FCC/TCPA requirement).
  */
 export async function sendSMS({ to, text, isTransactional = false }: SendSMSOptions): Promise<SendSMSResponse> {
   const client = getClient();
@@ -79,6 +80,29 @@ export async function sendSMS({ to, text, isTransactional = false }: SendSMSOpti
   if (!fromNumber) {
     console.warn('TWILIO_PHONE_NUMBER not set, skipping SMS');
     return { sid: 'skipped', success: false, skipped: true, reason: 'From number not set' };
+  }
+
+  // CRITICAL: Enforce STOP preferences for non-transactional messages
+  // Transactional = verification codes, user-initiated actions (always send)
+  // Marketing/notifications = must check opt-in status (FCC/TCPA compliance)
+  if (!isTransactional) {
+    const normalizedPhone = normalizePhone(to);
+    const { data: user, error } = await supabaseAdmin
+      .from('users')
+      .select('notification_sms')
+      .eq('phone', normalizedPhone)
+      .single();
+
+    if (error) {
+      console.warn(`Failed to check SMS preferences for ${normalizedPhone}:`, error);
+      // Fail safe: if we can't verify opt-in, don't send (compliance first)
+      return { sid: 'skipped', success: false, skipped: true, reason: 'Unable to verify opt-in status' };
+    }
+
+    if (!user || !user.notification_sms) {
+      console.log(`User ${normalizedPhone} has opted out of SMS notifications (STOP command)`);
+      return { sid: 'skipped', success: false, skipped: true, reason: 'User opted out via STOP' };
+    }
   }
 
   try {

@@ -109,7 +109,7 @@ async function generateResultsToken(userId: string, episodeId: string): Promise<
  */
 function renderSpoilerSafeEmail(episode: Episode, token: string, userName: string): string {
   const appUrl = process.env.APP_URL || 'https://survivor.realitygamesfantasyleague.com';
-  const resultsUrl = `${appUrl}/results/week-${episode.number}?token=${token}`;
+  const resultsUrl = `${appUrl}/results/week-${episode.week_number}?token=${token}`;
 
   return `
 <!DOCTYPE html>
@@ -178,7 +178,7 @@ function renderSpoilerSafeEmail(episode: Episode, token: string, userName: strin
  */
 function renderSpoilerSafeEmailText(episode: Episode, token: string, userName: string): string {
   const appUrl = process.env.APP_URL || 'https://survivor.realitygamesfantasyleague.com';
-  const resultsUrl = `${appUrl}/results/week-${episode.number}?token=${token}`;
+  const resultsUrl = `${appUrl}/results/week-${episode.week_number}?token=${token}`;
 
   return `
 SURVIVOR FANTASY LEAGUE - Episode ${episode.number} Results Ready
