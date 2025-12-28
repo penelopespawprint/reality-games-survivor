@@ -20,4 +20,4 @@ cmds = [
 ]
 
 [start]
-cmd = "node server/dist/server.js"
+cmd = "cd server && node dist/server.js"
