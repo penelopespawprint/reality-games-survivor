@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
+import { metrics } from './sentry';
 
 interface SignUpOptions {
   phone?: string;
@@ -168,8 +169,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    const startTime = performance.now();
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        metrics.count('auth_signin', 1, { method: 'password', status: 'error' });
+        throw error;
+      }
+      metrics.count('auth_signin', 1, { method: 'password', status: 'success' });
+      metrics.distribution('auth_signin_time', performance.now() - startTime, { method: 'password' });
+    } catch (error) {
+      metrics.count('auth_signin', 1, { method: 'password', status: 'error' });
+      throw error;
+    }
   };
 
   const signUp = async (
@@ -178,49 +190,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     displayName: string,
     options?: SignUpOptions
   ) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          display_name: displayName,
-          phone: options?.phone,
-          hometown: options?.hometown,
-          favorite_castaway: options?.favorite_castaway,
+    const startTime = performance.now();
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName,
+            phone: options?.phone,
+            hometown: options?.hometown,
+            favorite_castaway: options?.favorite_castaway,
+          },
         },
-      },
-    });
-    if (error) throw error;
+      });
+      if (error) {
+        metrics.count('auth_signup', 1, { status: 'error' });
+        throw error;
+      }
 
-    // If we have additional profile fields and the user was created, update the users table
-    if (data.user && (options?.phone || options?.hometown || options?.favorite_castaway)) {
-      const updates: Record<string, string> = {};
-      if (options?.phone) updates.phone = options.phone;
-      if (options?.hometown) updates.hometown = options.hometown;
-      if (options?.favorite_castaway) updates.favorite_castaway = options.favorite_castaway;
+      // If we have additional profile fields and the user was created, update the users table
+      if (data.user && (options?.phone || options?.hometown || options?.favorite_castaway)) {
+        const updates: Record<string, string> = {};
+        if (options?.phone) updates.phone = options.phone;
+        if (options?.hometown) updates.hometown = options.hometown;
+        if (options?.favorite_castaway) updates.favorite_castaway = options.favorite_castaway;
 
-      await supabase.from('users').update(updates).eq('id', data.user.id);
+        await supabase.from('users').update(updates).eq('id', data.user.id);
+      }
+      
+      metrics.count('auth_signup', 1, { status: 'success' });
+      metrics.distribution('auth_signup_time', performance.now() - startTime);
+    } catch (error) {
+      metrics.count('auth_signup', 1, { status: 'error' });
+      throw error;
     }
   };
 
   const signInWithMagicLink = async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/profile/setup`,
-      },
-    });
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/profile/setup`,
+        },
+      });
+      if (error) {
+        metrics.count('auth_signin', 1, { method: 'magic_link', status: 'error' });
+        throw error;
+      }
+      metrics.count('auth_signin', 1, { method: 'magic_link', status: 'success' });
+    } catch (error) {
+      metrics.count('auth_signin', 1, { method: 'magic_link', status: 'error' });
+      throw error;
+    }
   };
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/profile/setup`,
-      },
-    });
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/profile/setup`,
+        },
+      });
+      if (error) {
+        metrics.count('auth_signin', 1, { method: 'google', status: 'error' });
+        throw error;
+      }
+      metrics.count('auth_signin', 1, { method: 'google', status: 'initiated' });
+    } catch (error) {
+      metrics.count('auth_signin', 1, { method: 'google', status: 'error' });
+      throw error;
+    }
   };
 
   const signOut = async () => {
@@ -233,7 +275,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Supabase signOut error:', error);
+      metrics.count('auth_signout', 1, { status: 'error' });
       // Don't throw - we've already cleared local state
+    } else {
+      metrics.count('auth_signout', 1, { status: 'success' });
     }
   };
 

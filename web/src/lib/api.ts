@@ -2,6 +2,7 @@
 // Uses exponential backoff: 1s, 2s, 4s
 
 import * as Sentry from '@sentry/react';
+import { metrics } from './sentry';
 
 interface FetchOptions extends RequestInit {
   maxRetries?: number;
@@ -99,6 +100,8 @@ export async function api<T = unknown>(
   const fullUrl = url.startsWith('/api') ? url : `/api${url}`;
   const method = options.method || 'GET';
 
+  const startTime = performance.now();
+  
   return Sentry.startSpan(
     {
       op: 'http.client',
@@ -118,7 +121,15 @@ export async function api<T = unknown>(
         });
 
         const status = response.status;
+        const duration = performance.now() - startTime;
         span.setAttribute('http.status_code', status);
+
+        // Track API response time metric
+        metrics.distribution('api_response_time', duration, {
+          endpoint: fullUrl.replace(/\/[a-f0-9-]{36}/g, '/:id'), // Normalize UUIDs
+          method,
+          status: String(status),
+        });
 
         // Handle empty responses
         const text = await response.text();
@@ -141,6 +152,7 @@ export async function api<T = unknown>(
           } else {
             error = json.error || json.message || `Request failed with status ${status}`;
             span.setAttribute('error', error);
+            metrics.count('api_error', 1, { endpoint: fullUrl, status: String(status) });
           }
         } catch {
           error = text;
@@ -150,8 +162,17 @@ export async function api<T = unknown>(
         return { data, error, status };
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
+        const duration = performance.now() - startTime;
         span.setAttribute('error', true);
         span.setAttribute('error.message', error.message);
+
+        // Track failed request
+        metrics.distribution('api_response_time', duration, {
+          endpoint: fullUrl.replace(/\/[a-f0-9-]{36}/g, '/:id'),
+          method,
+          status: 'error',
+        });
+        metrics.count('api_error', 1, { endpoint: fullUrl, type: 'network' });
 
         // Capture exception for network errors
         Sentry.captureException(error, {
