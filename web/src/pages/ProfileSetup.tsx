@@ -110,7 +110,10 @@ export default function ProfileSetup() {
         .select('display_name')
         .eq('id', user.id)
         .single();
-      if (error && error.code !== 'PGRST116') throw error;
+
+      // Handle PGRST116 or 406 as "not found"
+      const isNotFound = error?.code === 'PGRST116' || (error as any)?.status === 406;
+      if (error && !isNotFound) throw error;
       return data;
     },
     enabled: !!user?.id,
