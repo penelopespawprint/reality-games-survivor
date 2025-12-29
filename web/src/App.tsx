@@ -19,6 +19,7 @@ import HowToPlay from './pages/HowToPlay';
 import ScoringRules from './pages/ScoringRules';
 import JoinLeague from './pages/JoinLeague';
 import Profile from './pages/Profile';
+import ProfileSetup from './pages/ProfileSetup';
 import LeagueHome from './pages/LeagueHome';
 import MyTeam from './pages/MyTeam';
 import EpisodeResults from './pages/EpisodeResults';
@@ -93,6 +94,8 @@ export default function App() {
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
+              {/* Profile setup - no layout wrapper */}
+              <Route path="/profile/setup" element={<ProfileSetup />} />
               <Route element={<Layout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<Profile />} />
