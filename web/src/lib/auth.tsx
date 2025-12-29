@@ -78,26 +78,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
 
-      // Fetch user profile if authenticated
-      if (session?.user) {
-        try {
-          const profileData = await fetchProfile(session.user.id);
-          setProfile(profileData);
-        } catch (error) {
-          console.error('Failed to fetch profile:', error);
-          // Continue even if profile fetch fails - don't block the app
+        // Fetch user profile if authenticated
+        if (session?.user) {
+          try {
+            const profileData = await fetchProfile(session.user.id);
+            setProfile(profileData);
+          } catch (error) {
+            console.error('Failed to fetch profile:', error);
+            // Continue even if profile fetch fails - don't block the app
+          }
         }
-      }
 
-      setLoading(false);
-    }).catch((error) => {
-      console.error('Failed to get session:', error);
-      setLoading(false);
-    });
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Failed to get session:', error);
+        setLoading(false);
+      });
 
     // Listen for auth changes
     const {
@@ -175,8 +178,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Clear local state first for better UX
+    setUser(null);
+    setProfile(null);
+    setSession(null);
+
+    // Then call Supabase signOut
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase signOut error:', error);
+      // Don't throw - we've already cleared local state
+    }
   };
 
   const isAdmin = profile?.role === 'admin';

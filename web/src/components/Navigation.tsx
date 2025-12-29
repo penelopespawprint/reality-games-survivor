@@ -49,10 +49,16 @@ export function Navigation() {
   }, [mobileMenuOpen]);
 
   // Handle sign out with localStorage cleanup
-  const handleSignOut = () => {
-    localStorage.removeItem('adminViewMode');
-    setMobileMenuOpen(false);
-    signOut();
+  const handleSignOut = async () => {
+    try {
+      localStorage.removeItem('adminViewMode');
+      setMobileMenuOpen(false);
+      await signOut();
+    } catch (error) {
+      console.error('Sign out failed:', error);
+      // Force clear local state even if API fails
+      window.location.href = '/';
+    }
   };
 
   const { data: profile } = useQuery({

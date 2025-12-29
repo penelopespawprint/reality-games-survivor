@@ -216,8 +216,15 @@ export default function Profile() {
 
   // Logout
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
+    try {
+      localStorage.removeItem('adminViewMode');
+      await supabase.auth.signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Force redirect even if API fails
+      window.location.href = '/login';
+    }
   };
 
   if (isLoading) {
