@@ -142,7 +142,20 @@ export default function ProfileSetup() {
         updateData.season_50_winner_prediction = data.season_50_winner_prediction;
 
       const { error } = await supabase.from('users').update(updateData).eq('id', user!.id);
-      if (error) throw error;
+
+      if (error) {
+        if (error.message.includes('season_50_winner_prediction') || error.code === '42703') {
+          const retryData = { ...updateData };
+          delete retryData.season_50_winner_prediction;
+          const { error: retryError } = await supabase
+            .from('users')
+            .update(retryData)
+            .eq('id', user!.id);
+          if (retryError) throw retryError;
+        } else {
+          throw error;
+        }
+      }
     },
     onSuccess: async () => {
       await refreshProfile();
