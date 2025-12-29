@@ -70,7 +70,9 @@ export default function CreateLeague() {
   // Create league mutation
   const createLeague = useMutation({
     mutationFn: async () => {
-      if (!currentUser || !activeSeason) throw new Error('Please wait for page to load');
+      if (!currentUser || !activeSeason) {
+        throw new Error('Loading season data...');
+      }
 
       const {
         data: { session },

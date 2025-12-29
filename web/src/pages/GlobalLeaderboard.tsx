@@ -224,9 +224,15 @@ export default function GlobalLeaderboard() {
             </p>
           </div>
           <div className="flex items-center gap-2 text-sm text-neutral-500">
-            <TorchIcon lit={true} /> = Active
+            <div className="flex items-center gap-1">
+              <TorchIcon lit={true} />
+              <span>= Active</span>
+            </div>
             <span className="mx-2">|</span>
-            <TorchIcon lit={false} /> = Eliminated
+            <div className="flex items-center gap-1">
+              <TorchIcon lit={false} />
+              <span>= Eliminated</span>
+            </div>
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { useAuth } from '@/lib/auth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useState, useEffect, useRef } from 'react';
-import { Shield, UserCircle, Menu, X } from 'lucide-react';
+import { Shield, UserCircle, Menu, X, ChevronDown } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -15,7 +15,9 @@ export function Navigation() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const howToPlayRef = useRef<HTMLDivElement>(null);
 
   // View mode toggle for admins - persisted in localStorage
   const [viewMode, setViewMode] = useState<'admin' | 'player'>(() => {
@@ -41,12 +43,15 @@ export function Navigation() {
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setMobileMenuOpen(false);
       }
+      if (howToPlayRef.current && !howToPlayRef.current.contains(event.target as Node)) {
+        setHowToPlayOpen(false);
+      }
     };
-    if (mobileMenuOpen) {
+    if (mobileMenuOpen || howToPlayOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, howToPlayOpen]);
 
   // Handle sign out with localStorage cleanup
   const handleSignOut = async () => {
@@ -261,16 +266,60 @@ export function Navigation() {
                 Castaways
               </Link>
               <span className="text-burgundy-300 mx-1">|</span>
-              <Link
-                to="/how-to-play"
-                className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
-                  isActive('/how-to-play') || isActive('/scoring')
-                    ? 'text-burgundy-600'
-                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
-                }`}
-              >
-                How to Play
-              </Link>
+              <div className="relative group" ref={howToPlayRef}>
+                <button
+                  onClick={() => setHowToPlayOpen(!howToPlayOpen)}
+                  className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all flex items-center gap-1 ${
+                    isActive('/how-to-play') || isActive('/scoring') || isActive('/weekly-timeline')
+                      ? 'text-burgundy-600'
+                      : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
+                  }`}
+                >
+                  How to Play
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${howToPlayOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {howToPlayOpen && (
+                  <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-cream-200 min-w-[200px] z-50">
+                    <Link
+                      to="/how-to-play"
+                      onClick={() => setHowToPlayOpen(false)}
+                      className={`block px-4 py-2 text-sm hover:bg-burgundy-50 ${
+                        isActive('/how-to-play') &&
+                        !isActive('/scoring') &&
+                        !isActive('/weekly-timeline')
+                          ? 'text-burgundy-600 bg-burgundy-50'
+                          : 'text-neutral-600'
+                      }`}
+                    >
+                      How to Play
+                    </Link>
+                    <Link
+                      to="/scoring-rules"
+                      onClick={() => setHowToPlayOpen(false)}
+                      className={`block px-4 py-2 text-sm hover:bg-burgundy-50 ${
+                        isActive('/scoring') || isActive('/scoring-rules')
+                          ? 'text-burgundy-600 bg-burgundy-50'
+                          : 'text-neutral-600'
+                      }`}
+                    >
+                      Scoring Rules
+                    </Link>
+                    <Link
+                      to="/how-to-play#weekly-timeline"
+                      onClick={() => setHowToPlayOpen(false)}
+                      className={`block px-4 py-2 text-sm hover:bg-burgundy-50 ${
+                        isActive('/weekly-timeline')
+                          ? 'text-burgundy-600 bg-burgundy-50'
+                          : 'text-neutral-600'
+                      }`}
+                    >
+                      Weekly Timeline
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -397,14 +446,41 @@ export function Navigation() {
               >
                 Castaways
               </Link>
-              <Link
-                to="/how-to-play"
-                className={`block px-4 py-3 text-sm font-semibold ${
-                  isActive('/how-to-play') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
-                }`}
-              >
-                How to Play
-              </Link>
+              <div>
+                <div className="px-4 py-2 text-sm font-semibold text-neutral-800">How to Play</div>
+                <Link
+                  to="/how-to-play"
+                  className={`block px-8 py-2 text-sm ${
+                    isActive('/how-to-play') &&
+                    !isActive('/scoring') &&
+                    !isActive('/weekly-timeline')
+                      ? 'text-burgundy-600 bg-burgundy-50'
+                      : 'text-neutral-600'
+                  }`}
+                >
+                  Overview
+                </Link>
+                <Link
+                  to="/scoring-rules"
+                  className={`block px-8 py-2 text-sm ${
+                    isActive('/scoring') || isActive('/scoring-rules')
+                      ? 'text-burgundy-600 bg-burgundy-50'
+                      : 'text-neutral-600'
+                  }`}
+                >
+                  Scoring Rules
+                </Link>
+                <Link
+                  to="/how-to-play#weekly-timeline"
+                  className={`block px-8 py-2 text-sm ${
+                    isActive('/weekly-timeline')
+                      ? 'text-burgundy-600 bg-burgundy-50'
+                      : 'text-neutral-600'
+                  }`}
+                >
+                  Weekly Timeline
+                </Link>
+              </div>
               <hr className="my-2 border-cream-100" />
               <Link to="/profile" className="block px-4 py-3 text-sm text-neutral-600">
                 Profile Settings

@@ -39,6 +39,7 @@ import Contact from './pages/Contact';
 import LeagueHistory from './pages/LeagueHistory';
 import Notifications from './pages/Notifications';
 import DraftSettings from './pages/DraftSettings';
+import DraftRankings from './pages/DraftRankings';
 import InviteLink from './pages/InviteLink';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -109,6 +110,7 @@ export default function App() {
               <Route path="/leagues/:id" element={<LeagueHome />} />
               <Route path="/leagues/:leagueId/draft" element={<Draft />} />
               <Route path="/leagues/:leagueId/draft/settings" element={<DraftSettings />} />
+              <Route path="/draft/rankings" element={<DraftRankings />} />
               <Route path="/leagues/:leagueId/pick" element={<WeeklyPick />} />
               <Route path="/leagues/:leagueId/team" element={<MyTeam />} />
               <Route path="/leagues/:leagueId/settings" element={<LeagueSettings />} />

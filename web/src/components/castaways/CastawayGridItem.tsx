@@ -91,7 +91,7 @@ export function CastawayGridItem({
             <img
               src={getAvatarUrl(castaway.name, castaway.photo_url)}
               alt={castaway.name}
-              className={`w-24 h-24 rounded-full object-cover border-3 ${
+              className={`w-32 h-32 rounded-full object-cover border-3 ${
                 castaway.status === 'eliminated'
                   ? 'border-neutral-200 grayscale'
                   : castaway.status === 'winner'

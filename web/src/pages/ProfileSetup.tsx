@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, Loader2, Bell, MapPin, Star, FileText } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { LoadingTorch } from '@/components/LoadingTorch';
+import { Loader2 } from 'lucide-react';
 
 const ALL_SURVIVOR_SEASONS = [
   { value: '', label: 'Select a season (optional)' },
@@ -220,7 +220,10 @@ export default function ProfileSetup() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream-200">
-        <LoadingTorch />
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <Loader2 className="h-12 w-12 text-burgundy-500 animate-spin mb-4" />
+          <p className="text-neutral-500">Loading...</p>
+        </div>
       </div>
     );
   }

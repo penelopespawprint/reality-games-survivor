@@ -58,7 +58,7 @@ export default function Leagues() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as any[];
+      return (data || []) as _League[];
     },
   });
 
@@ -71,7 +71,7 @@ export default function Leagues() {
       if (error) throw error;
 
       const counts: Record<string, number> = {};
-      data?.forEach((m: any) => {
+      data?.forEach((m: { league_id: string }) => {
         counts[m.league_id] = (counts[m.league_id] || 0) + 1;
       });
       return counts;
@@ -89,7 +89,7 @@ export default function Leagues() {
         .eq('user_id', user.id);
 
       if (error) throw error;
-      return data?.map((m: any) => m.league_id) || [];
+      return data?.map((m: { league_id: string }) => m.league_id) || [];
     },
     enabled: !!user?.id,
   });
@@ -215,24 +215,8 @@ export default function Leagues() {
       {/* Leagues Grid */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <div className="relative mb-6">
-            <img
-              src="/torch.png"
-              alt="Loading torch"
-              className="h-32 w-auto animate-pulse"
-              onError={(e) => {
-                // Fallback to spinner if torch image not found
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            <Loader2
-              className="h-12 w-12 text-burgundy-500 animate-spin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-              style={{ display: 'none' }}
-            />
-          </div>
-          <p className="text-2xl font-display font-bold text-burgundy-600 animate-pulse">
-            Are you ready??
-          </p>
+          <Loader2 className="h-12 w-12 text-burgundy-500 animate-spin mb-4" />
+          <p className="text-neutral-500">Loading leagues...</p>
         </div>
       ) : filteredLeagues?.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-card p-12 border border-cream-200 text-center">

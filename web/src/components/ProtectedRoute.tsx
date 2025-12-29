@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
-import { LoadingTorch } from './LoadingTorch';
+import { Loader2 } from 'lucide-react';
 
 export function ProtectedRoute() {
   const { user, loading } = useAuth();
@@ -9,7 +9,7 @@ export function ProtectedRoute() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream-200">
-        <LoadingTorch />
+        <Loader2 className="h-12 w-12 text-burgundy-500 animate-spin" />
       </div>
     );
   }

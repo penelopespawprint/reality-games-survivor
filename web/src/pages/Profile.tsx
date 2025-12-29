@@ -53,15 +53,20 @@ export default function Profile() {
       } = await supabase.auth.getUser();
       if (!authUser) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
+      const { data, error: queryError } = await supabase
         .from('users')
         .select('*')
         .eq('id', authUser.id)
         .single();
 
-      if (error) throw error;
+      if (queryError) {
+        console.error('Profile query error:', queryError);
+        throw queryError;
+      }
       return data;
     },
+    retry: 2,
+    retryDelay: 1000,
   });
 
   // Update profile mutation (display name, timezone)
