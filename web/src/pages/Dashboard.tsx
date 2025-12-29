@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Users, ChevronRight } from 'lucide-react';
 import { Footer } from '@/components/Footer';
+import { ErrorButton } from '@/components/ErrorButton';
 
 // Dashboard components
 import {
@@ -271,10 +272,7 @@ export function Dashboard() {
       )}
 
       {/* Alert Banners */}
-      <AlertBanners
-        recentlyEliminated={recentlyEliminated}
-        autoPickedLeagues={autoPickedLeagues}
-      />
+      <AlertBanners recentlyEliminated={recentlyEliminated} autoPickedLeagues={autoPickedLeagues} />
 
       {/* Quick Actions Grid */}
       <QuickActionsGrid
@@ -348,6 +346,11 @@ export function Dashboard() {
           {activeSeason && <SeasonInfoCard season={activeSeason} />}
           <WeeklyTimelineCard />
           <QuickLinksCard />
+          {/* Sentry Test Button */}
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-red-600 text-sm font-semibold mb-2">Sentry Test</p>
+            <ErrorButton />
+          </div>
         </div>
       </div>
 
