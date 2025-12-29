@@ -214,8 +214,25 @@ export default function Leagues() {
 
       {/* Leagues Grid */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="relative mb-6">
+            <img
+              src="/torch.png"
+              alt="Loading torch"
+              className="h-32 w-auto animate-pulse"
+              onError={(e) => {
+                // Fallback to spinner if torch image not found
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <Loader2
+              className="h-12 w-12 text-burgundy-500 animate-spin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+              style={{ display: 'none' }}
+            />
+          </div>
+          <p className="text-2xl font-display font-bold text-burgundy-600 animate-pulse">
+            Are you ready??
+          </p>
         </div>
       ) : filteredLeagues?.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-card p-12 border border-cream-200 text-center">
