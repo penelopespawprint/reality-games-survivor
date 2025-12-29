@@ -74,6 +74,11 @@ app.use('/api', generalLimiter);
 // Health check route (no rate limiting for monitoring)
 app.use('/', healthRoutes);
 
+// Debug route for testing Sentry error tracking
+app.get('/debug-sentry', function mainHandler(req, res) {
+  throw new Error('My first Sentry error!');
+});
+
 // API Routes
 app.use('/api', authRoutes);
 app.use('/api', dashboardRoutes);
