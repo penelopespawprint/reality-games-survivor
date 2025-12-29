@@ -95,51 +95,78 @@ export async function api<T = unknown>(
   options: FetchOptions = {}
 ): Promise<ApiResponse<T>> {
   const fullUrl = url.startsWith('/api') ? url : `/api${url}`;
+  const method = options.method || 'GET';
 
-  try {
-    const response = await fetchWithRetry(fullUrl, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
+  return Sentry.startSpan(
+    {
+      op: 'http.client',
+      name: `${method} ${fullUrl}`,
+    },
+    async (span) => {
+      try {
+        span.setAttribute('http.method', method);
+        span.setAttribute('http.url', fullUrl);
 
-    const status = response.status;
+        const response = await fetchWithRetry(fullUrl, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            ...options.headers,
+          },
+        });
 
-    // Handle empty responses
-    const text = await response.text();
-    if (!text) {
-      return {
-        data: null,
-        error: response.ok ? null : 'Empty response',
-        status,
-      };
-    }
+        const status = response.status;
+        span.setAttribute('http.status_code', status);
 
-    // Parse JSON
-    let data: T | null = null;
-    let error: string | null = null;
+        // Handle empty responses
+        const text = await response.text();
+        if (!text) {
+          return {
+            data: null,
+            error: response.ok ? null : 'Empty response',
+            status,
+          };
+        }
 
-    try {
-      const json = JSON.parse(text);
-      if (response.ok) {
-        data = json;
-      } else {
-        error = json.error || json.message || `Request failed with status ${status}`;
+        // Parse JSON
+        let data: T | null = null;
+        let error: string | null = null;
+
+        try {
+          const json = JSON.parse(text);
+          if (response.ok) {
+            data = json;
+          } else {
+            error = json.error || json.message || `Request failed with status ${status}`;
+            span.setAttribute('error', error);
+          }
+        } catch {
+          error = text;
+          span.setAttribute('error', error);
+        }
+
+        return { data, error, status };
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        span.setAttribute('error', true);
+        span.setAttribute('error.message', error.message);
+
+        // Capture exception for network errors
+        Sentry.captureException(error, {
+          tags: {
+            api_endpoint: fullUrl,
+            http_method: method,
+          },
+        });
+
+        return {
+          data: null,
+          error: error.message,
+          status: 0,
+        };
       }
-    } catch {
-      error = text;
     }
-
-    return { data, error, status };
-  } catch (err) {
-    return {
-      data: null,
-      error: err instanceof Error ? err.message : 'Network error',
-      status: 0,
-    };
-  }
+  );
 }
 
 /**

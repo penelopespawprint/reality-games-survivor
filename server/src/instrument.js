@@ -3,6 +3,11 @@
  * 
  * This file must be imported at the very top of your application
  * to enable automatic instrumentation of Node.js APIs.
+ * 
+ * Usage:
+ * - Error tracking: Sentry.captureException(error)
+ * - Tracing: Sentry.startSpan({ op: "http.server", name: "GET /api/users" }, async () => { ... })
+ * - Logging: Sentry.logger.info("Message", { context })
  */
 
 import * as Sentry from '@sentry/node';
@@ -22,6 +27,13 @@ if (!dsn) {
     sendDefaultPii: true,
     // Enable debug mode to see Sentry initialization logs
     debug: process.env.NODE_ENV !== 'production' || false,
+    // Enable logging
+    enableLogs: true,
+    // Integrations
+    integrations: [
+      // Send console.log, console.error, and console.warn calls as logs to Sentry
+      Sentry.consoleLoggingIntegration({ levels: ['log', 'error', 'warn'] }),
+    ],
     // Performance Monitoring
     tracesSampleRate: 1.0,
   });

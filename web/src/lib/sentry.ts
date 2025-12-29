@@ -1,7 +1,12 @@
 /**
  * Sentry Configuration
  *
- * Error tracking and performance monitoring for the frontend.
+ * Error tracking, performance monitoring, and logging for the frontend.
+ *
+ * Usage:
+ * - Error tracking: Sentry.captureException(error)
+ * - Tracing: Sentry.startSpan({ op: "ui.click", name: "Button Click" }, () => { ... })
+ * - Logging: Sentry.logger.info("Message", { context })
  */
 
 import * as Sentry from '@sentry/react';
@@ -25,13 +30,17 @@ export function initSentry() {
     sendDefaultPii: true,
     // Enable debug mode to see Sentry initialization logs
     debug: import.meta.env.DEV || false,
-    // Enable React integration for better error tracking
+    // Enable logging
+    enableLogs: true,
+    // Integrations
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration({
         maskAllText: false,
         blockAllMedia: false,
       }),
+      // Send console.log, console.error, and console.warn calls as logs to Sentry
+      Sentry.consoleLoggingIntegration({ levels: ['log', 'error', 'warn'] }),
     ],
     // Performance Monitoring
     tracesSampleRate: 1.0,
