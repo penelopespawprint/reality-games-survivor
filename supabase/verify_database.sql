@@ -1,7 +1,4 @@
--- Database Verification Script
--- Run this in Supabase SQL Editor to verify your database schema matches expectations
-
--- ============================================================================
+============================================================================
 -- 1. CHECK APPLIED MIGRATIONS
 -- ============================================================================
 SELECT 
