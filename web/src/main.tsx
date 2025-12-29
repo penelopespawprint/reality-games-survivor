@@ -4,7 +4,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { initSentry } from './lib/sentry';
 import './index.css';
+
+// Initialize Sentry before anything else
+initSentry();
 
 // Retry logic for network errors
 const shouldRetry = (failureCount: number, error: unknown): boolean => {

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { generalLimiter } from './config/rateLimit.js';
+import { initSentry, Sentry } from './config/sentry.js';
 
 // Routes
 import healthRoutes from './routes/health.js';
@@ -31,6 +32,9 @@ import { enqueueEmail } from './lib/email-queue.js';
 import { supabaseAdmin } from './config/supabase.js';
 import type { Server } from 'http';
 
+// Initialize Sentry before anything else
+initSentry();
+
 // Validate environment before starting server
 const envValidation = validateEnvironment();
 printValidationReport(envValidation);
@@ -41,6 +45,12 @@ if (!envValidation.valid) {
 }
 
 const app = express();
+
+// Sentry request handler must be the first middleware
+if (Sentry) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+}
 const PORT = process.env.PORT || 3001;
 
 // Middleware
@@ -80,9 +90,30 @@ app.use('/api/results', resultsRoutes);
 app.use('/api/trivia', triviaRoutes);
 app.use('/webhooks', webhookRoutes);
 
+// Sentry error handler must be before other error handlers
+if (Sentry) {
+  app.use(Sentry.Handlers.errorHandler());
+}
+
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Unhandled error:', err);
+  
+  // Send to Sentry
+  if (Sentry) {
+    Sentry.captureException(err, {
+      tags: {
+        route: req.path,
+        method: req.method,
+      },
+      extra: {
+        body: req.body,
+        query: req.query,
+        params: req.params,
+      },
+    });
+  }
+  
   res.status(500).json({ error: 'Internal server error' });
 });
 
@@ -105,6 +136,15 @@ process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) =>
     : JSON.stringify(reason, null, 2);
 
   console.error('Error details:', errorDetails);
+
+  // Send to Sentry
+  if (Sentry) {
+    Sentry.captureException(reason instanceof Error ? reason : new Error(String(reason)), {
+      tags: {
+        type: 'unhandledRejection',
+      },
+    });
+  }
 
   // Alert admin via email queue
   const adminEmail = process.env.ADMIN_EMAIL;
@@ -143,6 +183,19 @@ process.on('uncaughtException', (error: Error) => {
   // Log error with full context
   const errorDetails = `${error.message}\n${error.stack}`;
   console.error('Initiating graceful shutdown due to uncaught exception...');
+
+  // Send to Sentry before shutdown
+  if (Sentry) {
+    Sentry.captureException(error, {
+      tags: {
+        type: 'uncaughtException',
+      },
+    });
+    // Flush Sentry before exiting
+    Sentry.flush(2000).then(() => {
+      process.exit(1);
+    });
+  }
 
   // Alert admin via email queue
   const adminEmail = process.env.ADMIN_EMAIL;
