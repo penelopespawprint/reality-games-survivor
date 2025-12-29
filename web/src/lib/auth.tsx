@@ -77,35 +77,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth
-      .getSession()
-      .then(async ({ data: { session } }) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    // Function to initialize auth state
+    const initializeAuth = async () => {
+      try {
+        // First, check if there's a session in the URL hash (from magic link/OAuth redirect)
+        // Supabase will automatically extract it with detectSessionInUrl: true
+        // But we need to wait a bit for it to process
+        const {
+          data: { session: urlSession },
+        } = await supabase.auth.getSession();
 
-        // Fetch user profile if authenticated
-        if (session?.user) {
-          try {
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-          } catch (error) {
-            console.error('Failed to fetch profile:', error);
-            // Continue even if profile fetch fails - don't block the app
+        // If we have a session from URL, use it immediately
+        if (urlSession) {
+          setSession(urlSession);
+          setUser(urlSession.user ?? null);
+
+          // Clear the URL hash after extracting session
+          if (window.location.hash.includes('access_token')) {
+            window.history.replaceState(
+              null,
+              '',
+              window.location.pathname + window.location.search
+            );
+          }
+
+          // Fetch user profile if authenticated
+          if (urlSession.user) {
+            try {
+              const profileData = await fetchProfile(urlSession.user.id);
+              setProfile(profileData);
+            } catch (error) {
+              console.error('Failed to fetch profile:', error);
+              // Continue even if profile fetch fails - don't block the app
+            }
+          }
+        } else {
+          // No session found, check for stored session
+          const {
+            data: { session: storedSession },
+          } = await supabase.auth.getSession();
+          setSession(storedSession);
+          setUser(storedSession?.user ?? null);
+
+          // Fetch user profile if authenticated
+          if (storedSession?.user) {
+            try {
+              const profileData = await fetchProfile(storedSession.user.id);
+              setProfile(profileData);
+            } catch (error) {
+              console.error('Failed to fetch profile:', error);
+              // Continue even if profile fetch fails - don't block the app
+            }
           }
         }
 
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Failed to get session:', error);
+      } catch (error) {
+        console.error('Failed to initialize auth:', error);
         setLoading(false);
-      });
+      }
+    };
 
-    // Listen for auth changes
+    // Initialize auth state
+    initializeAuth();
+
+    // Listen for auth changes (including URL hash extraction)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Clear URL hash if we just got a session from URL
+      if (event === 'SIGNED_IN' && window.location.hash.includes('access_token')) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
 

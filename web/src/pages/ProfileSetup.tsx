@@ -216,8 +216,9 @@ export default function ProfileSetup() {
     }
   };
 
-  // Show loading torch while checking profile
-  if (isLoading) {
+  // Show loading while checking auth and profile
+  // Wait for both auth loading and user to be available
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream-200">
         <div className="flex flex-col items-center justify-center min-h-screen">
