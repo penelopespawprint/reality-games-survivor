@@ -1,8 +1,11 @@
+// IMPORTANT: Import instrument.js at the very top for Sentry auto-instrumentation
+import './instrument.js';
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { generalLimiter } from './config/rateLimit.js';
-import { initSentry, Sentry } from './config/sentry.js';
+import { Sentry } from './config/sentry.js';
 
 // Routes
 import healthRoutes from './routes/health.js';
@@ -31,9 +34,6 @@ import { validateEnvironment, printValidationReport } from './config/validateEnv
 import { enqueueEmail } from './lib/email-queue.js';
 import { supabaseAdmin } from './config/supabase.js';
 import type { Server } from 'http';
-
-// Initialize Sentry before anything else
-initSentry();
 
 // Validate environment before starting server
 const envValidation = validateEnvironment();
