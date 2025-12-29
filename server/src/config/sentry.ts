@@ -5,47 +5,17 @@
  */
 
 import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 export function initSentry() {
-  const dsn = process.env.SENTRY_DSN;
-  
-  if (!dsn) {
-    console.warn('Sentry DSN not configured. Error tracking disabled.');
-    return;
-  }
+  const dsn =
+    process.env.SENTRY_DSN ||
+    'https://fb69a1d48d5e4893dd28accaaeda8527@o4510618335903744.ingest.us.sentry.io/4510618538606592';
 
   Sentry.init({
     dsn,
-    environment: process.env.NODE_ENV || 'development',
-    integrations: [
-      nodeProfilingIntegration(),
-    ],
-    // Performance Monitoring
-    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-    // Profiling
-    profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-    // Release tracking
-    release: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.VERSION || undefined,
-    // Filter out common noise
-    ignoreErrors: [
-      // Validation errors that are handled
-      'ValidationError',
-      'ZodError',
-      // Rate limiting
-      'TooManyRequests',
-      // Network errors
-      'ECONNREFUSED',
-      'ETIMEDOUT',
-    ],
-    beforeSend(event, _hint) {
-      // Don't send errors in development unless they're critical
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Sentry would capture:', event);
-        return null; // Don't send in dev
-      }
-      return event;
-    },
+    // Setting this option to true will send default PII data to Sentry.
+    // For example, automatic IP address collection on events
+    sendDefaultPii: true,
   });
 }
 
