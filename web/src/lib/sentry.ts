@@ -17,24 +17,33 @@ export function initSentry() {
     return;
   }
 
+  // Get API URL for trace propagation
+  const apiUrl = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
+
   Sentry.init({
     dsn,
     // Setting this option to true will send default PII data to Sentry.
     // For example, automatic IP address collection on events
     sendDefaultPii: true,
     environment: import.meta.env.MODE || 'development',
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
-    ],
-    // Performance Monitoring
+    integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
+    // Tracing - Capture 100% of transactions in development, 10% in production
     tracesSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 1.0,
+    // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
+    tracePropagationTargets: [
+      'localhost',
+      /^https:\/\/rgfl-api-production\.up\.railway\.app\/api/,
+      new RegExp(`^${apiUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/api`),
+    ],
     // Session Replay
+    // This sets the sample rate at 10%. You may want to change it to 100% while in development
+    // and then sample at a lower rate in production.
     replaysSessionSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 1.0,
+    // If you're not already sampling the entire session, change the sample rate to 100%
+    // when sampling sessions where errors occur.
     replaysOnErrorSampleRate: 1.0,
+    // Enable logs to be sent to Sentry
+    enableLogs: true,
     // Release tracking
     release: import.meta.env.VITE_APP_VERSION || undefined,
     // Filter out common noise
