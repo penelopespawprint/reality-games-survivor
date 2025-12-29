@@ -167,32 +167,28 @@ export default function HowToPlay() {
     {
       icon: Users,
       title: 'Join or Create a League',
-      description:
-        'Create a private league with friends or join an existing one using an invite code. Leagues can have up to 12 players. Optional charity donations make competition meaningful — the winner recommends where the pool goes!',
+      description: 'Play with friends in a private league or join a public one.',
     },
     {
       icon: Trophy,
       title: 'Draft Your Team',
       description:
-        "Before the season premiere, you'll rank all 24 castaways based on who you think will score the most points. Your rankings are used across all your leagues in a snake draft format — if you're pick 5, you get whoever is highest on YOUR list that hasn't been taken. Study the cast bios, watch pre-season interviews, and trust your Survivor instincts. Consider edit visibility (who gets confessionals?), challenge prowess (physical and puzzle skills), and social game (who can build alliances?). Your 2 best available castaways become your roster for the season.",
+        'Rank castaways before the premiere. Snake draft gives you your top 2 available picks.',
     },
     {
       icon: Calendar,
       title: 'Make Weekly Picks',
-      description:
-        'Each week, choose which of your 2 castaways to play. Picks lock at 3pm PST on Wednesdays before the episode airs. If you forget to pick, the system will auto-pick your highest-ranked available castaway.',
+      description: 'Choose 1 of your 2 castaways each week. Picks lock Wed 3pm PST.',
     },
     {
       icon: Star,
       title: 'Earn Points',
-      description:
-        'Your picked castaway earns (or loses) points based on what happens during the episode. Every idol play, challenge win, strategic move, and confessional counts. With 100+ scoring rules, every moment matters!',
+      description: 'Score points for challenge wins, idol plays, strategic moves, and more.',
     },
     {
       icon: Award,
       title: 'Win Your League',
-      description:
-        'Accumulate the most total points over the season to win your league and claim bragging rights until next season!',
+      description: 'Most points at the end of the season wins!',
     },
   ];
 

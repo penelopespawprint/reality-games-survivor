@@ -1,13 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import {
-  ArrowLeft,
-  Loader2,
-  Heart,
-  Users,
-} from 'lucide-react';
+import { ArrowLeft, Loader2, Heart, Users } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { apiWithAuth } from '../lib/api';
 import { Navigation } from '@/components/Navigation';
 import {
   LeagueDetailsForm,
@@ -15,6 +11,22 @@ import {
   CharitySettings,
   ShareLeagueModal,
 } from '@/components/leagues/create';
+
+interface League {
+  id: string;
+  name: string;
+  code: string;
+  max_players: number;
+  require_donation: boolean;
+  donation_amount: number | null;
+  is_public: boolean;
+}
+
+interface CreateLeagueResponse {
+  league: League;
+  checkout_url?: string;
+  requires_payment?: boolean;
+}
 
 export default function CreateLeague() {
   const navigate = useNavigate();
@@ -26,7 +38,7 @@ export default function CreateLeague() {
   const [requireDonation, setRequireDonation] = useState(false);
   const [donationAmount, setDonationAmount] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
-  const [createdLeague, setCreatedLeague] = useState<any>(null);
+  const [createdLeague, setCreatedLeague] = useState<League | null>(null);
 
   // Fetch active season
   const { data: activeSeason } = useQuery({
@@ -53,61 +65,57 @@ export default function CreateLeague() {
     },
   });
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   // Create league mutation
   const createLeague = useMutation({
     mutationFn: async () => {
-      if (!currentUser || !activeSeason) throw new Error('Missing data');
+      if (!currentUser || !activeSeason) throw new Error('Please wait for page to load');
 
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      const response = await fetch('/api/leagues', {
+      const result = await apiWithAuth<CreateLeagueResponse>('/leagues', session.access_token, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
         body: JSON.stringify({
           name,
           season_id: activeSeason.id,
           password: isPrivate && joinCode ? joinCode : null,
-          donation_amount: requireDonation ? parseFloat(donationAmount) : null,
+          donation_amount: requireDonation && donationAmount ? parseFloat(donationAmount) : null,
           max_players: maxPlayers,
           is_public: !isPrivate,
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create league');
+      if (result.error) {
+        throw new Error(result.error);
       }
 
-      const { league } = await response.json();
+      const league = result.data?.league;
+      if (!league) {
+        throw new Error('Failed to create league');
+      }
 
-      if (requireDonation && parseFloat(donationAmount) > 0) {
-        const checkoutResponse = await fetch(`/api/leagues/${league.id}/join/checkout`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-
-        if (checkoutResponse.ok) {
-          const { checkout_url } = await checkoutResponse.json();
-          window.location.href = checkout_url;
-          return { ...league, redirectingToPayment: true };
-        }
+      // If requires payment, redirect to checkout
+      if (result.data?.requires_payment && result.data?.checkout_url) {
+        window.location.href = result.data.checkout_url;
+        return { ...league, redirectingToPayment: true } as League & {
+          redirectingToPayment: boolean;
+        };
       }
 
       return league;
     },
-    onSuccess: (data: any) => {
-      if (data?.redirectingToPayment) return;
+    onSuccess: (data: League | (League & { redirectingToPayment: boolean })) => {
+      setErrorMessage(null);
+      if ('redirectingToPayment' in data && data.redirectingToPayment) return;
       setCreatedLeague(data);
       setShowShareModal(true);
+    },
+    onError: (error: Error) => {
+      setErrorMessage(error.message);
     },
   });
 
@@ -183,10 +191,10 @@ export default function CreateLeague() {
             )}
           </button>
 
-          {createLeague.isError && (
+          {(createLeague.isError || errorMessage) && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
               <p className="text-red-600 text-sm text-center">
-                Error creating league. Please try again.
+                {errorMessage || 'Error creating league. Please try again.'}
               </p>
             </div>
           )}

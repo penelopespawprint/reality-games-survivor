@@ -46,17 +46,27 @@ export default function JoinLeague() {
     queryFn: async () => {
       if (!code) throw new Error('No code provided');
 
+      // Clean and normalize the code
+      const cleanCode = code.trim().toUpperCase();
+
       const result = await api<{
         league: League & { has_password: boolean; member_count: number };
-      }>(`/leagues/code/${code.toUpperCase()}`);
+      }>(`/leagues/code/${cleanCode}`);
 
       if (result.error) {
         throw new Error(result.error);
       }
 
-      return result.data?.league;
+      if (!result.data?.league) {
+        throw new Error('League not found');
+      }
+
+      return result.data.league;
     },
-    enabled: !!code,
+    enabled: !!code && code.trim().length > 0,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
+    staleTime: 30000, // Cache for 30 seconds
   });
 
   const league = leagueData;

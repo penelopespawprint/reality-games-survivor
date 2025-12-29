@@ -6,6 +6,7 @@ import { Router, Response } from 'express';
 import { authenticate, AuthenticatedRequest } from '../middleware/authenticate.js';
 import { supabaseAdmin } from '../config/supabase.js';
 import { sendSuccess, sendValidationError, sendInternalError, sendForbidden } from '../lib/api-response.js';
+import { EmailService } from '../emails/index.js';
 
 const router = Router();
 
@@ -13,6 +14,38 @@ const router = Router();
 router.get('/next', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
+
+    // Check if this is the user's first trivia attempt and send welcome email
+    const { data: existingAnswers } = await supabaseAdmin
+      .from('daily_trivia_answers')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1);
+
+    if (!existingAnswers || existingAnswers.length === 0) {
+      // First time playing trivia - send welcome email
+      const { data: user } = await supabaseAdmin
+        .from('users')
+        .select('email, display_name, welcome_email_sent')
+        .eq('id', userId)
+        .single();
+
+      if (user && !user.welcome_email_sent) {
+        try {
+          await EmailService.sendWelcome({
+            displayName: user.display_name || 'Survivor Fan',
+            email: user.email,
+          });
+          // Mark welcome email as sent
+          await supabaseAdmin
+            .from('users')
+            .update({ welcome_email_sent: true })
+            .eq('id', userId);
+        } catch (emailErr) {
+          console.error('Failed to send welcome email:', emailErr);
+        }
+      }
+    }
 
     // Check if user is locked out
     const { data: lockoutCheck, error: lockoutError } = await supabaseAdmin.rpc('is_user_trivia_locked', {
@@ -177,6 +210,14 @@ router.post('/answer', authenticate, async (req: AuthenticatedRequest, res: Resp
     const isTimeout = selectedIndex === -1;
     const isCorrect = isTimeout ? false : selectedIndex === question.correct_index;
 
+    // Check if this is user's first trivia answer (for welcome email)
+    const { count: answerCount } = await supabaseAdmin
+      .from('daily_trivia_answers')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    const isFirstAnswer = (answerCount || 0) === 0;
+
     // Save answer
     const { error: insertError } = await supabaseAdmin.from('daily_trivia_answers').insert({
       user_id: userId,
@@ -187,6 +228,27 @@ router.post('/answer', authenticate, async (req: AuthenticatedRequest, res: Resp
 
     if (insertError) {
       return sendInternalError(res, 'Failed to save answer');
+    }
+
+    // Send trivia welcome email on first answer
+    if (isFirstAnswer) {
+      try {
+        const { data: user } = await supabaseAdmin
+          .from('users')
+          .select('email, display_name')
+          .eq('id', userId)
+          .single();
+
+        if (user?.email) {
+          await EmailService.sendTriviaWelcome({
+            displayName: user.display_name || 'Survivor Fan',
+            email: user.email,
+          });
+        }
+      } catch (emailErr) {
+        console.error('Failed to send trivia welcome email:', emailErr);
+        // Don't fail the request if email fails
+      }
     }
 
     // If wrong answer, lock user out for 24 hours and increment attempts

@@ -10,9 +10,11 @@ const phoneSchema = z.string().regex(phoneRegex, 'Invalid phone number format');
 // League schemas
 export const createLeagueSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters').max(50, 'Name must be at most 50 characters'),
-  password: z.string().max(100).optional(),
-  donation_amount: z.number().min(0).max(10000).optional(),
+  password: z.string().max(100).optional().nullable(),
+  donation_amount: z.number().min(0).max(10000).optional().nullable(),
   season_id: z.string().uuid(),
+  max_players: z.number().min(2).max(24).optional(),
+  is_public: z.boolean().optional(),
 });
 
 export const updateLeagueSettingsSchema = z.object({

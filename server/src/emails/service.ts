@@ -165,6 +165,11 @@ interface TorchSnuffedEmailData {
   episodeNumber: number;
 }
 
+interface TriviaWelcomeEmailData {
+  displayName: string;
+  email: string;
+}
+
 // ============================================
 // EMAIL TEMPLATES
 // ============================================
@@ -549,6 +554,33 @@ function torchSnuffedEmailTemplate(data: TorchSnuffedEmailData): string {
   `, `Your torch has been snuffed in ${data.leagueName}`);
 }
 
+function triviaWelcomeEmailTemplate({ displayName }: TriviaWelcomeEmailData): string {
+  return emailWrapper(`
+    ${heading('Welcome, Survivor Fan! 🏝️')}
+    ${paragraph(`Hey ${displayName},`)}
+    ${paragraph(`Thanks for playing our Survivor trivia! You clearly know your stuff. Now it's time to put that knowledge to the test in our fantasy leagues.`)}
+    ${divider()}
+    ${card(`
+      ${heading('How to Start Playing', 2)}
+      ${paragraph(`<strong>1. Join a league</strong> — Create one with friends or join a public league`)}
+      ${paragraph(`<strong>2. Rank castaways</strong> — Pick your favorites before the premiere`)}
+      ${paragraph(`<strong>3. Make weekly picks</strong> — Choose who to play each episode`)}
+      ${paragraph(`<strong>4. Score points</strong> — 100+ rules reward real Survivor strategy`)}
+    `)}
+    ${button('Join a League Now', `${BASE_URL}/dashboard`)}
+    ${divider()}
+    ${card(`
+      <div style="text-align: center;">
+        <div style="font-size: 32px; margin-bottom: 8px;">🏆</div>
+        ${heading('Season 50 is Coming!', 2)}
+        ${paragraph(`Join Season 50: In the Hands of the Fans and compete with other superfans. Draft your team, make strategic picks, and prove you're the ultimate Survivor expert.`)}
+      </div>
+    `)}
+    ${paragraph(`Want to learn more? Check out our <a href="${BASE_URL}/how-to-play" style="color:#A52A2A; font-weight: 500;">How to Play</a> guide.`)}
+    ${paragraph(`<em style="color: #8A7654;">Outwit. Outplay. Outlast.</em>`)}
+  `, 'Welcome to Reality Games: Survivor');
+}
+
 // ============================================
 // EMAIL SERVICE CLASS
 // ============================================
@@ -560,6 +592,16 @@ export class EmailService {
     return sendEmail({
       to: data.email,
       subject: '🏝️ Welcome to Reality Games: Survivor!',
+      html,
+    });
+  }
+
+  // Send trivia welcome email when user starts playing trivia
+  static async sendTriviaWelcome(data: TriviaWelcomeEmailData): Promise<boolean> {
+    const html = triviaWelcomeEmailTemplate(data);
+    return sendEmail({
+      to: data.email,
+      subject: '🏝️ Welcome, Survivor Fan! Here\'s How to Play',
       html,
     });
   }

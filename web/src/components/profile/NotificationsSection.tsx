@@ -33,7 +33,10 @@ export function NotificationsSection({
       </h3>
 
       <div className="space-y-4">
-        <label className="flex items-center justify-between cursor-pointer p-3 bg-cream-50 rounded-xl border border-cream-200 hover:bg-cream-100 transition-colors">
+        <div
+          className="flex items-center justify-between cursor-pointer p-3 bg-cream-50 rounded-xl border border-cream-200 hover:bg-cream-100 transition-colors"
+          onClick={() => onEmailChange(!emailEnabled)}
+        >
           <div className="flex items-center gap-3">
             <Mail className="h-5 w-5 text-neutral-400" />
             <div>
@@ -41,32 +44,41 @@ export function NotificationsSection({
               <p className="text-neutral-400 text-sm">Reminders, results, and updates</p>
             </div>
           </div>
-          <input
-            type="checkbox"
-            checked={emailEnabled}
-            onChange={(e) => onEmailChange(e.target.checked)}
-            className="w-5 h-5 rounded bg-cream-100 border-cream-300 text-burgundy-500 focus:ring-burgundy-500"
-          />
-        </label>
+          <div
+            className={`w-12 h-7 rounded-full p-1 transition-colors ${emailEnabled ? 'bg-burgundy-500' : 'bg-neutral-300'}`}
+          >
+            <div
+              className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${emailEnabled ? 'translate-x-5' : 'translate-x-0'}`}
+            />
+          </div>
+        </div>
 
-        <label className="flex items-center justify-between cursor-pointer p-3 bg-cream-50 rounded-xl border border-cream-200 hover:bg-cream-100 transition-colors">
+        <div
+          className={`flex items-center justify-between p-3 bg-cream-50 rounded-xl border border-cream-200 transition-colors ${phoneVerified ? 'cursor-pointer hover:bg-cream-100' : 'opacity-60 cursor-not-allowed'}`}
+          onClick={() => phoneVerified && onSmsChange(!smsEnabled)}
+        >
           <div className="flex items-center gap-3">
             <Smartphone className="h-5 w-5 text-neutral-400" />
             <div>
               <p className="text-neutral-800 font-medium">SMS Notifications</p>
-              <p className="text-neutral-400 text-sm">Pick reminders and urgent alerts</p>
+              <p className="text-neutral-400 text-sm">
+                {phoneVerified ? 'Pick reminders and urgent alerts' : 'Verify phone to enable'}
+              </p>
             </div>
           </div>
-          <input
-            type="checkbox"
-            checked={smsEnabled}
-            onChange={(e) => onSmsChange(e.target.checked)}
-            disabled={!phoneVerified}
-            className="w-5 h-5 rounded bg-cream-100 border-cream-300 text-burgundy-500 focus:ring-burgundy-500 disabled:opacity-50"
-          />
-        </label>
+          <div
+            className={`w-12 h-7 rounded-full p-1 transition-colors ${smsEnabled && phoneVerified ? 'bg-burgundy-500' : 'bg-neutral-300'}`}
+          >
+            <div
+              className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${smsEnabled && phoneVerified ? 'translate-x-5' : 'translate-x-0'}`}
+            />
+          </div>
+        </div>
 
-        <label className="flex items-center justify-between cursor-pointer p-3 bg-cream-50 rounded-xl border border-cream-200 hover:bg-cream-100 transition-colors">
+        <div
+          className="flex items-center justify-between cursor-pointer p-3 bg-cream-50 rounded-xl border border-cream-200 hover:bg-cream-100 transition-colors"
+          onClick={() => onPushChange(!pushEnabled)}
+        >
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-neutral-400" />
             <div>
@@ -74,13 +86,14 @@ export function NotificationsSection({
               <p className="text-neutral-400 text-sm">Real-time updates on your device</p>
             </div>
           </div>
-          <input
-            type="checkbox"
-            checked={pushEnabled}
-            onChange={(e) => onPushChange(e.target.checked)}
-            className="w-5 h-5 rounded bg-cream-100 border-cream-300 text-burgundy-500 focus:ring-burgundy-500"
-          />
-        </label>
+          <div
+            className={`w-12 h-7 rounded-full p-1 transition-colors ${pushEnabled ? 'bg-burgundy-500' : 'bg-neutral-300'}`}
+          >
+            <div
+              className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${pushEnabled ? 'translate-x-5' : 'translate-x-0'}`}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
