@@ -8,7 +8,7 @@
 import * as Sentry from '@sentry/node';
 
 // Initialize Sentry with auto-instrumentation
-const dsn = process.env.SENTRY_DSN || 'https://fb69a1d48d5e4893dd28accaaeda8527@o4510618335903744.ingest.us.sentry.io/4510618538606592';
+const dsn = process.env.SENTRY_DSN || 'https://9510dc570d99c3c8c341b7eede7cb2f2@o4510618335903744.ingest.us.sentry.io/4510620242935808';
 
 if (!dsn) {
   console.warn('Sentry DSN not configured');

@@ -9,7 +9,7 @@ import * as Sentry from '@sentry/react';
 export function initSentry() {
   const dsn =
     import.meta.env.VITE_SENTRY_DSN ||
-    'https://60ede8b927dfe100fbda00b199b28307@o4510618335903744.ingest.us.sentry.io/4510618379091968';
+    'https://9510dc570d99c3c8c341b7eede7cb2f2@o4510618335903744.ingest.us.sentry.io/4510620242935808';
 
   if (!dsn) {
     console.warn('Sentry DSN not configured');
