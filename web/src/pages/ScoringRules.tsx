@@ -14,6 +14,7 @@ import {
   Award,
   Check,
   X,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
@@ -25,7 +26,7 @@ const CATEGORIES = [
     name: 'Survival',
     icon: Flame,
     color: 'orange',
-    description: 'How to score points by staying in the game',
+    description: 'Points for staying in the game',
     examples: [
       { text: 'Survive the episode without being voted out', positive: true },
       { text: 'Make it to the merge', positive: true },
@@ -37,7 +38,7 @@ const CATEGORIES = [
     name: 'Tribal Council',
     icon: Users,
     color: 'blue',
-    description: 'How to score points through voting and surviving votes',
+    description: 'Points through voting and surviving votes',
     examples: [
       { text: 'Vote for the person who gets eliminated', positive: true },
       { text: 'Receive votes but survive', positive: true },
@@ -49,7 +50,7 @@ const CATEGORIES = [
     name: 'Pre-Merge Challenges',
     icon: Trophy,
     color: 'green',
-    description: 'How to score points in tribal immunity and reward challenges',
+    description: 'Tribal immunity and reward challenges',
     examples: [
       { text: 'Tribe wins immunity challenge', positive: true },
       { text: 'Tribe wins reward challenge', positive: true },
@@ -61,7 +62,7 @@ const CATEGORIES = [
     name: 'Post-Merge Challenges',
     icon: Award,
     color: 'purple',
-    description: 'How to score points in individual immunity and reward challenges',
+    description: 'Individual immunity and reward challenges',
     examples: [
       { text: 'Win individual immunity', positive: true },
       { text: 'Win individual reward', positive: true },
@@ -73,7 +74,7 @@ const CATEGORIES = [
     name: 'Strategic Play',
     icon: Target,
     color: 'red',
-    description: 'How to score points through big moves and game manipulation',
+    description: 'Big moves and game manipulation',
     examples: [
       { text: 'Orchestrate a blindside', positive: true },
       { text: 'Successfully flip on your alliance', positive: true },
@@ -85,7 +86,7 @@ const CATEGORIES = [
     name: 'Social Game',
     icon: MessageCircle,
     color: 'teal',
-    description: 'How to score points through relationships and jury management',
+    description: 'Relationships and jury management',
     examples: [
       { text: 'Shown building a strong alliance', positive: true },
       { text: 'Mediate conflict between other players', positive: true },
@@ -97,7 +98,7 @@ const CATEGORIES = [
     name: 'Idols & Advantages',
     icon: Gem,
     color: 'yellow',
-    description: 'How to score points by finding and playing advantages',
+    description: 'Finding and playing advantages',
     examples: [
       { text: 'Find a hidden immunity idol', positive: true },
       { text: 'Successfully play an idol to save yourself', positive: true },
@@ -110,7 +111,7 @@ const CATEGORIES = [
     name: 'Confessionals & Screen Time',
     icon: MessageCircle,
     color: 'indigo',
-    description: 'How to score points through on-screen presence and memorable moments',
+    description: 'On-screen presence and memorable moments',
     examples: [
       { text: 'Have a confessional during the episode', positive: true },
       { text: 'Deliver a memorable or viral moment', positive: true },
@@ -122,7 +123,7 @@ const CATEGORIES = [
     name: 'Bonus & Special',
     icon: Star,
     color: 'gold',
-    description: 'How to score points through special achievements and milestones',
+    description: 'Special achievements and milestones',
     examples: [
       { text: 'Win fan favorite / Sprint Player of the Season', positive: true },
       { text: 'Make a move that significantly changes the game', positive: true },
@@ -133,7 +134,7 @@ const CATEGORIES = [
     name: 'Penalties',
     icon: X,
     color: 'red',
-    description: 'How to lose points through certain actions',
+    description: 'Ways to lose points',
     examples: [
       { text: 'Get voted out', positive: false },
       { text: 'Quit the game', positive: false },
@@ -156,86 +157,101 @@ export default function ScoringRules() {
     }));
   };
 
+  const expandAll = () => {
+    setExpandedCategories(CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.name]: true }), {}));
+  };
+
+  const collapseAll = () => {
+    setExpandedCategories(CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat.name]: false }), {}));
+  };
+
   return (
     <div className="min-h-screen bg-cream-50 flex flex-col">
       <Navigation />
 
       {/* Header */}
-      <div className="px-6 py-12 text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <BookOpen className="h-10 w-10 text-burgundy-500" />
-          <h1 className="text-4xl font-display font-bold text-neutral-800">
-            How to Score (or lose) Points throughout the season
-          </h1>
-        </div>
-      </div>
-
-      {/* How to Play and Score - Combined */}
-      <div className="max-w-4xl mx-auto px-6 mb-12">
-        <div className="bg-white rounded-2xl shadow-card p-8 border border-cream-200">
-          <div className="space-y-6 text-neutral-700">
-            <div>
-              <h2 className="text-2xl font-display font-bold text-neutral-800 mb-3">
-                1. Rank your top castaways
-              </h2>
-              <p className="text-lg mb-4">
-                Rank each castaway from 1-24 not on if you think they'll win, but if you think
-                they'll score the most points. Lock in your choices by March 3, 2026 at 5pm PST
-                (after the first episode airs).
-              </p>
-              <div className="p-4 bg-burgundy-50 rounded-xl border border-burgundy-200 mt-4">
-                <p className="text-burgundy-800 font-medium">
-                  Each player will receive two players in snake draft order with a random turn
-                  order.
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-display font-bold text-neutral-800 mb-3">
-                2. Make weekly picks
-              </h2>
-              <p className="text-lg">
-                Each week, choose which of your 2 castaways to "play" for that episode.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-display font-bold text-neutral-800 mb-3">
-                3. Earn points
-              </h2>
-              <p className="text-lg">
-                Your picked castaway earns (or loses) points based on what happens during the
-                episode.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-display font-bold text-neutral-800 mb-3">4. Compete</h2>
-              <p className="text-lg">
-                The player with the most total points at the end of the season wins!
-              </p>
-            </div>
-
-            <div className="pt-4 border-t border-cream-200">
-              <p className="text-neutral-600">
-                Earn and lose points based on what your castaways do each episode. Study
-                confessional counts, challenge performance, and edit visibility when making your
-                weekly picks. A castaway with a lot of screen time often earns more points! With
-                over 100+ rules and a decade of survivor knowledge our rules are unmatched to any
-                other survivor league out there.
-              </p>
-            </div>
+      <div className="px-6 py-10 text-center bg-gradient-to-b from-burgundy-50 to-transparent">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <BookOpen className="h-9 w-9 text-burgundy-500" />
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-neutral-800">
+              Scoring Rules
+            </h1>
           </div>
+          <p className="text-neutral-600 max-w-2xl mx-auto">
+            Earn and lose points based on what your castaways do each episode. With over 100+ rules
+            and a decade of Survivor knowledge, our scoring system is unmatched.
+          </p>
         </div>
       </div>
 
-      {/* Categories - 3 per line */}
+      {/* Controls */}
+      <div className="max-w-6xl mx-auto px-6 mb-6">
+        <div className="flex justify-center gap-3">
+          <button
+            onClick={expandAll}
+            className="text-sm text-burgundy-600 hover:text-burgundy-700 font-medium"
+          >
+            Expand All
+          </button>
+          <span className="text-neutral-300">|</span>
+          <button
+            onClick={collapseAll}
+            className="text-sm text-burgundy-600 hover:text-burgundy-700 font-medium"
+          >
+            Collapse All
+          </button>
+        </div>
+      </div>
+
+      {/* Categories Grid */}
       <div className="max-w-6xl mx-auto px-6 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {CATEGORIES.map((category) => {
             const Icon = category.icon;
             const isExpanded = expandedCategories[category.name];
+
+            const bgColorClass =
+              category.color === 'orange'
+                ? 'bg-orange-100'
+                : category.color === 'blue'
+                  ? 'bg-blue-100'
+                  : category.color === 'green'
+                    ? 'bg-green-100'
+                    : category.color === 'purple'
+                      ? 'bg-purple-100'
+                      : category.color === 'red'
+                        ? 'bg-red-100'
+                        : category.color === 'teal'
+                          ? 'bg-teal-100'
+                          : category.color === 'yellow'
+                            ? 'bg-yellow-100'
+                            : category.color === 'indigo'
+                              ? 'bg-indigo-100'
+                              : category.color === 'gold'
+                                ? 'bg-amber-100'
+                                : 'bg-neutral-100';
+
+            const textColorClass =
+              category.color === 'orange'
+                ? 'text-orange-600'
+                : category.color === 'blue'
+                  ? 'text-blue-600'
+                  : category.color === 'green'
+                    ? 'text-green-600'
+                    : category.color === 'purple'
+                      ? 'text-purple-600'
+                      : category.color === 'red'
+                        ? 'text-red-600'
+                        : category.color === 'teal'
+                          ? 'text-teal-600'
+                          : category.color === 'yellow'
+                            ? 'text-yellow-600'
+                            : category.color === 'indigo'
+                              ? 'text-indigo-600'
+                              : category.color === 'gold'
+                                ? 'text-amber-600'
+                                : 'text-neutral-600';
 
             return (
               <div
@@ -245,16 +261,16 @@ export default function ScoringRules() {
                 {/* Category Header */}
                 <button
                   onClick={() => toggleCategory(category.name)}
-                  className="w-full px-6 py-4 flex items-center gap-4 hover:bg-cream-50 transition-colors"
+                  className="w-full px-5 py-4 flex items-center gap-3 hover:bg-cream-50 transition-colors"
                 >
-                  <div className={`p-2 rounded-xl bg-${category.color}-100`}>
-                    <Icon className={`h-5 w-5 text-${category.color}-600`} />
+                  <div className={`p-2 rounded-xl ${bgColorClass}`}>
+                    <Icon className={`h-5 w-5 ${textColorClass}`} />
                   </div>
                   <div className="flex-1 text-left">
-                    <h3 className="text-lg font-display font-bold text-neutral-800">
+                    <h3 className="text-base font-display font-bold text-neutral-800">
                       {category.name}
                     </h3>
-                    <p className="text-neutral-500 text-sm">{category.description}</p>
+                    <p className="text-neutral-500 text-xs">{category.description}</p>
                   </div>
                   {isExpanded ? (
                     <ChevronDown className="h-5 w-5 text-neutral-400" />
@@ -270,29 +286,20 @@ export default function ScoringRules() {
                       {category.examples.map((example, i) => (
                         <div
                           key={i}
-                          className="px-6 py-3 flex items-center gap-4 hover:bg-cream-50 transition-colors"
+                          className="px-5 py-2.5 flex items-center gap-3 hover:bg-cream-50 transition-colors"
                         >
                           <div
-                            className={`p-1.5 rounded-full flex-shrink-0 ${
+                            className={`p-1 rounded-full flex-shrink-0 ${
                               example.positive ? 'bg-green-100' : 'bg-red-100'
                             }`}
                           >
                             {example.positive ? (
-                              <Check className="h-4 w-4 text-green-600" />
+                              <Check className="h-3.5 w-3.5 text-green-600" />
                             ) : (
-                              <X className="h-4 w-4 text-red-600" />
+                              <X className="h-3.5 w-3.5 text-red-600" />
                             )}
                           </div>
-                          <p className="text-neutral-700">{example.text}</p>
-                          <span
-                            className={`ml-auto text-xs font-medium px-2 py-1 rounded-full ${
-                              example.positive
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
-                            }`}
-                          >
-                            {example.positive ? 'Earn Points' : 'Lose Points'}
-                          </span>
+                          <p className="text-neutral-700 text-sm flex-1">{example.text}</p>
                         </div>
                       ))}
                     </div>
@@ -330,16 +337,18 @@ export default function ScoringRules() {
           {user ? (
             <Link
               to="/dashboard"
-              className="inline-block bg-white text-burgundy-600 font-bold px-8 py-3 rounded-xl hover:bg-cream-100 transition-colors"
+              className="inline-flex items-center gap-2 bg-white text-burgundy-600 font-bold px-8 py-3 rounded-xl hover:bg-cream-100 transition-colors"
             >
               Go to Dashboard
+              <ArrowRight className="h-5 w-5" />
             </Link>
           ) : (
             <Link
               to="/signup"
-              className="inline-block bg-white text-burgundy-600 font-bold px-8 py-3 rounded-xl hover:bg-cream-100 transition-colors"
+              className="inline-flex items-center gap-2 bg-white text-burgundy-600 font-bold px-8 py-3 rounded-xl hover:bg-cream-100 transition-colors"
             >
               Join Now - It's Free
+              <ArrowRight className="h-5 w-5" />
             </Link>
           )}
         </div>

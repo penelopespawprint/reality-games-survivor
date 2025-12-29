@@ -83,15 +83,16 @@ export function CastawayGridItem({
             : 'border-cream-200'
       }`}
     >
-      {/* Header */}
-      <div className={`p-4 ${castaway.status === 'eliminated' ? 'bg-neutral-50' : 'bg-white'}`}>
-        <div className="flex items-start gap-4">
+      {/* Header - Vertical layout for better text fitting */}
+      <div className={`p-5 ${castaway.status === 'eliminated' ? 'bg-neutral-50' : 'bg-white'}`}>
+        {/* Photo and Points Row */}
+        <div className="flex items-start gap-4 mb-4">
           {/* Photo */}
           <div className="relative flex-shrink-0">
             <img
               src={getAvatarUrl(castaway.name, castaway.photo_url)}
               alt={castaway.name}
-              className={`w-32 h-32 rounded-full object-cover border-3 ${
+              className={`w-20 h-20 rounded-full object-cover border-3 ${
                 castaway.status === 'eliminated'
                   ? 'border-neutral-200 grayscale'
                   : castaway.status === 'winner'
@@ -126,89 +127,96 @@ export function CastawayGridItem({
             </div>
           </div>
 
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3
-                className={`font-semibold text-lg ${
-                  castaway.status === 'eliminated' ? 'text-neutral-500' : 'text-neutral-800'
-                }`}
-              >
-                {castaway.name}
-              </h3>
-              {castaway.tribe_original && (
+          {/* Points - Moved to top right */}
+          <div className="flex-1 flex justify-end">
+            <div className="text-right">
+              <div className="flex items-center gap-1 justify-end">
+                {stats && getTrendIcon(stats.trend)}
                 <span
-                  className="text-xs font-medium px-2 py-0.5 rounded-full border"
-                  style={{
-                    backgroundColor:
-                      castaway.tribe_original === 'Vatu'
-                        ? '#EDE9FE'
-                        : castaway.tribe_original === 'Kalo'
-                          ? '#CCFBF1'
-                          : castaway.tribe_original === 'Cila'
-                            ? '#FFEDD5'
-                            : '#F3F4F6',
-                    borderColor:
-                      castaway.tribe_original === 'Vatu'
-                        ? '#A78BFA'
-                        : castaway.tribe_original === 'Kalo'
-                          ? '#5EEAD4'
-                          : castaway.tribe_original === 'Cila'
-                            ? '#FB923C'
-                            : '#9CA3AF',
-                    color:
-                      castaway.tribe_original === 'Vatu'
-                        ? '#7C3AED'
-                        : castaway.tribe_original === 'Kalo'
-                          ? '#0D9488'
-                          : castaway.tribe_original === 'Cila'
-                            ? '#EA580C'
-                            : '#6B7280',
-                  }}
+                  className={`text-2xl font-bold ${
+                    (stats?.total || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}
                 >
-                  {castaway.tribe_original}
+                  {stats?.total !== undefined ? (stats.total >= 0 ? '+' : '') + stats.total : '-'}
                 </span>
-              )}
+              </div>
+              <p className="text-xs text-neutral-400">points</p>
             </div>
-            {castaway.occupation && (
-              <p className="text-neutral-500 text-sm flex items-center gap-1">
-                <Briefcase className="h-3 w-3" />
-                {castaway.occupation}
-              </p>
-            )}
-            {(castaway.age || castaway.hometown) && (
-              <p className="text-neutral-400 text-xs flex items-center gap-1 mt-1">
-                {castaway.age && (
-                  <>
-                    <Calendar className="h-3 w-3" />
-                    {castaway.age}
-                  </>
-                )}
-                {castaway.age && castaway.hometown && <span>·</span>}
-                {castaway.hometown && (
-                  <>
-                    <MapPin className="h-3 w-3" />
-                    {castaway.hometown}
-                  </>
-                )}
-              </p>
+          </div>
+        </div>
+
+        {/* Info - Full width below photo */}
+        <div className="space-y-2">
+          {/* Name and Tribe */}
+          <div className="flex flex-wrap items-center gap-2">
+            <h3
+              className={`font-bold text-lg leading-tight ${
+                castaway.status === 'eliminated' ? 'text-neutral-500' : 'text-neutral-800'
+              }`}
+            >
+              {castaway.name}
+            </h3>
+            {castaway.tribe_original && (
+              <span
+                className="text-xs font-medium px-2 py-0.5 rounded-full border flex-shrink-0"
+                style={{
+                  backgroundColor:
+                    castaway.tribe_original === 'Vatu'
+                      ? '#EDE9FE'
+                      : castaway.tribe_original === 'Kalo'
+                        ? '#CCFBF1'
+                        : castaway.tribe_original === 'Cila'
+                          ? '#FFEDD5'
+                          : '#F3F4F6',
+                  borderColor:
+                    castaway.tribe_original === 'Vatu'
+                      ? '#A78BFA'
+                      : castaway.tribe_original === 'Kalo'
+                        ? '#5EEAD4'
+                        : castaway.tribe_original === 'Cila'
+                          ? '#FB923C'
+                          : '#9CA3AF',
+                  color:
+                    castaway.tribe_original === 'Vatu'
+                      ? '#7C3AED'
+                      : castaway.tribe_original === 'Kalo'
+                        ? '#0D9488'
+                        : castaway.tribe_original === 'Cila'
+                          ? '#EA580C'
+                          : '#6B7280',
+                }}
+              >
+                {castaway.tribe_original}
+              </span>
             )}
           </div>
 
-          {/* Points */}
-          <div className="text-right flex-shrink-0">
-            <div className="flex items-center gap-1 justify-end">
-              {stats && getTrendIcon(stats.trend)}
-              <span
-                className={`text-xl font-bold ${
-                  (stats?.total || 0) >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                {stats?.total !== undefined ? (stats.total >= 0 ? '+' : '') + stats.total : '-'}
-              </span>
-            </div>
-            <p className="text-xs text-neutral-400">points</p>
-          </div>
+          {/* Occupation - with text wrapping */}
+          {castaway.occupation && (
+            <p className="text-neutral-500 text-sm flex items-start gap-1.5">
+              <Briefcase className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+              <span className="leading-snug">{castaway.occupation}</span>
+            </p>
+          )}
+
+          {/* Age and Hometown */}
+          {(castaway.age || castaway.hometown) && (
+            <p className="text-neutral-400 text-sm flex items-start gap-1.5">
+              {castaway.age && (
+                <>
+                  <Calendar className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+                  <span>{castaway.age}</span>
+                </>
+              )}
+              {castaway.age && castaway.hometown && <span className="mx-1">·</span>}
+              {castaway.hometown && (
+                <>
+                  <MapPin className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+                  <span className="leading-snug">{castaway.hometown}</span>
+                </>
+              )}
+            </p>
+          )}
         </div>
       </div>
 

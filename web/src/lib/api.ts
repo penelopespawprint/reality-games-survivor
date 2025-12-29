@@ -1,6 +1,8 @@
 // API utility with automatic retry for network errors
 // Uses exponential backoff: 1s, 2s, 4s
 
+import * as Sentry from '@sentry/react';
+
 interface FetchOptions extends RequestInit {
   maxRetries?: number;
   retryDelay?: number;
