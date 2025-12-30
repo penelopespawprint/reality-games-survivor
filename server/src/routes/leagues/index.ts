@@ -48,9 +48,19 @@ router.post('/', authenticate, validate(createLeagueSchema), async (req: Authent
     const { name, season_id, password, donation_amount } = req.body;
     const { max_players, is_public } = req.body; // Optional fields not in schema
 
+    // max_players is always 12 - ignore any provided value
+
+    // Validate name is not just whitespace
+    if (!name || name.trim().length < 3) {
+      return res.status(400).json({ error: 'League name must be at least 3 characters' });
+    }
+
     // Hash password if provided
     let hashedPassword: string | null = null;
     if (password) {
+      if (password.length > 100) {
+        return res.status(400).json({ error: 'Password must be at most 100 characters' });
+      }
       hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     }
 
@@ -71,7 +81,7 @@ router.post('/', authenticate, validate(createLeagueSchema), async (req: Authent
         password_hash: hashedPassword,
         require_donation: !!donation_amount,
         donation_amount: donation_amount || null,
-        max_players: max_players || 12,
+        max_players: 12, // Fixed at 12
         is_public: is_public !== false, // Default to true unless explicitly false
       })
       .select()
@@ -79,6 +89,16 @@ router.post('/', authenticate, validate(createLeagueSchema), async (req: Authent
 
     if (error) {
       console.error('League creation error:', error);
+      // Send to Sentry for monitoring
+      if (typeof process !== 'undefined' && (process as any).env?.SENTRY_DSN) {
+        const Sentry = await import('@sentry/node').catch(() => null);
+        if (Sentry) {
+          Sentry.captureException(new Error(`League creation failed: ${error.message}`), {
+            tags: { operation: 'create_league', user_id: userId },
+            extra: { error, league_data: { name, season_id } },
+          });
+        }
+      }
       return res.status(400).json({ error: error.message || 'Failed to create league' });
     }
 
@@ -128,15 +148,9 @@ router.post('/', authenticate, validate(createLeagueSchema), async (req: Authent
     // SECURITY: For paid leagues, redirect to checkout before adding commissioner
     if (league.require_donation) {
       // CRITICAL: Use FRONTEND_URL for redirects (frontend domain), NEVER BASE_URL (points to API)
-      // Hardcode production URL to prevent $10 mistakes
-      let frontendUrl = process.env.FRONTEND_URL || process.env.WEB_URL || 'https://survivor.realitygamesfantasyleague.com';
-      
-      // Safety check: ensure we NEVER redirect to API domain (costs $10 per mistake!)
-      // Check for api.rgfl.app, rgfl.app (old domain), or any api. subdomain
-      if (frontendUrl.includes('api.rgfl.app') || frontendUrl.includes('rgfl.app') || frontendUrl.includes('api.')) {
-        console.error('ERROR: frontendUrl contains API domain! Using hardcoded fallback.');
-        frontendUrl = 'https://survivor.realitygamesfantasyleague.com';
-      }
+      // ALWAYS use hardcoded production URL to prevent redirect issues - never trust env vars for payments
+      // This prevents any rgfl.app or api.rgfl.app redirects that break payments
+      const frontendUrl = 'https://survivor.realitygamesfantasyleague.com';
 
       // Create Stripe checkout session for commissioner
       const session = await requireStripe().checkout.sessions.create({
@@ -244,6 +258,29 @@ router.post('/:id/join', authenticate, joinLimiter, validate(joinLeagueSchema), 
       }
     }
 
+    // Validate max_players is within bounds
+    const maxPlayers = league.max_players || 12;
+    if (maxPlayers < 2 || maxPlayers > 24) {
+      console.error(`Invalid max_players for league ${leagueId}: ${maxPlayers}`);
+      // Send to Sentry if available
+      try {
+        const Sentry = await import('@sentry/node').catch(() => null);
+        if (Sentry) {
+          Sentry.captureException(new Error(`Invalid max_players in league: ${maxPlayers}`), {
+            tags: { operation: 'join_league', league_id: leagueId },
+            extra: { league },
+          });
+        }
+      } catch {
+        // Ignore Sentry errors
+      }
+      // Fix invalid max_players to prevent join failures
+      await supabaseAdmin
+        .from('leagues')
+        .update({ max_players: 12 })
+        .eq('id', leagueId);
+    }
+
     // Check if donation required
     if (league.require_donation) {
       return res.status(402).json({
@@ -253,12 +290,13 @@ router.post('/:id/join', authenticate, joinLimiter, validate(joinLeagueSchema), 
     }
 
     // Check max players
-    const { count } = await supabase
+    const { count } = await supabaseAdmin
       .from('league_members')
       .select('*', { count: 'exact', head: true })
       .eq('league_id', leagueId);
 
-    if (count && count >= (league.max_players || 12)) {
+    const effectiveMaxPlayers = league.max_players || 12;
+    if (count && count >= effectiveMaxPlayers) {
       return res.status(400).json({ error: 'League is full' });
     }
 

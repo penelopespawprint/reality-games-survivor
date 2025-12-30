@@ -62,12 +62,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Handle both PGRST116 (PostgREST "no rows") and 406 status
       const isNotFound = error?.code === 'PGRST116' || (error as any)?.status === 406;
       if (isNotFound && attempt < retries - 1) {
-        // Shorter delay - trigger should create profile quickly
-        await new Promise((resolve) => setTimeout(resolve, 150));
+        // Progressive delay - longer waits for later attempts
+        // First retry: 150ms, second: 300ms, third: 500ms, etc.
+        const delay = Math.min(150 * (attempt + 1), 500);
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
 
-      console.error('Error fetching profile:', error);
+      // Only log error if it's not a "not found" case (which is expected for new users)
+      if (!isNotFound) {
+        console.error('Error fetching profile:', error);
+      }
       return null;
     }
     return null;
@@ -103,9 +108,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           // Wait for profile to load before transitioning from loading state
           // This prevents empty states when returning to the site
+          // Use more retries if coming from magic link (has hash in URL)
           if (currentSession.user) {
             try {
-              const profileData = await fetchProfile(currentSession.user.id);
+              const isFromMagicLink = window.location.hash.includes('access_token');
+              const retries = isFromMagicLink ? 5 : 2;
+              const profileData = await fetchProfile(currentSession.user.id, retries);
               setProfile(profileData);
             } catch (error) {
               console.error('Failed to fetch profile:', error);
@@ -142,8 +150,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
 
       // Update profile when auth state changes
+      // Use more retries for SIGNED_IN events (magic link, OAuth) to wait for profile creation
       if (session?.user) {
-        const profileData = await fetchProfile(session.user.id);
+        const isSignInEvent = event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED';
+        const retries = isSignInEvent ? 5 : 2; // More retries for sign-in events
+        const profileData = await fetchProfile(session.user.id, retries);
         setProfile(profileData);
       } else {
         setProfile(null);

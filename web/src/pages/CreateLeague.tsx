@@ -5,6 +5,7 @@ import { ArrowLeft, Loader2, Heart, Users, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { apiWithAuth } from '../lib/api';
 import { Navigation } from '@/components/Navigation';
+import { Sentry } from '../lib/sentry';
 import {
   LeagueDetailsForm,
   PrivacySettings,
@@ -40,7 +41,6 @@ export default function CreateLeague() {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [maxPlayers, setMaxPlayers] = useState(12);
   const [isPrivate, setIsPrivate] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [requireDonation, setRequireDonation] = useState(false);
@@ -105,15 +105,8 @@ export default function CreateLeague() {
       }
     }
 
-    // Max players validation
-    if (maxPlayers < VALIDATION.maxPlayers.min || maxPlayers > VALIDATION.maxPlayers.max) {
-      errors.push(
-        `Max players must be between ${VALIDATION.maxPlayers.min} and ${VALIDATION.maxPlayers.max}`
-      );
-    }
-
     return errors;
-  }, [name, isPrivate, joinCode, requireDonation, donationAmount, maxPlayers]);
+  }, [name, isPrivate, joinCode, requireDonation, donationAmount]);
 
   // Check if form is valid for submission
   // Note: Private leagues don't require a password - server generates unique code automatically
@@ -146,7 +139,7 @@ export default function CreateLeague() {
           season_id: activeSeason.id,
           password: isPrivate && joinCode ? joinCode : null,
           donation_amount: requireDonation && donationAmount ? parseFloat(donationAmount) : null,
-          max_players: maxPlayers,
+          max_players: 12, // Fixed at 12
           is_public: !isPrivate,
         }),
       });
@@ -178,6 +171,16 @@ export default function CreateLeague() {
     },
     onError: (error: Error) => {
       setErrorMessage(error.message);
+      // Send to Sentry for monitoring
+      Sentry.captureException(error, {
+        tags: { operation: 'create_league' },
+        extra: {
+          name,
+          isPrivate,
+          requireDonation,
+          donationAmount,
+        },
+      });
     },
   });
 
@@ -222,8 +225,6 @@ export default function CreateLeague() {
             setName={setName}
             description={description}
             setDescription={setDescription}
-            maxPlayers={maxPlayers}
-            setMaxPlayers={setMaxPlayers}
           />
 
           <PrivacySettings

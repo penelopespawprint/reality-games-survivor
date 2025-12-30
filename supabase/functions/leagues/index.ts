@@ -25,26 +25,55 @@ serve(async (req) => {
     // POST /leagues - Create a new league
     if (method === 'POST' && path === '') {
       const body = await req.json()
-      const { name, season_id, password, donation_amount } = body
+      const { name, season_id, password, donation_amount, max_players } = body
 
+      // Validate required fields
       if (!name || !season_id) {
         return error('Name and season_id are required')
+      }
+
+      // Validate name length
+      if (name.trim().length < 3 || name.length > 50) {
+        return error('League name must be between 3 and 50 characters')
+      }
+
+      // max_players is always 12 - ignore any provided value
+
+      // Validate password length if provided
+      if (password && password.length > 100) {
+        return error('Password must be at most 100 characters')
+      }
+
+      // Validate donation_amount if provided
+      if (donation_amount !== null && donation_amount !== undefined) {
+        if (typeof donation_amount !== 'number' || donation_amount < 0 || donation_amount > 10000) {
+          return error('Donation amount must be between 0 and 10000')
+        }
+      }
+
+      // Hash password if provided
+      let passwordHash = null
+      if (password) {
+        const bcrypt = await import('https://deno.land/x/bcrypt@v0.4.1/mod.ts')
+        passwordHash = await bcrypt.hash(password)
       }
 
       const { data: league, error: createError } = await supabaseAdmin
         .from('leagues')
         .insert({
-          name,
+          name: name.trim(),
           season_id,
           commissioner_id: user.id,
-          password_hash: password || null,
+          password_hash: passwordHash,
           require_donation: !!donation_amount,
           donation_amount: donation_amount || null,
+          max_players: 12, // Fixed at 12
         })
         .select()
         .single()
 
       if (createError) {
+        console.error('League creation error:', createError)
         return error(createError.message)
       }
 
@@ -98,8 +127,17 @@ serve(async (req) => {
         return error('Already a member of this league')
       }
 
-      if (league.password_hash && league.password_hash !== password) {
-        return forbidden('Invalid password')
+      // Validate password if required
+      if (league.password_hash) {
+        if (!password) {
+          return forbidden('Password required to join this league')
+        }
+        // Compare hashed password
+        const bcrypt = await import('https://deno.land/x/bcrypt@v0.4.1/mod.ts')
+        const passwordValid = await bcrypt.compare(password, league.password_hash)
+        if (!passwordValid) {
+          return forbidden('Invalid password')
+        }
       }
 
       if (league.require_donation) {
@@ -151,15 +189,9 @@ serve(async (req) => {
       }
 
       // CRITICAL: Use FRONTEND_URL for redirects (frontend domain), NEVER BASE_URL (points to API)
-      // Hardcode production URL to prevent $10 mistakes - this MUST be the frontend, not API
-      let frontendUrl = Deno.env.get('FRONTEND_URL') || Deno.env.get('WEB_URL') || 'https://survivor.realitygamesfantasyleague.com'
-      
-      // Safety check: ensure we NEVER redirect to API domain (costs $10 per mistake!)
-      // Check for api.rgfl.app, rgfl.app (old domain), or any api. subdomain
-      if (frontendUrl.includes('api.rgfl.app') || frontendUrl.includes('rgfl.app') || frontendUrl.includes('api.')) {
-        console.error('ERROR: frontendUrl contains API domain! Using hardcoded fallback.')
-        frontendUrl = 'https://survivor.realitygamesfantasyleague.com'
-      }
+      // ALWAYS use hardcoded production URL to prevent redirect issues - never trust env vars for payments
+      // This prevents any rgfl.app or api.rgfl.app redirects that break payments
+      const frontendUrl = 'https://survivor.realitygamesfantasyleague.com'
       
       console.log('Checkout success_url:', `${frontendUrl}/leagues/${leagueId}?joined=true`)
 

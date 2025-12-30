@@ -13,7 +13,7 @@ export const createLeagueSchema = z.object({
   password: z.string().max(100).optional().nullable(),
   donation_amount: z.union([z.number().min(0).max(10000), z.null()]).optional(),
   season_id: z.string().uuid(),
-  max_players: z.number().min(2).max(24).optional(),
+  // max_players is always 12, not configurable
   is_public: z.boolean().optional(),
 });
 

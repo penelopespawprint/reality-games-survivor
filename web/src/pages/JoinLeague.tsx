@@ -5,6 +5,7 @@ import { Users, Lock, DollarSign, Loader2, CheckCircle, XCircle } from 'lucide-r
 import { supabase } from '../lib/supabase';
 import { api, apiWithAuth } from '../lib/api';
 import { Navigation } from '@/components/Navigation';
+import { Sentry } from '../lib/sentry';
 
 interface League {
   id: string;
@@ -132,6 +133,11 @@ export default function JoinLeague() {
     },
     onError: (err: Error) => {
       setError(err.message);
+      // Send to Sentry for monitoring
+      Sentry.captureException(err, {
+        tags: { operation: 'join_league', league_code: code },
+        extra: { league_id: league?.id },
+      });
     },
   });
 

@@ -126,7 +126,7 @@ export async function sendWeeklySummary(): Promise<{ sent: number }> {
         }
 
         <div style="margin-top: 32px; text-align: center;">
-          ${button('View League', `${process.env.APP_URL || 'https://rgfl.app'}/leagues/${league.id}`)}
+          ${button('View League', `${process.env.FRONTEND_URL || process.env.WEB_URL || 'https://survivor.realitygamesfantasyleague.com'}/leagues/${league.id}`)}
         </div>
       `;
 
