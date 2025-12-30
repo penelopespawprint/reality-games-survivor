@@ -1,4 +1,8 @@
 {
+  "build": "npm install && npm run build",
+  "start": "npm run start"
+}
+{
   "$schema": "https://railway.com/railway.schema.json",
   "$comment": "Railway service must have Root Directory set to 'server' in dashboard settings",
   "build": {
