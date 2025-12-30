@@ -52,7 +52,8 @@ export default function DraftRankings() {
   useEffect(() => {
     if (castaways && castaways.length > 0 && rankings.length === 0) {
       if (existingRankings?.rankings && Array.isArray(existingRankings.rankings)) {
-        setRankings(existingRankings.rankings);
+        // Cast from Json[] to string[] - rankings are stored as castaway IDs
+        setRankings(existingRankings.rankings as string[]);
       } else {
         const defaultOrder = castaways.map((c) => c.id);
         setRankings(defaultOrder);
@@ -287,7 +288,7 @@ export default function DraftRankings() {
               <p className="text-neutral-600 mb-4 text-sm">
                 This will update your global draft rankings for all leagues this season.
               </p>
-              
+
               {/* Scrollable rankings list */}
               <div className="flex-1 overflow-y-auto mb-4 border border-cream-200 rounded-xl">
                 <div className="divide-y divide-cream-100">
@@ -295,7 +296,7 @@ export default function DraftRankings() {
                     const castaway = castawayMap.get(castawayId);
                     if (!castaway) return null;
                     const isTopPick = index < 2;
-                    
+
                     return (
                       <div
                         key={castawayId}
@@ -303,9 +304,11 @@ export default function DraftRankings() {
                           isTopPick ? 'bg-amber-50' : index % 2 === 0 ? 'bg-white' : 'bg-cream-50'
                         }`}
                       >
-                        <span className={`w-8 text-center font-bold ${
-                          isTopPick ? 'text-amber-600' : 'text-neutral-500'
-                        }`}>
+                        <span
+                          className={`w-8 text-center font-bold ${
+                            isTopPick ? 'text-amber-600' : 'text-neutral-500'
+                          }`}
+                        >
                           #{index + 1}
                         </span>
                         <img
@@ -317,9 +320,11 @@ export default function DraftRankings() {
                           className="w-8 h-8 rounded-full object-cover"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className={`font-medium truncate ${
-                            isTopPick ? 'text-amber-800' : 'text-neutral-800'
-                          }`}>
+                          <p
+                            className={`font-medium truncate ${
+                              isTopPick ? 'text-amber-800' : 'text-neutral-800'
+                            }`}
+                          >
                             {castaway.name}
                           </p>
                           {castaway.tribe_original && (
@@ -336,7 +341,7 @@ export default function DraftRankings() {
                   })}
                 </div>
               </div>
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={() => {

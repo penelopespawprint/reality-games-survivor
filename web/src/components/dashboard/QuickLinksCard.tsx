@@ -21,7 +21,7 @@ export function QuickLinksCard() {
           <ChevronRight className="h-4 w-4 text-neutral-300 ml-auto" />
         </Link>
         <Link
-          to="/how-to-play#scoring"
+          to="/scoring-rules"
           className="flex items-center gap-3 p-3 rounded-xl hover:bg-cream-50 transition-colors"
         >
           <Target className="h-5 w-5 text-neutral-400" />

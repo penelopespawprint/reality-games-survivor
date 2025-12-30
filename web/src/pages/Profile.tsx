@@ -69,9 +69,13 @@ export default function Profile() {
     retryDelay: 1000,
   });
 
-  // Update profile mutation (display name, timezone)
+  // Update profile mutation (display name, timezone, avatar)
   const updateProfile = useMutation({
-    mutationFn: async (updates: { display_name?: string; timezone?: string }) => {
+    mutationFn: async (updates: {
+      display_name?: string;
+      timezone?: string;
+      avatar_url?: string;
+    }) => {
       const {
         data: { user: authUser },
       } = await supabase.auth.getUser();
@@ -280,7 +284,10 @@ export default function Profile() {
       <ProfileHeader
         displayName={user?.display_name || ''}
         email={user?.email || ''}
+        avatarUrl={user?.avatar_url || null}
+        userId={user?.id || ''}
         onUpdateName={(name) => updateProfile.mutate({ display_name: name })}
+        onUpdateAvatar={(url) => updateProfile.mutate({ avatar_url: url })}
         isUpdating={updateProfile.isPending}
         error={nameError}
         success={profileSuccess}

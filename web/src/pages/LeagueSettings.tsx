@@ -15,7 +15,6 @@ import { apiWithAuth } from '@/lib/api';
 import { Navigation } from '@/components/Navigation';
 import {
   InviteLinkCard,
-  LeagueBrandingSection,
   AdminSettingsSection,
   VisibilitySettings,
   DonationSettings,
@@ -44,7 +43,6 @@ export default function LeagueSettings() {
   // Form state
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [photoUrl, setPhotoUrl] = useState('');
   const [password, setPassword] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [maxPlayers, setMaxPlayers] = useState(12);
@@ -116,7 +114,6 @@ export default function LeagueSettings() {
     if (league) {
       setName(league.name || '');
       setDescription((league as { description?: string }).description || '');
-      setPhotoUrl((league as { photo_url?: string }).photo_url || '');
       setIsPublic(league.is_public || false);
       setMaxPlayers(league.max_players || 12);
       setRequireDonation(league.require_donation || false);
@@ -164,16 +161,6 @@ export default function LeagueSettings() {
 
       if (response.error) {
         throw new Error(response.error);
-      }
-
-      // Photo URL update still uses Supabase (not sensitive data)
-      // Note: photo_url column may not exist in DB - this is a known issue
-      if (photoUrl !== (league as { photo_url?: string })?.photo_url) {
-        const { error: photoError } = await supabase
-          .from('leagues')
-          .update({ photo_url: photoUrl || null } as Record<string, unknown>)
-          .eq('id', leagueId);
-        if (photoError) throw photoError;
       }
 
       return response.data;
@@ -339,13 +326,20 @@ export default function LeagueSettings() {
 
           <InviteLinkCard code={league?.code} />
 
-          <LeagueBrandingSection
-            leagueId={leagueId!}
-            photoUrl={photoUrl}
-            description={description}
-            onPhotoChange={setPhotoUrl}
-            onDescriptionChange={setDescription}
-          />
+          {/* Description Only - photo_url column not in database */}
+          <div className="bg-white rounded-2xl shadow-card p-6 border border-cream-200">
+            <label className="block">
+              <span className="text-neutral-800 font-medium mb-2 block">League Description</span>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Tell members what your league is about..."
+                className="input min-h-[100px] resize-none"
+                maxLength={500}
+              />
+              <p className="text-neutral-400 text-xs mt-1 text-right">{description.length}/500</p>
+            </label>
+          </div>
 
           {isAdmin && (
             <>

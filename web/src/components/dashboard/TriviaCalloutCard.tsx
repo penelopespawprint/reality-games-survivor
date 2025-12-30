@@ -5,7 +5,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { Brain, Trophy, Zap, ArrowRight, Sparkles } from 'lucide-react';
+import { Brain, Trophy, Zap, ArrowRight, Sparkles, Megaphone } from 'lucide-react';
 
 interface TriviaCalloutCardProps {
   /** Whether the season has started (hide if true) */
@@ -18,6 +18,12 @@ export function TriviaCalloutCard({ seasonStarted = false }: TriviaCalloutCardPr
 
   return (
     <div className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 rounded-2xl p-6 text-white shadow-elevated relative overflow-hidden">
+      {/* Special Announcement Badge */}
+      <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
+        <Megaphone className="h-3 w-3" />
+        <span className="text-xs font-medium">Featured</span>
+      </div>
+
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -35,8 +41,8 @@ export function TriviaCalloutCard({ seasonStarted = false }: TriviaCalloutCardPr
         </div>
 
         <p className="text-purple-100 text-sm mb-4">
-          While you wait for Season 50, challenge yourself with daily trivia questions spanning
-          all 49 seasons of Survivor!
+          While you wait for Season 50, challenge yourself with daily trivia questions spanning all
+          49 seasons of Survivor!
         </p>
 
         {/* Stats/Features */}

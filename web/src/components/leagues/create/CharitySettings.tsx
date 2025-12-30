@@ -1,4 +1,5 @@
-import { Heart } from 'lucide-react';
+import { useState } from 'react';
+import { Heart, DollarSign } from 'lucide-react';
 
 const DONATION_AMOUNTS = [10, 25, 50, 100];
 
@@ -15,6 +16,22 @@ export function CharitySettings({
   donationAmount,
   setDonationAmount,
 }: CharitySettingsProps) {
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const numericAmount = parseFloat(donationAmount) || 0;
+  const isPresetAmount = DONATION_AMOUNTS.includes(numericAmount);
+
+  const handlePresetClick = (amount: number) => {
+    setShowCustomInput(false);
+    setDonationAmount(amount.toString());
+  };
+
+  const handleCustomClick = () => {
+    setShowCustomInput(true);
+    if (isPresetAmount) {
+      setDonationAmount('');
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-card p-6 border border-cream-200">
       <label className="flex items-center justify-between cursor-pointer">
@@ -53,14 +70,14 @@ export function CharitySettings({
           <p className="text-neutral-500 text-sm mb-3 font-medium">
             Entry fee per player (minimum $10):
           </p>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-2 mb-3">
             {DONATION_AMOUNTS.map((amount) => (
               <button
                 key={amount}
                 type="button"
-                onClick={() => setDonationAmount(amount.toString())}
-                className={`py-3 px-4 rounded-xl font-bold text-lg transition-all ${
-                  donationAmount === amount.toString()
+                onClick={() => handlePresetClick(amount)}
+                className={`py-3 px-2 rounded-xl font-bold text-base transition-all ${
+                  donationAmount === amount.toString() && !showCustomInput
                     ? 'bg-burgundy-500 text-white shadow-elevated'
                     : 'bg-cream-100 text-neutral-700 hover:bg-cream-200 border border-cream-200'
                 }`}
@@ -68,8 +85,38 @@ export function CharitySettings({
                 ${amount}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={handleCustomClick}
+              className={`py-3 px-2 rounded-xl font-bold text-sm transition-all ${
+                showCustomInput || (!isPresetAmount && donationAmount)
+                  ? 'bg-burgundy-500 text-white shadow-elevated'
+                  : 'bg-cream-100 text-neutral-700 hover:bg-cream-200 border border-cream-200'
+              }`}
+            >
+              Other
+            </button>
           </div>
-          <p className="text-neutral-400 text-xs mt-3 text-center">
+
+          {/* Custom amount input */}
+          {(showCustomInput || (!isPresetAmount && donationAmount)) && (
+            <div className="relative mb-3">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+              <input
+                type="number"
+                value={donationAmount}
+                onChange={(e) => setDonationAmount(e.target.value)}
+                placeholder="Enter amount"
+                min="10"
+                max="10000"
+                step="1"
+                className="input pl-10 text-lg font-semibold"
+                autoFocus
+              />
+            </div>
+          )}
+
+          <p className="text-neutral-400 text-xs text-center">
             100% of entry fees are donated — zero platform fees
           </p>
         </div>

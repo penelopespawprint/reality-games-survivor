@@ -49,7 +49,7 @@ export default function CreateLeague() {
   const [createdLeague, setCreatedLeague] = useState<League | null>(null);
 
   // Fetch active season
-  const { data: activeSeason } = useQuery({
+  const { data: activeSeason, isLoading: isLoadingSeason } = useQuery({
     queryKey: ['active-season'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -63,7 +63,7 @@ export default function CreateLeague() {
   });
 
   // Fetch current user
-  const { data: currentUser } = useQuery({
+  const { data: currentUser, isLoading: isLoadingUser } = useQuery({
     queryKey: ['current-user'],
     queryFn: async () => {
       const {
@@ -73,12 +73,14 @@ export default function CreateLeague() {
     },
   });
 
+  const isPageLoading = isLoadingSeason || isLoadingUser;
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Validation errors
   const validationErrors = useMemo(() => {
     const errors: string[] = [];
-    
+
     // Name validation
     if (name.trim().length > 0 && name.trim().length < VALIDATION.name.min) {
       errors.push(`League name must be at least ${VALIDATION.name.min} characters`);
@@ -86,12 +88,12 @@ export default function CreateLeague() {
     if (name.length > VALIDATION.name.max) {
       errors.push(`League name must be at most ${VALIDATION.name.max} characters`);
     }
-    
+
     // Password validation (if private)
     if (isPrivate && joinCode && joinCode.length > VALIDATION.password.max) {
       errors.push(`Join code must be at most ${VALIDATION.password.max} characters`);
     }
-    
+
     // Donation validation
     if (requireDonation && donationAmount) {
       const amount = parseFloat(donationAmount);
@@ -102,25 +104,28 @@ export default function CreateLeague() {
         errors.push(`Donation amount cannot exceed $${VALIDATION.donation.max.toLocaleString()}`);
       }
     }
-    
+
     // Max players validation
     if (maxPlayers < VALIDATION.maxPlayers.min || maxPlayers > VALIDATION.maxPlayers.max) {
-      errors.push(`Max players must be between ${VALIDATION.maxPlayers.min} and ${VALIDATION.maxPlayers.max}`);
+      errors.push(
+        `Max players must be between ${VALIDATION.maxPlayers.min} and ${VALIDATION.maxPlayers.max}`
+      );
     }
-    
+
     return errors;
   }, [name, isPrivate, joinCode, requireDonation, donationAmount, maxPlayers]);
 
   // Check if form is valid for submission
+  // Note: Private leagues don't require a password - server generates unique code automatically
+  // Password is optional additional protection on top of the invite code
   const isFormValid = useMemo(() => {
     return (
       name.trim().length >= VALIDATION.name.min &&
       name.length <= VALIDATION.name.max &&
       validationErrors.length === 0 &&
-      (!requireDonation || (donationAmount && parseFloat(donationAmount) > 0)) &&
-      (!isPrivate || joinCode.trim().length > 0)
+      (!requireDonation || (donationAmount && parseFloat(donationAmount) > 0))
     );
-  }, [name, validationErrors, requireDonation, donationAmount, isPrivate, joinCode]);
+  }, [name, validationErrors, requireDonation, donationAmount]);
 
   // Create league mutation
   const createLeague = useMutation({
@@ -175,6 +180,21 @@ export default function CreateLeague() {
       setErrorMessage(error.message);
     },
   });
+
+  // Show loading state while fetching initial data
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
+        <Navigation />
+        <div className="flex items-center justify-center py-24">
+          <div className="text-center">
+            <Loader2 className="h-10 w-10 text-burgundy-500 animate-spin mx-auto mb-4" />
+            <p className="text-neutral-500">Loading season data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">

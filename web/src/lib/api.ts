@@ -104,7 +104,7 @@ export async function api<T = unknown>(
   const method = options.method || 'GET';
 
   const startTime = performance.now();
-  
+
   return Sentry.startSpan(
     {
       op: 'http.client',
@@ -154,7 +154,7 @@ export async function api<T = unknown>(
             data = json;
           } else {
             error = json.error || json.message || `Request failed with status ${status}`;
-            span.setAttribute('error', error);
+            span.setAttribute('error', error || 'Unknown error');
             metrics.count('api_error', 1, { endpoint: fullUrl, status: String(status) });
           }
         } catch {
