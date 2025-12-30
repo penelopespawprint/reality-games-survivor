@@ -105,7 +105,8 @@ export default function Notifications() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+      // Invalidate with the user-specific key to ensure refetch
+      queryClient.invalidateQueries({ queryKey: ['user-profile', currentUser?.id] });
     },
   });
 
@@ -280,15 +281,20 @@ export default function Notifications() {
                   onClick={() =>
                     updatePreferences.mutate({ notification_email: !profile?.notification_email })
                   }
+                  disabled={updatePreferences.isPending}
                   className={`w-12 h-6 rounded-full transition-colors relative ${
                     profile?.notification_email ? 'bg-burgundy-500' : 'bg-neutral-300'
-                  }`}
+                  } ${updatePreferences.isPending ? 'opacity-50' : ''}`}
                 >
-                  <div
-                    className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow ${
-                      profile?.notification_email ? 'left-7' : 'left-1'
-                    }`}
-                  />
+                  {updatePreferences.isPending ? (
+                    <Loader2 className="absolute top-1 left-4 w-4 h-4 text-white animate-spin" />
+                  ) : (
+                    <div
+                      className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow ${
+                        profile?.notification_email ? 'left-7' : 'left-1'
+                      }`}
+                    />
+                  )}
                 </button>
               </div>
 
@@ -312,16 +318,20 @@ export default function Notifications() {
                   onClick={() =>
                     updatePreferences.mutate({ notification_sms: !profile?.notification_sms })
                   }
-                  disabled={!profile?.phone_verified}
+                  disabled={!profile?.phone_verified || updatePreferences.isPending}
                   className={`w-12 h-6 rounded-full transition-colors relative ${
                     profile?.notification_sms ? 'bg-burgundy-500' : 'bg-neutral-300'
-                  } ${!profile?.phone_verified ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  } ${!profile?.phone_verified || updatePreferences.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <div
-                    className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow ${
-                      profile?.notification_sms ? 'left-7' : 'left-1'
-                    }`}
-                  />
+                  {updatePreferences.isPending ? (
+                    <Loader2 className="absolute top-1 left-4 w-4 h-4 text-white animate-spin" />
+                  ) : (
+                    <div
+                      className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow ${
+                        profile?.notification_sms ? 'left-7' : 'left-1'
+                      }`}
+                    />
+                  )}
                 </button>
               </div>
 

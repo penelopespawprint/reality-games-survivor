@@ -419,7 +419,6 @@ function pickReminderEmailTemplate(data: PickReminderEmailData): string {
       </div>
     </div>
     ${button('Make Your Pick', `${BASE_URL}/dashboard`)}
-    ${paragraph(`<p style="text-align: center; color: #8A7654; font-size: 14px;">📱 <strong>Quick tip:</strong> Text <strong>PICK [Name]</strong> to make your pick via SMS! <a href="${BASE_URL}/profile/notifications" style="color:#A52A2A;">Set up SMS →</a></p>`)}
   `, `${data.hoursRemaining} hours to make your Episode ${data.episodeNumber} pick!`);
 }
 

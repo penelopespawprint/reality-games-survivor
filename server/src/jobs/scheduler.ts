@@ -66,9 +66,9 @@ const jobs: ScheduledJob[] = [
   },
   {
     name: 'release-results',
-    // Every 15 minutes - checks for locked episodes ready for release
-    schedule: '*/15 * * * *',
-    description: 'Release spoiler-safe results for locked episodes',
+    // Every 10 minutes - allows results to go live quickly after episode finalization
+    schedule: '*/10 * * * *',
+    description: 'Release spoiler-safe results notifications (checks for finalized episodes)',
     handler: releaseWeeklyResults,
     enabled: true,
   },
