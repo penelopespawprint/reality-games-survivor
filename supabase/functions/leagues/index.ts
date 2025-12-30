@@ -150,7 +150,8 @@ serve(async (req) => {
         return error('This league does not require payment')
       }
 
-      const baseUrl = Deno.env.get('BASE_URL') || 'https://survivor.realitygamesfantasyleague.com'
+      // Use FRONTEND_URL for redirects (frontend domain), fallback to production URL
+      const frontendUrl = Deno.env.get('FRONTEND_URL') || Deno.env.get('WEB_URL') || 'https://survivor.realitygamesfantasyleague.com'
 
       const session = await stripe.checkout.sessions.create({
         mode: 'payment',
@@ -171,8 +172,8 @@ serve(async (req) => {
           user_id: user.id,
           type: 'league_donation',
         },
-        success_url: `${baseUrl}/leagues/${leagueId}?joined=true`,
-        cancel_url: `${baseUrl}/join/${league.code}?cancelled=true`,
+        success_url: `${frontendUrl}/leagues/${leagueId}?joined=true`,
+        cancel_url: `${frontendUrl}/join/${league.code}?cancelled=true`,
       })
 
       return json({ checkout_url: session.url, session_id: session.id })

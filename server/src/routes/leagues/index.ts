@@ -127,7 +127,8 @@ router.post('/', authenticate, validate(createLeagueSchema), async (req: Authent
 
     // SECURITY: For paid leagues, redirect to checkout before adding commissioner
     if (league.require_donation) {
-      const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+      // Use FRONTEND_URL for redirects (frontend domain), fallback to production URL
+      const frontendUrl = process.env.FRONTEND_URL || process.env.WEB_URL || process.env.BASE_URL || 'https://survivor.realitygamesfantasyleague.com';
 
       // Create Stripe checkout session for commissioner
       const session = await requireStripe().checkout.sessions.create({
@@ -149,8 +150,8 @@ router.post('/', authenticate, validate(createLeagueSchema), async (req: Authent
           user_id: userId,
           type: 'league_donation',
         },
-        success_url: `${baseUrl}/leagues/${league.id}?joined=true`,
-        cancel_url: `${baseUrl}/leagues/${league.id}?cancelled=true`,
+        success_url: `${frontendUrl}/leagues/${league.id}?joined=true`,
+        cancel_url: `${frontendUrl}/leagues/${league.id}?cancelled=true`,
         expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 min expiration
       });
 

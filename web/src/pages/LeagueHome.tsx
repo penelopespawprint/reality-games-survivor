@@ -5,9 +5,9 @@
  * Refactored from 770 lines to use extracted sub-components.
  */
 
-import { useState } from 'react';
-import { useParams, Link, Navigate } from 'react-router-dom';
-import { Loader2, Lock, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useParams, Link, Navigate, useSearchParams } from 'react-router-dom';
+import { Loader2, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { LeagueChat } from '@/components/LeagueChat';
 import { useAuth } from '@/lib/auth';
@@ -35,8 +35,10 @@ import {
 export default function LeagueHome() {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<LeagueTab>('overview');
   const [copied, setCopied] = useState(false);
+  const [showJoinedSuccess, setShowJoinedSuccess] = useState(false);
 
   // Data fetching with shared hooks
   const { data: league, isLoading: leagueLoading, error: leagueError } = useLeague(id);
@@ -45,6 +47,19 @@ export default function LeagueHome() {
   const { data: myRoster } = useRoster(id, user?.id);
   const { data: userProfile } = useUserProfile(user?.id);
   const { data: nextEpisode } = useNextEpisode(league?.season_id);
+
+  // Handle joined=true query parameter from Stripe redirect
+  useEffect(() => {
+    if (searchParams.get('joined') === 'true') {
+      setShowJoinedSuccess(true);
+      // Remove query parameter from URL
+      searchParams.delete('joined');
+      setSearchParams(searchParams, { replace: true });
+      // Hide success message after 5 seconds
+      const timer = setTimeout(() => setShowJoinedSuccess(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, setSearchParams]);
 
   // Clipboard API with fallback for older browsers/HTTP
   const copyInviteCode = async () => {
@@ -233,6 +248,25 @@ export default function LeagueHome() {
       <Navigation />
 
       <div className="max-w-4xl mx-auto p-4 pb-24">
+        {/* Success message after joining */}
+        {showJoinedSuccess && (
+          <div className="mb-4 bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3 animate-slide-down">
+            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-green-800">Successfully joined the league!</p>
+              <p className="text-sm text-green-700">
+                Your payment was processed and you're now a member.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowJoinedSuccess(false)}
+              className="text-green-600 hover:text-green-800 text-sm font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         <LeagueHeader
           league={league}
           members={members}

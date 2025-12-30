@@ -85,17 +85,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initializeAuth = async () => {
       try {
         // Get session once - Supabase handles URL hash extraction automatically
-        const {
+        let {
           data: { session: currentSession },
         } = await supabase.auth.getSession();
 
+        // If no session but we have localStorage, try refreshing
+        if (!currentSession) {
+          // Check if there's a stored session in localStorage
+          const storedSession = localStorage.getItem('rgfl-auth-token');
+          if (storedSession) {
+            try {
+              // Try to refresh the session
+              const {
+                data: { session: refreshedSession },
+                error: refreshError,
+              } = await supabase.auth.refreshSession();
+              if (!refreshError && refreshedSession) {
+                currentSession = refreshedSession;
+              }
+            } catch (refreshErr) {
+              console.warn('Failed to refresh session:', refreshErr);
+            }
+          }
+        }
+
         // Clear the URL hash after extracting session (if present)
         if (window.location.hash.includes('access_token')) {
-          window.history.replaceState(
-            null,
-            '',
-            window.location.pathname + window.location.search
-          );
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
         }
 
         if (currentSession) {
@@ -154,7 +170,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
       metrics.count('auth_signin', 1, { method: 'password', status: 'success' });
-      metrics.distribution('auth_signin_time', performance.now() - startTime, { method: 'password' });
+      metrics.distribution('auth_signin_time', performance.now() - startTime, {
+        method: 'password',
+      });
     } catch (error) {
       metrics.count('auth_signin', 1, { method: 'password', status: 'error' });
       throw error;
@@ -195,7 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         await supabase.from('users').update(updates).eq('id', data.user.id);
       }
-      
+
       metrics.count('auth_signup', 1, { status: 'success' });
       metrics.distribution('auth_signup_time', performance.now() - startTime);
     } catch (error) {

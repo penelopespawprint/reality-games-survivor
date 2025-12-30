@@ -34,7 +34,8 @@ router.post('/:id/join/checkout', authenticate, checkoutLimiter, async (req: Aut
       return res.status(400).json({ error: 'This league does not require payment' });
     }
 
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+    // Use FRONTEND_URL for redirects (frontend domain), fallback to production URL
+    const frontendUrl = process.env.FRONTEND_URL || process.env.WEB_URL || process.env.BASE_URL || 'https://survivor.realitygamesfantasyleague.com';
 
     // Check if user already has a pending payment for this league
     const { data: existingPending } = await supabaseAdmin
@@ -97,8 +98,8 @@ router.post('/:id/join/checkout', authenticate, checkoutLimiter, async (req: Aut
         user_id: userId,
         type: 'league_donation',
       },
-      success_url: `${baseUrl}/leagues/${leagueId}?joined=true`,
-      cancel_url: `${baseUrl}/join/${league.code}?cancelled=true`,
+      success_url: `${frontendUrl}/leagues/${leagueId}?joined=true`,
+      cancel_url: `${frontendUrl}/join/${league.code}?cancelled=true`,
       expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 min expiration
     });
 
