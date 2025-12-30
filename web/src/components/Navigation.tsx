@@ -72,14 +72,27 @@ export function Navigation() {
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from('users')
-        .select('id, display_name, role')
+        .select('id, display_name, role, avatar_url')
         .eq('id', user.id)
         .single();
       if (error) throw error;
-      return data as UserProfile;
+      return data as UserProfile & { avatar_url?: string };
     },
     enabled: !!user?.id,
   });
+
+  // Get display name with fallbacks: profile -> user metadata -> email prefix
+  const displayName =
+    profile?.display_name || user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';
+
+  // Get initials from display name
+  const getInitials = (name: string) => {
+    if (!name) return '';
+    const parts = name.trim().split(' ').filter(Boolean);
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return parts[0].charAt(0).toUpperCase() + parts[parts.length - 1].charAt(0).toUpperCase();
+  };
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -161,7 +174,7 @@ export function Navigation() {
                   {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>
                 <div className="text-right hidden sm:block">
-                  <p className="text-neutral-800 text-sm font-medium">{profile?.display_name}</p>
+                  <p className="text-neutral-800 text-sm font-medium">{displayName || 'Admin'}</p>
                   <p className="text-orange-600 text-xs font-semibold">Administrator</p>
                 </div>
                 <button
@@ -273,7 +286,7 @@ export function Navigation() {
                 <button
                   onClick={() => setHowToPlayOpen(!howToPlayOpen)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
-                    isActive('/how-to-play') || isActive('/scoring') || isActive('/weekly-timeline')
+                    isActive('/how-to-play') || isActive('/scoring') || isActive('/timeline')
                       ? 'text-burgundy-600 bg-burgundy-50'
                       : 'text-neutral-700 hover:bg-cream-100'
                   }`}
@@ -289,9 +302,7 @@ export function Navigation() {
                       to="/how-to-play"
                       onClick={() => setHowToPlayOpen(false)}
                       className={`block px-4 py-2 text-sm hover:bg-burgundy-50 rounded-t-lg ${
-                        isActive('/how-to-play') &&
-                        !isActive('/scoring') &&
-                        !isActive('/weekly-timeline')
+                        isActive('/how-to-play') && !isActive('/scoring') && !isActive('/timeline')
                           ? 'text-burgundy-600 bg-burgundy-50'
                           : 'text-neutral-600'
                       }`}
@@ -310,10 +321,10 @@ export function Navigation() {
                       Scoring Rules
                     </Link>
                     <Link
-                      to="/how-to-play#weekly-timeline"
+                      to="/timeline"
                       onClick={() => setHowToPlayOpen(false)}
                       className={`block px-4 py-2 text-sm hover:bg-burgundy-50 rounded-b-lg ${
-                        isActive('/weekly-timeline')
+                        isActive('/timeline')
                           ? 'text-burgundy-600 bg-burgundy-50'
                           : 'text-neutral-600'
                       }`}
@@ -348,10 +359,13 @@ export function Navigation() {
               </button>
 
               {/* Notification Bell */}
-              <button className="relative p-1.5 text-neutral-500 hover:text-neutral-700 hidden md:block">
+              <Link
+                to="/profile/notifications"
+                className="relative p-1.5 text-neutral-500 hover:text-neutral-700 hidden md:block"
+                title="Notification Settings"
+              >
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-              </button>
+              </Link>
 
               {/* Admin View Toggle (only for admins) */}
               {isAdmin && (
@@ -370,12 +384,19 @@ export function Navigation() {
                   className="flex items-center gap-1.5 p-0.5 text-neutral-600 hover:text-neutral-800 transition-all"
                   aria-haspopup="true"
                 >
-                  <div className="w-7 h-7 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                    {profile?.display_name?.charAt(0).toUpperCase() || 'U'}
-                    {profile?.display_name?.split(' ')[1]?.charAt(0).toUpperCase() || ''}
+                  <div className="w-7 h-7 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt={displayName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      getInitials(displayName) || '?'
+                    )}
                   </div>
                   <span className="text-neutral-700 text-sm font-medium hidden xl:inline">
-                    {profile?.display_name?.split(' ')[0] || 'User'}
+                    {displayName?.split(' ')[0] || 'Player'}
                   </span>
                   <ChevronDown className="w-3 h-3 text-neutral-400" />
                 </button>
@@ -384,9 +405,7 @@ export function Navigation() {
                   role="menu"
                 >
                   <div className="p-4 border-b border-cream-100">
-                    <p className="font-semibold text-neutral-800">
-                      {profile?.display_name || 'Survivor'}
-                    </p>
+                    <p className="font-semibold text-neutral-800">{displayName || 'Survivor'}</p>
                     <p className="text-sm text-neutral-400">Fantasy Player</p>
                   </div>
                   <div className="p-2">
@@ -432,9 +451,7 @@ export function Navigation() {
               className="lg:hidden border-t border-cream-200 py-2 bg-white rounded-b-2xl"
             >
               <div className="px-4 py-3 border-b border-cream-100">
-                <p className="font-semibold text-neutral-800">
-                  {profile?.display_name || 'Survivor'}
-                </p>
+                <p className="font-semibold text-neutral-800">{displayName || 'Survivor'}</p>
                 <p className="text-sm text-neutral-400">Fantasy Player</p>
               </div>
 
@@ -486,9 +503,7 @@ export function Navigation() {
                 <Link
                   to="/how-to-play"
                   className={`block px-8 py-2 text-sm ${
-                    isActive('/how-to-play') &&
-                    !isActive('/scoring') &&
-                    !isActive('/weekly-timeline')
+                    isActive('/how-to-play') && !isActive('/scoring') && !isActive('/timeline')
                       ? 'text-burgundy-600 bg-burgundy-50'
                       : 'text-neutral-600'
                   }`}
@@ -506,11 +521,9 @@ export function Navigation() {
                   Scoring Rules
                 </Link>
                 <Link
-                  to="/how-to-play#weekly-timeline"
+                  to="/timeline"
                   className={`block px-8 py-2 text-sm ${
-                    isActive('/weekly-timeline')
-                      ? 'text-burgundy-600 bg-burgundy-50'
-                      : 'text-neutral-600'
+                    isActive('/timeline') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
                   }`}
                 >
                   Weekly Timeline

@@ -90,12 +90,25 @@ export function ProfileHeader({
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) {
-        // If bucket doesn't exist, provide helpful error
-        if (uploadError.message.includes('Bucket not found')) {
-          setAvatarError('Avatar uploads are not yet configured. Please contact support.');
+        // Provide user-friendly error messages
+        if (
+          uploadError.message.includes('Bucket not found') ||
+          uploadError.message.includes('not found')
+        ) {
+          setAvatarError(
+            'Avatar storage is being set up. Please try again later or contact support.'
+          );
+        } else if (
+          uploadError.message.includes('exceeded') ||
+          uploadError.message.includes('size')
+        ) {
+          setAvatarError('Image is too large. Please choose a smaller file (max 2MB).');
+        } else if (uploadError.message.includes('type') || uploadError.message.includes('mime')) {
+          setAvatarError('Invalid file type. Please upload a JPG, PNG, or GIF image.');
         } else {
-          throw uploadError;
+          setAvatarError('Unable to upload avatar. Please try again.');
         }
+        console.error('Avatar upload error:', uploadError);
         return;
       }
 
@@ -108,7 +121,7 @@ export function ProfileHeader({
       onUpdateAvatar(publicUrl);
     } catch (err) {
       console.error('Avatar upload error:', err);
-      setAvatarError(err instanceof Error ? err.message : 'Failed to upload image');
+      setAvatarError('Something went wrong uploading your avatar. Please try again.');
     } finally {
       setIsUploadingAvatar(false);
       // Reset file input

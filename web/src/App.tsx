@@ -35,6 +35,7 @@ import PublicLeaderboard from './pages/PublicLeaderboard';
 import GlobalLeaderboard from './pages/GlobalLeaderboard';
 import Leagues from './pages/Leagues';
 import Castaways from './pages/Castaways';
+import CastawayDetail from './pages/CastawayDetail';
 import Contact from './pages/Contact';
 import LeagueHistory from './pages/LeagueHistory';
 import Notifications from './pages/Notifications';
@@ -88,6 +89,7 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/trivia" element={<Trivia />} />
             <Route path="/castaways" element={<Castaways />} />
+            <Route path="/castaways/:id" element={<CastawayDetail />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/results/:weekNumber" element={<Results />} />

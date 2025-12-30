@@ -6,7 +6,6 @@
 
 export { PhoneVerificationPrompt } from './PhoneVerificationPrompt';
 export { ProfileHeader } from './ProfileHeader';
-export { TimezoneSection } from './TimezoneSection';
 export { PhoneSection } from './PhoneSection';
 export { NotificationsSection } from './NotificationsSection';
 export { SecuritySection } from './SecuritySection';

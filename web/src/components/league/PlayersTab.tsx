@@ -4,8 +4,12 @@
  * Shows all league members with their rosters.
  */
 
-import { Flame } from 'lucide-react';
+import { Flame, User } from 'lucide-react';
 import type { LeagueMember } from '@/types';
+
+interface MemberWithUser extends LeagueMember {
+  users?: { id: string; display_name: string; avatar_url: string | null };
+}
 
 interface RostersByUser {
   [userId: string]: {
@@ -15,7 +19,7 @@ interface RostersByUser {
 }
 
 interface PlayersTabProps {
-  members: LeagueMember[] | undefined;
+  members: MemberWithUser[] | undefined;
   rostersByUser: RostersByUser | undefined;
   currentUserId: string | undefined;
   commissionerId: string;
@@ -36,9 +40,13 @@ export function PlayersTab({
       </div>
 
       <div className="divide-y divide-cream-100">
-        {members?.map((member, index) => {
+        {members?.map((member, _index) => {
           const playerRosters = rostersByUser?.[member.user_id];
           const isYou = member.user_id === currentUserId;
+          // Access users from the joined query (Supabase returns the table name)
+          const displayName =
+            member.users?.display_name || member.user?.display_name || 'Unknown Player';
+          const avatarUrl = member.users?.avatar_url || null;
 
           return (
             <div
@@ -46,15 +54,19 @@ export function PlayersTab({
               className={`p-4 ${isYou ? 'bg-burgundy-50' : 'hover:bg-cream-50'} transition-colors`}
             >
               <div className="flex items-center gap-4">
-                {/* Rank */}
-                <div className="w-8 h-8 rounded-full bg-cream-100 flex items-center justify-center">
-                  <span className="font-bold text-neutral-600">{index + 1}</span>
+                {/* Avatar/Rank */}
+                <div className="w-10 h-10 rounded-full bg-cream-100 flex items-center justify-center overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="h-5 w-5 text-neutral-400" />
+                  )}
                 </div>
 
                 {/* Player Info */}
                 <div className="flex-1">
                   <p className="font-semibold text-neutral-800">
-                    {member.user?.display_name || 'Unknown Player'}
+                    {displayName}
                     {isYou && <span className="ml-2 text-xs text-burgundy-500">(You)</span>}
                     {member.user_id === commissionerId && (
                       <span className="ml-2 text-xs bg-burgundy-100 text-burgundy-600 px-2 py-0.5 rounded-full">

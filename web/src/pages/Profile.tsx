@@ -14,7 +14,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   PhoneVerificationPrompt,
   ProfileHeader,
-  TimezoneSection,
   PhoneSection,
   NotificationsSection,
   SecuritySection,
@@ -69,13 +68,9 @@ export default function Profile() {
     retryDelay: 1000,
   });
 
-  // Update profile mutation (display name, timezone, avatar)
+  // Update profile mutation (display name, avatar)
   const updateProfile = useMutation({
-    mutationFn: async (updates: {
-      display_name?: string;
-      timezone?: string;
-      avatar_url?: string;
-    }) => {
+    mutationFn: async (updates: { display_name?: string; avatar_url?: string }) => {
       const {
         data: { user: authUser },
       } = await supabase.auth.getUser();
@@ -291,12 +286,6 @@ export default function Profile() {
         isUpdating={updateProfile.isPending}
         error={nameError}
         success={profileSuccess}
-      />
-
-      {/* Timezone */}
-      <TimezoneSection
-        currentTimezone={user?.timezone || 'America/Los_Angeles'}
-        onTimezoneChange={(tz) => updateProfile.mutate({ timezone: tz })}
       />
 
       {/* Phone Number */}

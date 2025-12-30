@@ -1,4 +1,14 @@
-import { Trophy, Star, History, Award, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Trophy,
+  Star,
+  History,
+  Award,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { getAvatarUrl } from '@/lib/avatar';
 // Minimal castaway interface for grid display
 interface CastawayForGrid {
@@ -133,24 +143,32 @@ export function CastawayGridItem({
         </p>
       </div>
 
-      {/* Expand Button - More Compact */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleExpand(isExpanded ? null : castaway.id);
-        }}
-        className="w-full px-3 py-2 bg-cream-50 border-t border-cream-100 flex items-center justify-center gap-1 text-xs text-neutral-600 hover:bg-cream-100 transition-colors"
-      >
-        {isExpanded ? (
-          <>
-            Hide <ChevronUp className="h-3 w-3" />
-          </>
-        ) : (
-          <>
-            Details <ChevronDown className="h-3 w-3" />
-          </>
-        )}
-      </button>
+      {/* Action Buttons */}
+      <div className="flex border-t border-cream-100">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleExpand(isExpanded ? null : castaway.id);
+          }}
+          className="flex-1 px-3 py-2 bg-cream-50 flex items-center justify-center gap-1 text-xs text-neutral-600 hover:bg-cream-100 transition-colors"
+        >
+          {isExpanded ? (
+            <>
+              Hide <ChevronUp className="h-3 w-3" />
+            </>
+          ) : (
+            <>
+              Quick View <ChevronDown className="h-3 w-3" />
+            </>
+          )}
+        </button>
+        <Link
+          to={`/castaways/${castaway.id}`}
+          className="flex-1 px-3 py-2 bg-burgundy-50 flex items-center justify-center gap-1 text-xs text-burgundy-600 hover:bg-burgundy-100 transition-colors border-l border-cream-100"
+        >
+          Full Profile <ExternalLink className="h-3 w-3" />
+        </Link>
+      </div>
 
       {/* Expanded Details */}
       {isExpanded && (

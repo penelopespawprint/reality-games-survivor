@@ -101,12 +101,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(currentSession);
           setUser(currentSession.user ?? null);
 
-          // Fetch profile in parallel with setting loading to false
-          // Don't block the UI while fetching profile
+          // Wait for profile to load before transitioning from loading state
+          // This prevents empty states when returning to the site
           if (currentSession.user) {
-            fetchProfile(currentSession.user.id)
-              .then((profileData) => setProfile(profileData))
-              .catch((error) => console.error('Failed to fetch profile:', error));
+            try {
+              const profileData = await fetchProfile(currentSession.user.id);
+              setProfile(profileData);
+            } catch (error) {
+              console.error('Failed to fetch profile:', error);
+              // Still allow the app to load even if profile fetch fails
+            }
           }
         } else {
           // No session found - ensure state is cleared

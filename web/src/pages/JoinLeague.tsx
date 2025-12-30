@@ -146,8 +146,9 @@ export default function JoinLeague() {
     return (
       <>
         <Navigation />
-        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+        <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex flex-col items-center justify-center px-4">
+          <img src="/logo.png" alt="RGFL" className="h-16 w-auto mb-6 animate-pulse" />
+          <p className="text-neutral-600 font-medium">Loading league details...</p>
         </div>
       </>
     );

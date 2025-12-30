@@ -396,4 +396,35 @@ router.get('/leaderboard', authenticate, async (req: AuthenticatedRequest, res: 
   }
 });
 
+// GET /api/trivia/questions - Get all trivia questions with answers (public study guide)
+router.get('/questions', async (_req, res: Response) => {
+  try {
+    const { data: questions, error } = await supabaseAdmin
+      .from('daily_trivia_questions')
+      .select('id, question_number, question, options, correct_index, fun_fact')
+      .order('question_number', { ascending: true });
+
+    if (error) {
+      console.error('Questions fetch error:', error);
+      return sendInternalError(res, 'Failed to fetch questions');
+    }
+
+    // Format questions with the correct answer highlighted
+    const formattedQuestions = (questions || []).map((q) => ({
+      id: q.id,
+      questionNumber: q.question_number,
+      question: q.question,
+      options: q.options,
+      correctIndex: q.correct_index,
+      correctAnswer: q.options[q.correct_index],
+      funFact: q.fun_fact,
+    }));
+
+    return sendSuccess(res, { questions: formattedQuestions });
+  } catch (error) {
+    console.error('Trivia questions error:', error);
+    return sendInternalError(res, 'Failed to fetch trivia questions');
+  }
+});
+
 export default router;

@@ -11,8 +11,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
-import { Loader2, AlertCircle, Mail, LogIn, Trophy } from 'lucide-react';
-import { apiWithAuth } from '@/lib/api';
+import {
+  Loader2,
+  AlertCircle,
+  Mail,
+  LogIn,
+  Trophy,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle,
+  Lightbulb,
+} from 'lucide-react';
+import { apiWithAuth, api } from '@/lib/api';
 import {
   TriviaRulesCard,
   TriviaProgressBar,
@@ -61,6 +71,16 @@ interface ProgressData {
   daysToComplete: number | null;
 }
 
+interface TriviaQuestionWithAnswer {
+  id: string;
+  questionNumber: number;
+  question: string;
+  options: string[];
+  correctIndex: number;
+  correctAnswer: string;
+  funFact: string | null;
+}
+
 const WRONG_MESSAGES = [
   "It's time for you to go.",
   'The Tribe Has Spoken.',
@@ -91,6 +111,8 @@ export function Trivia() {
   const [wrongMessage, setWrongMessage] = useState<string>("It's time for you to go.");
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardTitle, setLeaderboardTitle] = useState<string>('The Tribe Has Spoken');
+  const [showAllQuestions, setShowAllQuestions] = useState(false);
+  const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
 
   // Fetch next question and progress
   const {
@@ -122,6 +144,19 @@ export function Trivia() {
     },
     enabled: !!user && !!session?.access_token,
     refetchInterval: 60000,
+  });
+
+  // Fetch all questions (public - no auth required)
+  const { data: allQuestionsData } = useQuery<{ questions: TriviaQuestionWithAnswer[] }>({
+    queryKey: ['trivia', 'all-questions'],
+    queryFn: async () => {
+      const response = await api<{ questions: TriviaQuestionWithAnswer[] }>('/trivia/questions');
+      if (response.error) throw new Error(response.error);
+      if (!response.data) throw new Error('No data returned');
+      return response.data;
+    },
+    enabled: showAllQuestions,
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour
   });
 
   // Timer countdown
@@ -307,7 +342,7 @@ export function Trivia() {
           </div>
 
           {/* Auth Options */}
-          <div className="bg-white rounded-2xl shadow-card p-8 border-2 border-burgundy-200">
+          <div className="bg-white rounded-2xl shadow-card p-8 border-2 border-burgundy-200 mb-8">
             <h2 className="text-xl font-semibold text-neutral-800 mb-6 text-center">
               Sign in to play
             </h2>
@@ -335,6 +370,102 @@ export function Trivia() {
             <p className="text-sm text-neutral-500 text-center mt-6">
               Your progress is saved to your account so you can continue anytime.
             </p>
+          </div>
+
+          {/* All Questions Study Guide (available to non-authenticated users) */}
+          <div>
+            <button
+              onClick={() => setShowAllQuestions(!showAllQuestions)}
+              className="w-full bg-white rounded-2xl shadow-card p-6 border border-cream-200 hover:border-burgundy-300 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
+                    <Lightbulb className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-semibold text-neutral-800">
+                      All 24 Trivia Questions
+                    </h3>
+                    <p className="text-sm text-neutral-500">Study guide with answers</p>
+                  </div>
+                </div>
+                {showAllQuestions ? (
+                  <ChevronUp className="h-6 w-6 text-neutral-400" />
+                ) : (
+                  <ChevronDown className="h-6 w-6 text-neutral-400" />
+                )}
+              </div>
+            </button>
+
+            {showAllQuestions && (
+              <div className="mt-4 space-y-3">
+                {allQuestionsData?.questions?.map((q) => (
+                  <div
+                    key={q.id}
+                    className="bg-white rounded-xl shadow-sm border border-cream-200 overflow-hidden"
+                  >
+                    <button
+                      onClick={() => setExpandedQuestion(expandedQuestion === q.id ? null : q.id)}
+                      className="w-full p-4 text-left hover:bg-cream-50 transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="flex-shrink-0 w-8 h-8 bg-burgundy-100 text-burgundy-700 rounded-full flex items-center justify-center font-bold text-sm">
+                          {q.questionNumber}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-neutral-800 font-medium">{q.question}</p>
+                        </div>
+                        {expandedQuestion === q.id ? (
+                          <ChevronUp className="h-5 w-5 text-neutral-400 flex-shrink-0" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-neutral-400 flex-shrink-0" />
+                        )}
+                      </div>
+                    </button>
+
+                    {expandedQuestion === q.id && (
+                      <div className="px-4 pb-4 pt-2 border-t border-cream-100">
+                        <div className="space-y-2 mb-4">
+                          {q.options.map((option, idx) => (
+                            <div
+                              key={idx}
+                              className={`p-3 rounded-lg flex items-center gap-2 ${
+                                idx === q.correctIndex
+                                  ? 'bg-green-50 border border-green-200'
+                                  : 'bg-neutral-50 border border-neutral-100'
+                              }`}
+                            >
+                              {idx === q.correctIndex && (
+                                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                              )}
+                              <span
+                                className={
+                                  idx === q.correctIndex
+                                    ? 'text-green-800 font-medium'
+                                    : 'text-neutral-600'
+                                }
+                              >
+                                {option}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {q.funFact && (
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            <div className="flex items-start gap-2">
+                              <Lightbulb className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                              <p className="text-sm text-amber-800">{q.funFact}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </main>
         <Footer />
@@ -414,6 +545,102 @@ export function Trivia() {
             <p className="text-neutral-500">Check back later for trivia questions!</p>
           </div>
         )}
+
+        {/* All Questions Study Guide */}
+        <div className="mt-8">
+          <button
+            onClick={() => setShowAllQuestions(!showAllQuestions)}
+            className="w-full bg-white rounded-2xl shadow-card p-6 border border-cream-200 hover:border-burgundy-300 transition-colors"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
+                  <Lightbulb className="h-5 w-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold text-neutral-800">
+                    All 24 Trivia Questions
+                  </h3>
+                  <p className="text-sm text-neutral-500">Study guide with answers</p>
+                </div>
+              </div>
+              {showAllQuestions ? (
+                <ChevronUp className="h-6 w-6 text-neutral-400" />
+              ) : (
+                <ChevronDown className="h-6 w-6 text-neutral-400" />
+              )}
+            </div>
+          </button>
+
+          {showAllQuestions && (
+            <div className="mt-4 space-y-3">
+              {allQuestionsData?.questions?.map((q) => (
+                <div
+                  key={q.id}
+                  className="bg-white rounded-xl shadow-sm border border-cream-200 overflow-hidden"
+                >
+                  <button
+                    onClick={() => setExpandedQuestion(expandedQuestion === q.id ? null : q.id)}
+                    className="w-full p-4 text-left hover:bg-cream-50 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-8 h-8 bg-burgundy-100 text-burgundy-700 rounded-full flex items-center justify-center font-bold text-sm">
+                        {q.questionNumber}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-neutral-800 font-medium">{q.question}</p>
+                      </div>
+                      {expandedQuestion === q.id ? (
+                        <ChevronUp className="h-5 w-5 text-neutral-400 flex-shrink-0" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-neutral-400 flex-shrink-0" />
+                      )}
+                    </div>
+                  </button>
+
+                  {expandedQuestion === q.id && (
+                    <div className="px-4 pb-4 pt-2 border-t border-cream-100">
+                      <div className="space-y-2 mb-4">
+                        {q.options.map((option, idx) => (
+                          <div
+                            key={idx}
+                            className={`p-3 rounded-lg flex items-center gap-2 ${
+                              idx === q.correctIndex
+                                ? 'bg-green-50 border border-green-200'
+                                : 'bg-neutral-50 border border-neutral-100'
+                            }`}
+                          >
+                            {idx === q.correctIndex && (
+                              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                            )}
+                            <span
+                              className={
+                                idx === q.correctIndex
+                                  ? 'text-green-800 font-medium'
+                                  : 'text-neutral-600'
+                              }
+                            >
+                              {option}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {q.funFact && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                          <div className="flex items-start gap-2">
+                            <Lightbulb className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-sm text-amber-800">{q.funFact}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* CTA Card */}
         {!isComplete && <TriviaCTACard />}
