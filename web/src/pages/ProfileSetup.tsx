@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, Loader2, Bell, MapPin, Star, FileText } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -68,6 +68,7 @@ const ALL_SURVIVOR_SEASONS = [
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(1);
@@ -238,7 +239,9 @@ export default function ProfileSetup() {
     onSuccess: async () => {
       await refreshProfile();
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
-      navigate('/dashboard');
+      const redirect = searchParams.get('redirect') || '/dashboard';
+      const safeRedirect = redirect === '/profile/setup' ? '/dashboard' : redirect;
+      navigate(safeRedirect, { replace: true });
     },
   });
 
@@ -346,7 +349,9 @@ export default function ProfileSetup() {
 
   // Check if user has completed profile setup
   if (profile?.profile_setup_complete) {
-    navigate('/dashboard', { replace: true });
+    const redirect = searchParams.get('redirect') || '/dashboard';
+    const safeRedirect = redirect === '/profile/setup' ? '/dashboard' : redirect;
+    navigate(safeRedirect, { replace: true });
     return null;
   }
 
