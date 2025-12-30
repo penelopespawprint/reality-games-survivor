@@ -41,20 +41,51 @@ export function initSentry() {
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration({
-        maskAllText: false,
-        blockAllMedia: false,
+        maskAllText: true, // Mask text by default for privacy
+        blockAllMedia: true, // Block images/videos to prevent large payloads
+        // Unmask only specific elements
+        unblock: ['.error-message', '[data-sentry-unmask]'],
+        // Block sensitive inputs
+        block: ['input[type="password"]', 'input[type="email"]', '.sensitive'],
       }),
       // Send console.log, console.error, and console.warn calls as logs to Sentry
       Sentry.consoleLoggingIntegration({ levels: ['log', 'error', 'warn'] }),
     ],
     // Performance Monitoring
-    tracesSampleRate: 1.0,
+    tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.1, // 100% in dev, 10% in production
     // Session Replay
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
   });
 
   console.log('Sentry initialized successfully');
+
+  // Global unhandled promise rejection handler
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection:', event.reason);
+    Sentry.captureException(event.reason, {
+      tags: {
+        type: 'unhandled-rejection',
+      },
+    });
+  });
+
+  // Global error handler (backup to error boundary)
+  window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error);
+    Sentry.captureException(event.error || new Error(event.message), {
+      tags: {
+        type: 'global-error',
+      },
+      contexts: {
+        error: {
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+        },
+      },
+    });
+  });
 }
 
 // Export Sentry for use in components

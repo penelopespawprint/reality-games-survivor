@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
 import { Navigation } from './Navigation';
+import { Sentry } from '@/lib/sentry';
 
 interface Props {
   children: ReactNode;
@@ -25,6 +26,20 @@ export class AdminErrorBoundary extends Component<Props, State> {
   override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo });
     console.error('Admin Error Boundary caught error:', error, errorInfo);
+
+    // Send to Sentry with admin context
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack,
+        },
+      },
+      tags: {
+        boundary: 'admin',
+        area: 'admin-panel',
+      },
+      level: 'error',
+    });
   }
 
   handleReload = () => {
