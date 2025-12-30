@@ -85,29 +85,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initializeAuth = async () => {
       try {
         // Get session once - Supabase handles URL hash extraction automatically
-        let {
+        const {
           data: { session: currentSession },
         } = await supabase.auth.getSession();
 
-        // If no session but we have localStorage, try refreshing
-        if (!currentSession) {
-          // Check if there's a stored session in localStorage
-          const storedSession = localStorage.getItem('rgfl-auth-token');
-          if (storedSession) {
-            try {
-              // Try to refresh the session
-              const {
-                data: { session: refreshedSession },
-                error: refreshError,
-              } = await supabase.auth.refreshSession();
-              if (!refreshError && refreshedSession) {
-                currentSession = refreshedSession;
-              }
-            } catch (refreshErr) {
-              console.warn('Failed to refresh session:', refreshErr);
-            }
-          }
-        }
+        // Supabase automatically restores session from localStorage if persistSession is true
+        // No need to manually refresh - getSession() handles it
 
         // Clear the URL hash after extracting session (if present)
         if (window.location.hash.includes('access_token')) {
@@ -125,6 +108,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               .then((profileData) => setProfile(profileData))
               .catch((error) => console.error('Failed to fetch profile:', error));
           }
+        } else {
+          // No session found - ensure state is cleared
+          setSession(null);
+          setUser(null);
+          setProfile(null);
         }
 
         setLoading(false);
