@@ -145,15 +145,43 @@ export default function ProfileSetup() {
 
       console.log('Updating profile with data:', updateData);
 
-      // Use upsert to handle cases where the user record might not exist yet
-      const upsertData = {
+      // First, try to check if the user record exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id, role')
+        .eq('id', user!.id)
+        .single();
+
+      // Build update data - preserve role if user exists
+      const updateDataWithId: Record<string, unknown> = {
         id: user!.id,
         email: user!.email || '',
         display_name: data.display_name,
         notification_email: data.notification_email,
         ...updateData,
       };
-      const { error } = await supabase.from('users').upsert(upsertData);
+
+      // If user exists, preserve their role (required by RLS policy)
+      if (existingUser?.role) {
+        updateDataWithId.role = existingUser.role;
+      }
+
+      let error;
+
+      if (existingUser) {
+        // User exists - use UPDATE (preserves role)
+        // Remove id from update (it's in the WHERE clause)
+        const { id: _id, ...updateFields } = updateDataWithId;
+        const { error: updateError } = await supabase
+          .from('users')
+          .update(updateFields)
+          .eq('id', user!.id);
+        error = updateError;
+      } else {
+        // User doesn't exist - use INSERT
+        const { error: insertError } = await supabase.from('users').insert(updateDataWithId);
+        error = insertError;
+      }
 
       if (error) {
         console.error('Profile update error:', error);
@@ -170,14 +198,31 @@ export default function ProfileSetup() {
           error.message.includes('favorite_season')
         ) {
           console.warn('Retrying profile update with core fields only...');
-          const retryData = {
+          const retryData: Record<string, unknown> = {
             id: user!.id,
             email: user!.email || '',
             display_name: data.display_name,
             notification_email: data.notification_email,
           };
 
-          const { error: retryError } = await supabase.from('users').upsert(retryData);
+          // Preserve role if user exists
+          if (existingUser?.role) {
+            retryData.role = existingUser.role;
+          }
+
+          let retryError;
+          if (existingUser) {
+            // Remove id from update (it's in the WHERE clause)
+            const { id: _id, ...retryFields } = retryData;
+            const { error: updateRetryError } = await supabase
+              .from('users')
+              .update(retryFields)
+              .eq('id', user!.id);
+            retryError = updateRetryError;
+          } else {
+            const { error: insertRetryError } = await supabase.from('users').insert(retryData);
+            retryError = insertRetryError;
+          }
 
           if (retryError) {
             console.error('Profile update retry error:', retryError);
@@ -340,7 +385,9 @@ export default function ProfileSetup() {
                 <User className="h-8 w-8 text-burgundy-600" />
               </div>
               <h1 className="font-display text-3xl text-neutral-800 mb-2">Welcome!</h1>
-              <p className="text-neutral-500">What should we call you?</p>
+              <p className="text-neutral-500">
+                What is your name? (First Name, Last Initial i.e. Jeff P.)
+              </p>
             </div>
 
             <div className="space-y-4">
@@ -356,7 +403,7 @@ export default function ProfileSetup() {
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Enter your name"
+                  placeholder="Jeff P."
                   className="w-full px-4 py-3 rounded-xl border border-cream-300 focus:border-burgundy-500 focus:ring-2 focus:ring-burgundy-500/20 outline-none transition-all"
                   autoFocus
                 />
