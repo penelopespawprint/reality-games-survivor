@@ -22,6 +22,9 @@ if (!dsn) {
 
   Sentry.init({
     dsn,
+    // Release version
+    release: process.env.APP_VERSION || '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
     // Setting this option to true will send default PII data to Sentry.
     // For example, automatic IP address collection on events
     sendDefaultPii: true,

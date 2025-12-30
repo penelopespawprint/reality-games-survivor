@@ -26,6 +26,10 @@ export function initSentry() {
 
   Sentry.init({
     dsn,
+    // Release version
+    release: import.meta.env.VITE_APP_VERSION || '1.0.0',
+    environment:
+      import.meta.env.VITE_APP_ENV || (import.meta.env.DEV ? 'development' : 'production'),
     // Setting this option to true will send default PII data to Sentry.
     // For example, automatic IP address collection on events
     sendDefaultPii: true,
@@ -58,7 +62,7 @@ export { Sentry };
 
 /**
  * Metrics helper for tracking custom metrics in Sentry
- * 
+ *
  * Usage:
  * - metrics.count('button_click', 1) - Count occurrences
  * - metrics.gauge('active_users', 42) - Track current values
@@ -114,7 +118,11 @@ export const metrics = {
    * Time a function and report as distribution
    * @example const result = await metrics.timing('api_call', async () => fetch('/api/data'))
    */
-  timing: async <T>(name: string, fn: () => Promise<T>, tags?: Record<string, string>): Promise<T> => {
+  timing: async <T>(
+    name: string,
+    fn: () => Promise<T>,
+    tags?: Record<string, string>
+  ): Promise<T> => {
     const start = performance.now();
     try {
       const result = await fn();
@@ -140,7 +148,7 @@ export function trackPageLoad() {
   if (typeof window !== 'undefined' && window.performance) {
     const timing = window.performance.timing;
     const pageLoadTime = timing.loadEventEnd - timing.navigationStart;
-    
+
     if (pageLoadTime > 0) {
       metrics.distribution('page_load_time', pageLoadTime);
     }

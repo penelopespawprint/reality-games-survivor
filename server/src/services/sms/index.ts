@@ -4,7 +4,8 @@
  * Central export for SMS-related services
  */
 
-export { processSmsCommand, SmsContext, SmsResult } from './commands.js';
+export { processSmsCommand } from './commands.js';
+export type { SmsContext, SmsResult } from './commands.js';
 export {
   handleStop,
   handleStart,

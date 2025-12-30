@@ -4,7 +4,7 @@ if (!process.env.RESEND_API_KEY) {
   console.warn('Warning: RESEND_API_KEY not set - emails will be logged only');
 }
 
-export const resend = new Resend(process.env.RESEND_API_KEY || '');
+export const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export const FROM_EMAIL = 'Reality Games: Survivor <noreply@rgfl.app>';
 export const REPLY_TO = 'support@realitygamesfantasyleague.com';
@@ -18,7 +18,7 @@ interface EmailParams {
 
 export async function sendEmail({ to, subject, html, text }: EmailParams): Promise<boolean> {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    if (!resend) {
       console.log(`[Email] Would send to ${to}: ${subject}`);
       return true;
     }
