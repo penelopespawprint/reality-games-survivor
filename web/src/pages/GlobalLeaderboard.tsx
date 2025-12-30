@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
-import { Flame, Trophy, Users, TrendingUp, Medal, ChevronDown, MessageCircle } from 'lucide-react';
+import { Flame, Trophy, Users, TrendingUp, Medal, ChevronDown } from 'lucide-react';
+import { GlobalChat } from '@/components/GlobalChat';
 
 interface PlayerStats {
   userId: string;
@@ -225,7 +226,7 @@ export default function GlobalLeaderboard() {
                 Ranked by weighted score (more leagues = more accurate ranking)
               </p>
             </div>
-            
+
             {/* Legend - aligned properly */}
             <div className="flex items-center gap-4 text-sm text-neutral-500 bg-cream-50 px-3 py-2 rounded-lg">
               <div className="flex items-center gap-1.5">
@@ -239,17 +240,11 @@ export default function GlobalLeaderboard() {
               </div>
             </div>
           </div>
-          
-          {/* Chat Link */}
-          <div className="mt-4 pt-4 border-t border-cream-100">
-            <Link
-              to="/chat"
-              className="flex items-center gap-2 text-burgundy-600 hover:text-burgundy-700 font-medium text-sm transition-colors"
-            >
-              <MessageCircle className="h-4 w-4" />
-              <span>Join the conversation in Global Chat</span>
-            </Link>
-          </div>
+        </div>
+
+        {/* Inline Global Chat */}
+        <div className="p-5 border-b border-cream-100">
+          <GlobalChat />
         </div>
 
         {isLoading ? (

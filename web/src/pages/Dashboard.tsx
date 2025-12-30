@@ -346,10 +346,12 @@ export function Dashboard() {
         <div className="space-y-6">
           {/* Announcements - show at top of sidebar */}
           <AnnouncementsCard />
-          
+
           {/* Trivia Callout - show when season hasn't started */}
-          <TriviaCalloutCard seasonStarted={gamePhase === 'active' || gamePhase === 'finale'} />
-          
+          <TriviaCalloutCard
+            seasonStarted={gamePhase === 'active' || gamePhase === 'post_season'}
+          />
+
           {activeSeason && <SeasonInfoCard season={activeSeason} />}
           <WeeklyTimelineCard />
           <QuickLinksCard />

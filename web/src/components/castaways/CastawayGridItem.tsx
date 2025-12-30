@@ -258,9 +258,9 @@ export function CastawayGridItem({
 
       {/* Expanded Details */}
       {isExpanded && (
-        <div className="p-4 border-t border-cream-100 bg-cream-50 space-y-4">
+        <div className="p-4 border-t border-cream-100 bg-cream-50 space-y-4 overflow-hidden">
           {/* Trivia Section */}
-          <div className="space-y-3">
+          <div className="space-y-3 overflow-hidden">
             {/* Previous Seasons */}
             {castaway.previous_seasons && castaway.previous_seasons.length > 0 && (
               <div className="bg-white rounded-lg border border-cream-200 p-3">
@@ -306,7 +306,7 @@ export function CastawayGridItem({
               <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200 p-3">
                 <div className="flex items-start gap-2">
                   <Sparkles className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-neutral-700">{castaway.fun_fact}</p>
+                  <p className="text-sm text-neutral-700 break-words">{castaway.fun_fact}</p>
                 </div>
               </div>
             )}

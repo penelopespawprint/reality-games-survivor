@@ -146,12 +146,14 @@ export default function ProfileSetup() {
       console.log('Updating profile with data:', updateData);
 
       // Use upsert to handle cases where the user record might not exist yet
-      const { error } = await supabase.from('users').upsert({
+      const upsertData = {
         id: user!.id,
-        email: user!.email,
+        email: user!.email || '',
+        display_name: data.display_name,
+        notification_email: data.notification_email,
         ...updateData,
-        updated_at: new Date().toISOString(),
-      });
+      };
+      const { error } = await supabase.from('users').upsert(upsertData);
 
       if (error) {
         console.error('Profile update error:', error);
@@ -170,10 +172,9 @@ export default function ProfileSetup() {
           console.warn('Retrying profile update with core fields only...');
           const retryData = {
             id: user!.id,
-            email: user!.email,
+            email: user!.email || '',
             display_name: data.display_name,
             notification_email: data.notification_email,
-            updated_at: new Date().toISOString(),
           };
 
           const { error: retryError } = await supabase.from('users').upsert(retryData);

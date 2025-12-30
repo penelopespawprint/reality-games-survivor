@@ -6,7 +6,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Megaphone, AlertTriangle, Info, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Megaphone, AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Announcement {
@@ -24,8 +24,9 @@ export function AnnouncementsCard() {
     queryKey: ['announcements'],
     queryFn: async () => {
       const now = new Date().toISOString();
+      // Use raw query since announcements table may not be in generated types yet
       const { data, error } = await supabase
-        .from('announcements')
+        .from('announcements' as any)
         .select('*')
         .eq('is_active', true)
         .or(`expires_at.is.null,expires_at.gt.${now}`)
@@ -34,7 +35,7 @@ export function AnnouncementsCard() {
         .limit(3);
 
       if (error) throw error;
-      return data as Announcement[];
+      return (data || []) as unknown as Announcement[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -105,19 +106,12 @@ export function AnnouncementsCard() {
           const Icon = style.icon;
 
           return (
-            <div
-              key={announcement.id}
-              className={`p-4 ${style.bg} border-l-4 ${style.border}`}
-            >
+            <div key={announcement.id} className={`p-4 ${style.bg} border-l-4 ${style.border}`}>
               <div className="flex items-start gap-3">
                 <Icon className={`h-5 w-5 ${style.iconColor} flex-shrink-0 mt-0.5`} />
                 <div className="flex-1 min-w-0">
-                  <h4 className={`font-semibold ${style.titleColor} mb-1`}>
-                    {announcement.title}
-                  </h4>
-                  <p className="text-neutral-600 text-sm line-clamp-2">
-                    {announcement.content}
-                  </p>
+                  <h4 className={`font-semibold ${style.titleColor} mb-1`}>{announcement.title}</h4>
+                  <p className="text-neutral-600 text-sm line-clamp-2">{announcement.content}</p>
                   <p className="text-neutral-400 text-xs mt-2">
                     {formatDistanceToNow(new Date(announcement.created_at), { addSuffix: true })}
                   </p>

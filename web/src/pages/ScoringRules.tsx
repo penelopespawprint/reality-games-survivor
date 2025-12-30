@@ -270,7 +270,9 @@ export default function ScoringRules() {
                     <h3 className="text-base font-display font-bold text-neutral-800">
                       {category.name}
                     </h3>
-                    <p className="text-neutral-500 text-xs">{category.description}</p>
+                    {!isExpanded && (
+                      <p className="text-neutral-500 text-xs">{category.description}</p>
+                    )}
                   </div>
                   {isExpanded ? (
                     <ChevronDown className="h-5 w-5 text-neutral-400" />
@@ -279,9 +281,14 @@ export default function ScoringRules() {
                   )}
                 </button>
 
-                {/* Examples List */}
+                {/* Expanded Content: Description + Examples */}
                 {isExpanded && (
                   <div className="border-t border-cream-200">
+                    {/* Description */}
+                    <div className="px-5 py-3 bg-cream-50 border-b border-cream-100">
+                      <p className="text-neutral-600 text-sm">{category.description}</p>
+                    </div>
+                    {/* Examples List */}
                     <div className="divide-y divide-cream-100">
                       {category.examples.map((example, i) => (
                         <div

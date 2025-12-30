@@ -94,8 +94,9 @@ export async function autoPick(): Promise<{
         continue;
       }
 
-      // Pick first available (could add ranking logic here)
-      const autoCastaway = activeCastaways[0];
+      // Randomly pick from available active castaways
+      const randomIndex = Math.floor(Math.random() * activeCastaways.length);
+      const autoCastaway = activeCastaways[randomIndex];
 
       // Create auto-pick
       const { error } = await supabaseAdmin.from('weekly_picks').insert({

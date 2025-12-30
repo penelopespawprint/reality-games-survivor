@@ -76,6 +76,67 @@ router.patch('/:id', async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
+// POST /api/admin/episodes/:id/lock - Lock results for release
+router.post('/:id/lock', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id: episodeId } = req.params;
+
+    // Verify episode exists and is scored
+    const { data: episode, error: episodeError } = await supabaseAdmin
+      .from('episodes')
+      .select('id, number, is_scored, results_locked_at, results_released_at')
+      .eq('id', episodeId)
+      .single();
+
+    if (episodeError || !episode) {
+      return res.status(404).json({ error: 'Episode not found' });
+    }
+
+    if (!episode.is_scored) {
+      return res.status(400).json({ error: 'Episode scoring must be finalized before locking results' });
+    }
+
+    if (episode.results_locked_at) {
+      return res.status(400).json({
+        error: 'Results already locked',
+        locked_at: episode.results_locked_at,
+      });
+    }
+
+    if (episode.results_released_at) {
+      return res.status(400).json({
+        error: 'Results already released',
+        released_at: episode.results_released_at,
+      });
+    }
+
+    // Lock results
+    const { error: updateError } = await supabaseAdmin
+      .from('episodes')
+      .update({
+        results_locked_at: new Date().toISOString(),
+        results_locked_by: req.user!.id,
+      })
+      .eq('id', episodeId);
+
+    if (updateError) {
+      console.error('Failed to lock results:', updateError);
+      return res.status(500).json({ error: 'Failed to lock results' });
+    }
+
+    res.json({
+      message: 'Results locked successfully. They will be released automatically within 15 minutes.',
+      episode: {
+        id: episode.id,
+        number: episode.number,
+      },
+    });
+  } catch (err) {
+    console.error('POST /api/admin/episodes/:id/lock error:', err);
+    res.status(500).json({ error: 'Failed to lock results' });
+  }
+});
+
 // POST /api/admin/episodes/:id/release-results - Manually release episode results
 router.post('/:id/release-results', async (req: AuthenticatedRequest, res: Response) => {
   try {

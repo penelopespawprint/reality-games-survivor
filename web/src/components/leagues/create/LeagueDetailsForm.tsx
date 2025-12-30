@@ -1,6 +1,7 @@
 import { Users, FileText } from 'lucide-react';
 
-const MAX_PLAYER_OPTIONS = [4, 6, 8, 10, 12];
+// Server validation allows 2-24 players
+const MAX_PLAYER_OPTIONS = [4, 6, 8, 10, 12, 16, 20, 24];
 
 interface LeagueDetailsFormProps {
   name: string;
@@ -55,7 +56,7 @@ export function LeagueDetailsForm({
 
       <label className="block">
         <span className="text-neutral-700 text-sm font-medium mb-2 block">Max Players</span>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {MAX_PLAYER_OPTIONS.map((num) => (
             <button
               key={num}

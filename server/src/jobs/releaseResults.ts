@@ -14,6 +14,7 @@ interface Episode {
   week_number: number;
   season_id: string;
   scoring_finalized_at: string;
+  results_locked_at: string | null;
   results_released_at: string | null;
 }
 
@@ -29,20 +30,22 @@ interface User {
 }
 
 /**
- * Get the latest finalized episode that hasn't had results released yet
+ * Get the latest locked episode that hasn't had results released yet
+ * Episodes must be manually locked by admin before results can be released
  */
-async function getLatestFinalizedEpisode(): Promise<Episode | null> {
+async function getLatestLockedEpisode(): Promise<Episode | null> {
   const { data, error } = await supabaseAdmin
     .from('episodes')
-    .select('id, number, week_number, season_id, scoring_finalized_at, results_released_at')
+    .select('id, number, week_number, season_id, scoring_finalized_at, results_locked_at, results_released_at')
     .not('scoring_finalized_at', 'is', null)
+    .not('results_locked_at', 'is', null)
     .is('results_released_at', null)
-    .order('scoring_finalized_at', { ascending: false })
+    .order('results_locked_at', { ascending: false })
     .limit(1)
     .single();
 
   if (error && error.code !== 'PGRST116') {
-    console.error('[Release Results] Error fetching latest finalized episode:', error);
+    console.error('[Release Results] Error fetching latest locked episode:', error);
     return null;
   }
 
@@ -99,13 +102,13 @@ export async function releaseWeeklyResults(): Promise<{
   notificationsSent: number;
   errors: number;
 }> {
-  console.log('[Release Results] Starting weekly results release job...');
+  console.log('[Release Results] Starting results release job...');
 
-  // Get latest finalized episode that hasn't been released
-  const episode = await getLatestFinalizedEpisode();
+  // Get latest locked episode that hasn't been released
+  const episode = await getLatestLockedEpisode();
 
   if (!episode) {
-    console.log('[Release Results] No finalized episode ready for release');
+    console.log('[Release Results] No locked episode ready for release');
     return { episode: null, notificationsSent: 0, errors: 0 };
   }
 

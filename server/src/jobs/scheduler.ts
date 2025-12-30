@@ -66,9 +66,9 @@ const jobs: ScheduledJob[] = [
   },
   {
     name: 'release-results',
-    // Fri 2pm PST (auto-adjusts for DST)
-    schedule: pstToCron(14, 0, 5),
-    description: 'Release spoiler-safe results notifications',
+    // Every 10 minutes - allows results to go live quickly after episode finalization
+    schedule: '*/10 * * * *',
+    description: 'Release spoiler-safe results notifications (checks for finalized episodes)',
     handler: releaseWeeklyResults,
     enabled: true,
   },

@@ -66,7 +66,7 @@ export default function HowToPlay() {
       details: [
         'Picks lock Wednesday at 3pm PST before the episode',
         'Analyze the edit, preview clips, and tribal dynamics',
-        "If you forget, we'll auto-pick your highest-ranked castaway",
+        'If you forget, the system randomly picks from your roster',
         'Both castaways eliminated = torch snuffed (but you can still watch!)',
       ],
     },
@@ -74,13 +74,10 @@ export default function HowToPlay() {
       icon: Star,
       title: 'Earn Points',
       description:
-        'Your picked castaway earns (or loses) points based on what happens during the episode.',
-      details: [
-        'Points for surviving, winning challenges, finding idols',
-        'Points for strategic moves, confessionals, and social game',
-        'Lose points for getting voted out, quitting, or bad plays',
-        '100+ scoring rules based on a decade of Survivor knowledge',
-      ],
+        'Your picked castaway earns (or loses) points based on what happens during the episode. See the full scoring rules for details.',
+      details: [],
+      linkTo: '/scoring',
+      linkText: 'View Scoring Rules →',
     },
     {
       icon: Award,
@@ -171,14 +168,25 @@ export default function HowToPlay() {
                         {step.title}
                       </h3>
                       <p className="text-neutral-600 mb-4">{step.description}</p>
-                      <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {step.details.map((detail, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-neutral-600">
-                            <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span>{detail}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      {step.details.length > 0 ? (
+                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {step.details.map((detail, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-neutral-600">
+                              <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span>{detail}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                      {'linkTo' in step && step.linkTo && (
+                        <Link
+                          to={step.linkTo}
+                          className="inline-flex items-center gap-2 mt-2 text-burgundy-600 hover:text-burgundy-700 font-medium"
+                        >
+                          {step.linkText || 'Learn more'}
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -12,6 +12,7 @@ import {
   Star,
   Send,
   CheckCircle,
+  Lock,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { Navigation } from '@/components/Navigation';
@@ -103,6 +104,43 @@ export function AdminEpisodes() {
     },
   });
 
+  // Lock results mutation
+  const lockResults = useMutation({
+    mutationFn: async (episodeId: string) => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const apiBase = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(
+        `${apiBase}/api/admin/episodes/${episodeId}/lock`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to lock results');
+      }
+
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-episodes', seasonId] });
+      alert(data.message || 'Results locked! They will be released automatically.');
+    },
+    onError: (error: Error) => {
+      alert(`Error: ${error.message}`);
+    },
+  });
+
   // Release results mutation
   const releaseResults = useMutation({
     mutationFn: async (episodeId: string) => {
@@ -111,8 +149,9 @@ export function AdminEpisodes() {
       } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
+      const apiBase = import.meta.env.VITE_API_URL || '';
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app'}/api/admin/episodes/${episodeId}/release-results`,
+        `${apiBase}/api/admin/episodes/${episodeId}/release-results`,
         {
           method: 'POST',
           headers: {
@@ -460,29 +499,63 @@ export function AdminEpisodes() {
                     Results Released {new Date(episode.results_released_at).toLocaleDateString()}
                   </span>
                 </div>
+              ) : episode.results_locked_at ? (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-center gap-2 text-amber-600 text-sm py-2">
+                    <Lock className="h-4 w-4" />
+                    <span>
+                      Locked - releasing automatically
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (
+                        confirm(
+                          'Release results immediately? This will send spoiler-safe notifications to all users.'
+                        )
+                      ) {
+                        releaseResults.mutate(episode.id);
+                      }
+                    }}
+                    disabled={releaseResults.isPending}
+                    className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {releaseResults.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Releasing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        <span>Release Now</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => {
                     if (
                       confirm(
-                        'Release results now? This will send spoiler-safe notifications to all users.'
+                        'Lock results for release? They will be sent automatically within 15 minutes.'
                       )
                     ) {
-                      releaseResults.mutate(episode.id);
+                      lockResults.mutate(episode.id);
                     }
                   }}
-                  disabled={releaseResults.isPending}
-                  className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={lockResults.isPending}
+                  className="w-full bg-amber-50 hover:bg-amber-100 text-amber-600 py-2 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {releaseResults.isPending ? (
+                  {lockResults.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Releasing...</span>
+                      <span>Locking...</span>
                     </>
                   ) : (
                     <>
-                      <Send className="h-4 w-4" />
-                      <span>Release Results Now</span>
+                      <Lock className="h-4 w-4" />
+                      <span>Lock Results for Release</span>
                     </>
                   )}
                 </button>

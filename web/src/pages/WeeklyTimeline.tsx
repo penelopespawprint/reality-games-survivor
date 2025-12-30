@@ -24,7 +24,7 @@ const TIMELINE_EVENTS = [
     title: 'Picks Lock',
     description:
       'All weekly picks are locked in. Make sure you\'ve selected which of your 2 castaways to "play" for this episode before this deadline.',
-    tip: 'Set a reminder! If you forget to pick, the system will auto-select your highest-ranked available castaway.',
+    tip: 'Set a reminder! If you forget to pick, the system will randomly select from your available castaways.',
   },
   {
     day: 'Wednesday',
@@ -47,13 +47,13 @@ const TIMELINE_EVENTS = [
     tip: 'Scores are typically finalized within 24 hours of the episode airing.',
   },
   {
-    day: 'Friday',
-    time: '2:00 PM PST',
+    day: 'Wed/Thu Night',
+    time: 'After Airing',
     icon: Bell,
     color: 'green',
     title: 'Results Posted',
     description:
-      'Official results are released. See how your castaway performed, check the leaderboard, and see where you stand in your leagues.',
+      'Usually released instantly after it airs on the west coast, but could take up to 8am the next morning to go live.',
     tip: 'Results notifications respect your spoiler delay settings.',
   },
   {
@@ -159,9 +159,7 @@ export default function WeeklyTimeline() {
                     <div className={`${lightBg} rounded-xl p-3 border`}>
                       <p className={`text-sm ${textColor} flex items-start gap-2`}>
                         <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span>
-                          <strong>Pro Tip:</strong> {event.tip}
-                        </span>
+                        <span>{event.tip}</span>
                       </p>
                     </div>
                   </div>
@@ -197,8 +195,8 @@ export default function WeeklyTimeline() {
             <li className="flex items-start gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-burgundy-500 mt-2 flex-shrink-0" />
               <span>
-                <strong>Forgot to pick?</strong> The system auto-selects your highest-ranked
-                available castaway from your roster.
+                <strong>Forgot to pick?</strong> The system randomly selects from your
+                available castaways.
               </span>
             </li>
             <li className="flex items-start gap-3">

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leagues Page - Design Variations</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .font-display { font-family: 'Playfair Display', serif; }
+    body { font-family: 'Inter', sans-serif; }
+    
+    /* Custom colors */
+    .bg-cream-50 { background-color: #FFFBF5; }
+    .bg-cream-100 { background-color: #FFF7ED; }
+    .bg-cream-200 { background-color: #FFEDD5; }
+    .bg-burgundy-500 { background-color: #7C2D12; }
+    .bg-burgundy-600 { background-color: #6B2510; }
+    .text-burgundy-500 { color: #7C2D12; }
+    .text-burgundy-600 { color: #6B2510; }
+    .border-cream-200 { border-color: #FFEDD5; }
+    
+    /* Variation selector */
+    .variation-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: linear-gradient(135deg, #7C2D12, #991B1B);
+      padding: 1rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .variation-section {
+      padding-top: 100px;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body class="bg-cream-100">
+  <!-- Navigation -->
+  <nav class="variation-nav">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <h1 class="text-white font-display text-xl">Leagues Page Variations</h1>
+      <div class="flex gap-4">
+        <a href="#variation-a" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition">
+          A: Card Grid
+        </a>
+        <a href="#variation-b" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition">
+          B: Compact Table
+        </a>
+        <a href="#variation-c" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition">
+          C: Featured + Grid
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==================== VARIATION A: Card Grid (Current Style) ==================== -->
+  <section id="variation-a" class="variation-section bg-gradient-to-b from-cream-100 to-cream-200">
+    <div class="max-w-6xl mx-auto px-6 py-8">
+      <div class="text-center mb-2 text-sm font-semibold text-burgundy-500 uppercase tracking-wider">Variation A</div>
+      <h2 class="text-4xl font-display font-bold text-center text-neutral-800 mb-8">Card Grid Layout</h2>
+      
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+          <h1 class="text-3xl font-display font-bold text-neutral-800 flex items-center gap-3">
+            <span class="text-3xl">🏆</span> My Leagues
+          </h1>
+          <p class="text-neutral-500">Manage your fantasy leagues and track standings</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="px-4 py-2 bg-white border border-cream-200 text-neutral-700 rounded-xl font-medium hover:bg-cream-50 transition shadow-sm">
+            Join League
+          </button>
+          <button class="px-4 py-2 bg-burgundy-500 text-white rounded-xl font-semibold hover:bg-burgundy-600 transition shadow-lg">
+            + Create League
+          </button>
+        </div>
+      </div>
+      
+      <!-- Search & Filter -->
+      <div class="bg-white rounded-2xl p-4 mb-6 border border-cream-200 shadow-sm flex flex-col md:flex-row gap-4">
+        <div class="flex-1 relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">🔍</span>
+          <input type="text" placeholder="Search leagues..." class="w-full pl-10 pr-4 py-2 rounded-xl border border-cream-200 bg-cream-50 focus:outline-none focus:ring-2 focus:ring-burgundy-500 focus:border-transparent">
+        </div>
+        <div class="flex gap-2">
+          <button class="px-4 py-2 bg-burgundy-500 text-white rounded-xl font-medium">All</button>
+          <button class="px-4 py-2 bg-cream-100 text-neutral-600 rounded-xl font-medium hover:bg-cream-200">Commissioner</button>
+          <button class="px-4 py-2 bg-cream-100 text-neutral-600 rounded-xl font-medium hover:bg-cream-200">Member</button>
+        </div>
+      </div>
+      
+      <!-- League Cards Grid -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- League Card 1 -->
+        <div class="bg-white rounded-2xl shadow-lg border border-cream-200 overflow-hidden hover:shadow-xl transition group cursor-pointer">
+          <div class="h-3 bg-gradient-to-r from-burgundy-500 to-red-600"></div>
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Commissioner</span>
+                </div>
+                <h3 class="text-xl font-display font-bold text-neutral-800 group-hover:text-burgundy-600 transition">The Tribal Council</h3>
+                <p class="text-neutral-500 text-sm">Code: TRIBE2024</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-display font-bold text-burgundy-500">142</p>
+                <p class="text-xs text-neutral-400">points</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4 mb-4 text-sm">
+              <div class="flex items-center gap-1">
+                <span class="text-neutral-400">👥</span>
+                <span class="text-neutral-600">8/12 players</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="text-neutral-400">📍</span>
+                <span class="text-neutral-600">Rank #2</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between pt-4 border-t border-cream-100">
+              <div class="flex -space-x-2">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop" class="w-8 h-8 rounded-full border-2 border-white">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&h=40&fit=crop" class="w-8 h-8 rounded-full border-2 border-white">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop" class="w-8 h-8 rounded-full border-2 border-white">
+                <div class="w-8 h-8 rounded-full border-2 border-white bg-cream-100 flex items-center justify-center text-xs text-neutral-500">+5</div>
+              </div>
+              <span class="text-burgundy-500 font-medium text-sm group-hover:underline">View League →</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- League Card 2 -->
+        <div class="bg-white rounded-2xl shadow-lg border border-cream-200 overflow-hidden hover:shadow-xl transition group cursor-pointer">
+          <div class="h-3 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Member</span>
+                </div>
+                <h3 class="text-xl font-display font-bold text-neutral-800 group-hover:text-burgundy-600 transition">Office Survivors</h3>
+                <p class="text-neutral-500 text-sm">Code: OFFICE50</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-display font-bold text-blue-500">98</p>
+                <p class="text-xs text-neutral-400">points</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4 mb-4 text-sm">
+              <div class="flex items-center gap-1">
+                <span class="text-neutral-400">👥</span>
+                <span class="text-neutral-600">12/12 players</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="text-neutral-400">📍</span>
+                <span class="text-neutral-600">Rank #5</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between pt-4 border-t border-cream-100">
+              <div class="flex -space-x-2">
+                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop" class="w-8 h-8 rounded-full border-2 border-white">
+                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop" class="w-8 h-8 rounded-full border-2 border-white">
+                <div class="w-8 h-8 rounded-full border-2 border-white bg-cream-100 flex items-center justify-center text-xs text-neutral-500">+10</div>
+              </div>
+              <span class="text-burgundy-500 font-medium text-sm group-hover:underline">View League →</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- League Card 3 - Charity -->
+        <div class="bg-white rounded-2xl shadow-lg border border-cream-200 overflow-hidden hover:shadow-xl transition group cursor-pointer">
+          <div class="h-3 bg-gradient-to-r from-pink-500 to-rose-500"></div>
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full font-medium">❤️ Charity</span>
+                </div>
+                <h3 class="text-xl font-display font-bold text-neutral-800 group-hover:text-burgundy-600 transition">Fans for a Cause</h3>
+                <p class="text-neutral-500 text-sm">$25 donation • St. Jude</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-display font-bold text-pink-500">76</p>
+                <p class="text-xs text-neutral-400">points</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-4 mb-4 text-sm">
+              <div class="flex items-center gap-1">
+                <span class="text-neutral-400">👥</span>
+                <span class="text-neutral-600">24/24 players</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="text-neutral-400">📍</span>
+                <span class="text-neutral-600">Rank #12</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between pt-4 border-t border-cream-100">
+              <div class="text-sm text-green-600 font-medium">$600 raised!</div>
+              <span class="text-burgundy-500 font-medium text-sm group-hover:underline">View League →</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Empty State / Create New -->
+        <div class="bg-cream-50 rounded-2xl border-2 border-dashed border-cream-300 p-6 flex flex-col items-center justify-center text-center hover:border-burgundy-400 hover:bg-cream-100 transition cursor-pointer group min-h-[250px]">
+          <div class="w-16 h-16 bg-cream-200 rounded-full flex items-center justify-center mb-4 group-hover:bg-burgundy-100 transition">
+            <span class="text-3xl">➕</span>
+          </div>
+          <h3 class="font-semibold text-neutral-700 mb-1">Create New League</h3>
+          <p class="text-neutral-500 text-sm">Start your own fantasy competition</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== VARIATION B: Compact Table View ==================== -->
+  <section id="variation-b" class="variation-section bg-gradient-to-b from-cream-100 to-cream-200">
+    <div class="max-w-5xl mx-auto px-6 py-8">
+      <div class="text-center mb-2 text-sm font-semibold text-burgundy-500 uppercase tracking-wider">Variation B</div>
+      <h2 class="text-4xl font-display font-bold text-center text-neutral-800 mb-8">Compact Table View</h2>
+      
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+          <h1 class="text-3xl font-display font-bold text-neutral-800">My Leagues</h1>
+          <p class="text-neutral-500">5 leagues • Season 50</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="px-4 py-2 bg-white border border-cream-200 text-neutral-700 rounded-xl font-medium hover:bg-cream-50">Join</button>
+          <button class="px-4 py-2 bg-burgundy-500 text-white rounded-xl font-semibold hover:bg-burgundy-600">+ Create</button>
+        </div>
+      </div>
+      
+      <!-- Table Card -->
+      <div class="bg-white rounded-2xl shadow-xl border border-cream-200 overflow-hidden">
+        <!-- Table Header -->
+        <div class="bg-cream-50 px-6 py-4 border-b border-cream-200">
+          <div class="grid grid-cols-12 gap-4 text-sm font-semibold text-neutral-600">
+            <div class="col-span-4">League</div>
+            <div class="col-span-2 text-center">Members</div>
+            <div class="col-span-2 text-center">Your Rank</div>
+            <div class="col-span-2 text-center">Points</div>
+            <div class="col-span-2 text-right">Status</div>
+          </div>
+        </div>
+        
+        <!-- Table Rows -->
+        <div class="divide-y divide-cream-100">
+          <!-- Row 1 -->
+          <div class="px-6 py-4 hover:bg-cream-50 transition cursor-pointer group">
+            <div class="grid grid-cols-12 gap-4 items-center">
+              <div class="col-span-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-burgundy-500 to-red-600 flex items-center justify-center text-white font-bold">T</div>
+                  <div>
+                    <h3 class="font-semibold text-neutral-800 group-hover:text-burgundy-600">The Tribal Council</h3>
+                    <p class="text-xs text-neutral-400">TRIBE2024 • Commissioner</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="text-neutral-700">8/12</span>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="inline-flex items-center justify-center w-8 h-8 bg-amber-100 text-amber-700 rounded-full font-bold text-sm">#2</span>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="text-xl font-display font-bold text-burgundy-500">142</span>
+              </div>
+              <div class="col-span-2 text-right">
+                <span class="inline-flex items-center gap-1 text-green-600 text-sm font-medium">
+                  <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                  Active
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Row 2 -->
+          <div class="px-6 py-4 hover:bg-cream-50 transition cursor-pointer group">
+            <div class="grid grid-cols-12 gap-4 items-center">
+              <div class="col-span-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">O</div>
+                  <div>
+                    <h3 class="font-semibold text-neutral-800 group-hover:text-burgundy-600">Office Survivors</h3>
+                    <p class="text-xs text-neutral-400">OFFICE50 • Member</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="text-neutral-700">12/12</span>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="inline-flex items-center justify-center w-8 h-8 bg-cream-100 text-neutral-600 rounded-full font-bold text-sm">#5</span>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="text-xl font-display font-bold text-blue-500">98</span>
+              </div>
+              <div class="col-span-2 text-right">
+                <span class="inline-flex items-center gap-1 text-green-600 text-sm font-medium">
+                  <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                  Active
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Row 3 - Charity -->
+          <div class="px-6 py-4 hover:bg-cream-50 transition cursor-pointer group">
+            <div class="grid grid-cols-12 gap-4 items-center">
+              <div class="col-span-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold">❤️</div>
+                  <div>
+                    <h3 class="font-semibold text-neutral-800 group-hover:text-burgundy-600">Fans for a Cause</h3>
+                    <p class="text-xs text-neutral-400">$25 charity • St. Jude</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="text-neutral-700">24/24</span>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="inline-flex items-center justify-center w-8 h-8 bg-cream-100 text-neutral-600 rounded-full font-bold text-sm">#12</span>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="text-xl font-display font-bold text-pink-500">76</span>
+              </div>
+              <div class="col-span-2 text-right">
+                <span class="inline-flex items-center gap-1 text-green-600 text-sm font-medium">
+                  <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                  Active
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Row 4 -->
+          <div class="px-6 py-4 hover:bg-cream-50 transition cursor-pointer group">
+            <div class="grid grid-cols-12 gap-4 items-center">
+              <div class="col-span-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold">F</div>
+                  <div>
+                    <h3 class="font-semibold text-neutral-800 group-hover:text-burgundy-600">Family Feud</h3>
+                    <p class="text-xs text-neutral-400">FAMILY50 • Commissioner</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="text-neutral-700">6/8</span>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="inline-flex items-center justify-center w-8 h-8 bg-yellow-100 text-yellow-700 rounded-full font-bold text-sm">#1</span>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="text-xl font-display font-bold text-green-500">156</span>
+              </div>
+              <div class="col-span-2 text-right">
+                <span class="inline-flex items-center gap-1 text-green-600 text-sm font-medium">
+                  <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                  Active
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Row 5 - Global -->
+          <div class="px-6 py-4 hover:bg-cream-50 transition cursor-pointer group bg-gradient-to-r from-cream-50 to-transparent">
+            <div class="grid grid-cols-12 gap-4 items-center">
+              <div class="col-span-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold">🌍</div>
+                  <div>
+                    <h3 class="font-semibold text-neutral-800 group-hover:text-burgundy-600">Global League</h3>
+                    <p class="text-xs text-amber-600 font-medium">All players compete</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="text-neutral-700">1,247</span>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="inline-flex items-center justify-center w-8 h-8 bg-cream-100 text-neutral-600 rounded-full font-bold text-sm">#89</span>
+              </div>
+              <div class="col-span-2 text-center">
+                <span class="text-xl font-display font-bold text-amber-500">142</span>
+              </div>
+              <div class="col-span-2 text-right">
+                <span class="inline-flex items-center gap-1 text-amber-600 text-sm font-medium">
+                  🏆 Top 10%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== VARIATION C: Featured Carousel + Grid ==================== -->
+  <section id="variation-c" class="variation-section bg-gradient-to-b from-neutral-900 to-neutral-800">
+    <div class="max-w-6xl mx-auto px-6 py-8">
+      <div class="text-center mb-2 text-sm font-semibold text-amber-400 uppercase tracking-wider">Variation C</div>
+      <h2 class="text-4xl font-display font-bold text-center text-white mb-8">Featured Carousel + Grid</h2>
+      
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+          <h1 class="text-3xl font-display font-bold text-white">My Leagues</h1>
+          <p class="text-neutral-400">5 leagues competing in Season 50</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="px-4 py-2 bg-white/10 border border-white/20 text-white rounded-xl font-medium hover:bg-white/20 transition">Join League</button>
+          <button class="px-4 py-2 bg-amber-500 text-neutral-900 rounded-xl font-semibold hover:bg-amber-400 transition">+ Create</button>
+        </div>
+      </div>
+      
+      <!-- Featured League (Hero Card) -->
+      <div class="mb-8">
+        <p class="text-amber-400 text-sm font-semibold mb-3 uppercase tracking-wider">🔥 Your Best Performing League</p>
+        <div class="bg-gradient-to-br from-amber-500 via-orange-500 to-red-600 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div class="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+          
+          <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <span class="inline-block bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full mb-3">👑 Commissioner</span>
+              <h3 class="text-4xl font-display font-bold text-white mb-2">The Tribal Council</h3>
+              <p class="text-white/80">8 members • Code: TRIBE2024</p>
+              
+              <div class="flex items-center gap-6 mt-6">
+                <div>
+                  <p class="text-5xl font-display font-bold text-white">142</p>
+                  <p class="text-white/60 text-sm">Total Points</p>
+                </div>
+                <div class="w-px h-16 bg-white/20"></div>
+                <div>
+                  <p class="text-5xl font-display font-bold text-white">#2</p>
+                  <p class="text-white/60 text-sm">Your Rank</p>
+                </div>
+                <div class="w-px h-16 bg-white/20"></div>
+                <div>
+                  <p class="text-5xl font-display font-bold text-white">+18</p>
+                  <p class="text-white/60 text-sm">This Week</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex flex-col items-end gap-4">
+              <div class="flex -space-x-3">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop" class="w-12 h-12 rounded-full border-2 border-white shadow-lg">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&h=60&fit=crop" class="w-12 h-12 rounded-full border-2 border-white shadow-lg">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop" class="w-12 h-12 rounded-full border-2 border-white shadow-lg">
+                <div class="w-12 h-12 rounded-full border-2 border-white bg-white/20 backdrop-blur flex items-center justify-center text-white text-sm font-bold shadow-lg">+5</div>
+              </div>
+              <button class="px-6 py-3 bg-white text-orange-600 rounded-xl font-bold hover:bg-cream-100 transition shadow-lg">
+                View League →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Other Leagues Grid -->
+      <div>
+        <p class="text-white/60 text-sm font-semibold mb-4 uppercase tracking-wider">All Leagues</p>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Small League Card -->
+          <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition cursor-pointer group">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">O</div>
+              <div>
+                <h4 class="font-semibold text-white group-hover:text-amber-400 transition">Office Survivors</h4>
+                <p class="text-neutral-500 text-xs">12 members</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-2xl font-display font-bold text-white">98</p>
+                <p class="text-neutral-500 text-xs">points</p>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-neutral-400">#5</p>
+                <p class="text-neutral-500 text-xs">rank</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Small League Card - Charity -->
+          <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition cursor-pointer group">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white">❤️</div>
+              <div>
+                <h4 class="font-semibold text-white group-hover:text-amber-400 transition">Fans for a Cause</h4>
+                <p class="text-pink-400 text-xs">$600 raised</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-2xl font-display font-bold text-white">76</p>
+                <p class="text-neutral-500 text-xs">points</p>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-neutral-400">#12</p>
+                <p class="text-neutral-500 text-xs">rank</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Small League Card -->
+          <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition cursor-pointer group">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold">F</div>
+              <div>
+                <h4 class="font-semibold text-white group-hover:text-amber-400 transition">Family Feud</h4>
+                <p class="text-neutral-500 text-xs">6 members</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-2xl font-display font-bold text-white">156</p>
+                <p class="text-neutral-500 text-xs">points</p>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-yellow-400">#1</p>
+                <p class="text-neutral-500 text-xs">rank</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Global League Card -->
+          <div class="bg-gradient-to-br from-amber-500/20 to-orange-600/20 backdrop-blur border border-amber-500/30 rounded-2xl p-5 hover:from-amber-500/30 hover:to-orange-600/30 transition cursor-pointer group">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white">🌍</div>
+              <div>
+                <h4 class="font-semibold text-white group-hover:text-amber-400 transition">Global League</h4>
+                <p class="text-amber-400 text-xs">1,247 players</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-2xl font-display font-bold text-white">142</p>
+                <p class="text-neutral-500 text-xs">points</p>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold text-neutral-400">#89</p>
+                <p class="text-amber-400 text-xs">Top 10%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Smooth scroll for navigation
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+          behavior: 'smooth'
+        });
+      });
+    });
+  </script>
+</body>
+</html>

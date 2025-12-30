@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string, retries = 3): Promise<UserProfile | null> => {
+  const fetchProfile = async (userId: string, retries = 2): Promise<UserProfile | null> => {
     for (let attempt = 0; attempt < retries; attempt++) {
       const { data, error } = await supabase
         .from('users')
@@ -62,7 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Handle both PGRST116 (PostgREST "no rows") and 406 status
       const isNotFound = error?.code === 'PGRST116' || (error as any)?.status === 406;
       if (isNotFound && attempt < retries - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+        // Shorter delay - trigger should create profile quickly
+        await new Promise((resolve) => setTimeout(resolve, 150));
         continue;
       }
 
@@ -83,54 +84,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Function to initialize auth state
     const initializeAuth = async () => {
       try {
-        // First, check if there's a session in the URL hash (from magic link/OAuth redirect)
-        // Supabase will automatically extract it with detectSessionInUrl: true
-        // But we need to wait a bit for it to process
+        // Get session once - Supabase handles URL hash extraction automatically
         const {
-          data: { session: urlSession },
+          data: { session: currentSession },
         } = await supabase.auth.getSession();
 
-        // If we have a session from URL, use it immediately
-        if (urlSession) {
-          setSession(urlSession);
-          setUser(urlSession.user ?? null);
+        // Clear the URL hash after extracting session (if present)
+        if (window.location.hash.includes('access_token')) {
+          window.history.replaceState(
+            null,
+            '',
+            window.location.pathname + window.location.search
+          );
+        }
 
-          // Clear the URL hash after extracting session
-          if (window.location.hash.includes('access_token')) {
-            window.history.replaceState(
-              null,
-              '',
-              window.location.pathname + window.location.search
-            );
-          }
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user ?? null);
 
-          // Fetch user profile if authenticated
-          if (urlSession.user) {
-            try {
-              const profileData = await fetchProfile(urlSession.user.id);
-              setProfile(profileData);
-            } catch (error) {
-              console.error('Failed to fetch profile:', error);
-              // Continue even if profile fetch fails - don't block the app
-            }
-          }
-        } else {
-          // No session found, check for stored session
-          const {
-            data: { session: storedSession },
-          } = await supabase.auth.getSession();
-          setSession(storedSession);
-          setUser(storedSession?.user ?? null);
-
-          // Fetch user profile if authenticated
-          if (storedSession?.user) {
-            try {
-              const profileData = await fetchProfile(storedSession.user.id);
-              setProfile(profileData);
-            } catch (error) {
-              console.error('Failed to fetch profile:', error);
-              // Continue even if profile fetch fails - don't block the app
-            }
+          // Fetch profile in parallel with setting loading to false
+          // Don't block the UI while fetching profile
+          if (currentSession.user) {
+            fetchProfile(currentSession.user.id)
+              .then((profileData) => setProfile(profileData))
+              .catch((error) => console.error('Failed to fetch profile:', error));
           }
         }
 

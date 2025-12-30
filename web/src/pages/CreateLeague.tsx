@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { ArrowLeft, Loader2, Heart, Users } from 'lucide-react';
+import { ArrowLeft, Loader2, Heart, Users, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { apiWithAuth } from '../lib/api';
 import { Navigation } from '@/components/Navigation';
@@ -11,6 +11,14 @@ import {
   CharitySettings,
   ShareLeagueModal,
 } from '@/components/leagues/create';
+
+// Validation constants (match server-side schema)
+const VALIDATION = {
+  name: { min: 3, max: 50 },
+  password: { max: 100 },
+  donation: { min: 0, max: 10000 },
+  maxPlayers: { min: 2, max: 24 },
+};
 
 interface League {
   id: string;
@@ -41,7 +49,7 @@ export default function CreateLeague() {
   const [createdLeague, setCreatedLeague] = useState<League | null>(null);
 
   // Fetch active season
-  const { data: activeSeason } = useQuery({
+  const { data: activeSeason, isLoading: isLoadingSeason } = useQuery({
     queryKey: ['active-season'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -55,7 +63,7 @@ export default function CreateLeague() {
   });
 
   // Fetch current user
-  const { data: currentUser } = useQuery({
+  const { data: currentUser, isLoading: isLoadingUser } = useQuery({
     queryKey: ['current-user'],
     queryFn: async () => {
       const {
@@ -65,7 +73,59 @@ export default function CreateLeague() {
     },
   });
 
+  const isPageLoading = isLoadingSeason || isLoadingUser;
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Validation errors
+  const validationErrors = useMemo(() => {
+    const errors: string[] = [];
+
+    // Name validation
+    if (name.trim().length > 0 && name.trim().length < VALIDATION.name.min) {
+      errors.push(`League name must be at least ${VALIDATION.name.min} characters`);
+    }
+    if (name.length > VALIDATION.name.max) {
+      errors.push(`League name must be at most ${VALIDATION.name.max} characters`);
+    }
+
+    // Password validation (if private)
+    if (isPrivate && joinCode && joinCode.length > VALIDATION.password.max) {
+      errors.push(`Join code must be at most ${VALIDATION.password.max} characters`);
+    }
+
+    // Donation validation
+    if (requireDonation && donationAmount) {
+      const amount = parseFloat(donationAmount);
+      if (isNaN(amount) || amount < VALIDATION.donation.min) {
+        errors.push('Donation amount must be a positive number');
+      }
+      if (amount > VALIDATION.donation.max) {
+        errors.push(`Donation amount cannot exceed $${VALIDATION.donation.max.toLocaleString()}`);
+      }
+    }
+
+    // Max players validation
+    if (maxPlayers < VALIDATION.maxPlayers.min || maxPlayers > VALIDATION.maxPlayers.max) {
+      errors.push(
+        `Max players must be between ${VALIDATION.maxPlayers.min} and ${VALIDATION.maxPlayers.max}`
+      );
+    }
+
+    return errors;
+  }, [name, isPrivate, joinCode, requireDonation, donationAmount, maxPlayers]);
+
+  // Check if form is valid for submission
+  // Note: Private leagues don't require a password - server generates unique code automatically
+  // Password is optional additional protection on top of the invite code
+  const isFormValid = useMemo(() => {
+    return (
+      name.trim().length >= VALIDATION.name.min &&
+      name.length <= VALIDATION.name.max &&
+      validationErrors.length === 0 &&
+      (!requireDonation || (donationAmount && parseFloat(donationAmount) > 0))
+    );
+  }, [name, validationErrors, requireDonation, donationAmount]);
 
   // Create league mutation
   const createLeague = useMutation({
@@ -121,6 +181,21 @@ export default function CreateLeague() {
     },
   });
 
+  // Show loading state while fetching initial data
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
+        <Navigation />
+        <div className="flex items-center justify-center py-24">
+          <div className="text-center">
+            <Loader2 className="h-10 w-10 text-burgundy-500 animate-spin mx-auto mb-4" />
+            <p className="text-neutral-500">Loading season data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
       <Navigation />
@@ -165,14 +240,23 @@ export default function CreateLeague() {
             setDonationAmount={setDonationAmount}
           />
 
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <ul className="text-amber-700 text-sm space-y-1">
+                  {validationErrors.map((error, i) => (
+                    <li key={i}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
           <button
             onClick={() => createLeague.mutate()}
-            disabled={
-              !name.trim() ||
-              createLeague.isPending ||
-              (requireDonation && !donationAmount) ||
-              (isPrivate && !joinCode.trim())
-            }
+            disabled={!isFormValid || createLeague.isPending}
             className="w-full btn btn-primary btn-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {createLeague.isPending ? (
@@ -195,9 +279,12 @@ export default function CreateLeague() {
 
           {(createLeague.isError || errorMessage) && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <p className="text-red-600 text-sm text-center">
-                {errorMessage || 'Error creating league. Please try again.'}
-              </p>
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-red-600 text-sm">
+                  {errorMessage || 'Error creating league. Please try again.'}
+                </p>
+              </div>
             </div>
           )}
         </div>

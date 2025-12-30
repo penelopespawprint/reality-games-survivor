@@ -48,8 +48,8 @@ export function PickWarnings({
           <div>
             <p className="font-medium text-orange-800">Don't forget to pick!</p>
             <p className="text-sm text-orange-700">
-              If you don't submit a pick, the system will auto-select your highest-ranked active
-              castaway.
+              If you don't submit a pick, the system will randomly select one of your active
+              castaways.
             </p>
           </div>
         </div>
