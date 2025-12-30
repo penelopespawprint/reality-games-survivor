@@ -15,7 +15,7 @@ export function Layout() {
       <Navigation />
       <main
         id="main-content"
-        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1"
+        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex-1"
         tabIndex={-1}
       >
         <Outlet />

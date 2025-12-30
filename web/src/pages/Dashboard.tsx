@@ -256,56 +256,69 @@ export function Dashboard() {
   const primaryLeagueId = nonGlobalLeagues.length > 0 ? nonGlobalLeagues[0].league_id : undefined;
 
   return (
-    <div className="pb-8">
-      {/* Welcome Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-display font-bold text-neutral-800">
+    <div className="pb-4">
+      {/* Welcome Header - Reduced spacing */}
+      <div className="mb-4">
+        <h1 className="text-2xl font-display font-bold text-neutral-800">
           Welcome back{profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''}.
         </h1>
-        <p className="text-neutral-500 mt-2 text-lg">
+        <p className="text-neutral-500 mt-1 text-base">
           Check standings, track scores, and see how your strategy is playing out.
         </p>
       </div>
 
+      {/* Trivia Bar - Above the fold */}
+      <div className="mb-4">
+        <TriviaCalloutCard seasonStarted={gamePhase === 'active' || gamePhase === 'post_season'} />
+      </div>
+
       {/* Weekly Phase Banner */}
       {weeklyPhase && (
-        <WeeklyPhaseBanner weeklyPhase={weeklyPhase} primaryLeagueId={primaryLeagueId} />
+        <div className="mb-4">
+          <WeeklyPhaseBanner weeklyPhase={weeklyPhase} primaryLeagueId={primaryLeagueId} />
+        </div>
       )}
 
       {/* Alert Banners */}
       <AlertBanners recentlyEliminated={recentlyEliminated} autoPickedLeagues={autoPickedLeagues} />
 
       {/* Announcements Section - Above draft rankings */}
-      <div className="mb-6">
+      <div className="mb-4">
         <AnnouncementsCard />
       </div>
 
       {/* Quick Actions Grid */}
-      <QuickActionsGrid
-        gamePhase={gamePhase}
-        activeSeason={activeSeason || null}
-        nextEpisode={nextEpisode || null}
-        primaryLeagueId={primaryLeagueId}
-        castawayCount={castawayCount || 0}
-      />
+      <div className="mb-4">
+        <QuickActionsGrid
+          gamePhase={gamePhase}
+          activeSeason={activeSeason || null}
+          nextEpisode={nextEpisode || null}
+          primaryLeagueId={primaryLeagueId}
+          castawayCount={castawayCount || 0}
+        />
+      </div>
 
       {/* Stats Row */}
-      <StatsRow
-        leagueCount={nonGlobalLeagues.length}
-        activeCastaways={activeCastaways}
-        totalPoints={totalPoints}
-      />
+      <div className="mb-4">
+        <StatsRow
+          leagueCount={nonGlobalLeagues.length}
+          activeCastaways={activeCastaways}
+          totalPoints={totalPoints}
+        />
+      </div>
 
       {/* Global Rank Card */}
       {globalLeague?.rank && (
-        <GlobalRankCard rank={globalLeague.rank} totalPoints={globalLeague.total_points} />
+        <div className="mb-4">
+          <GlobalRankCard rank={globalLeague.rank} totalPoints={globalLeague.total_points} />
+        </div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-3 gap-6">
         {/* My Leagues - Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-display font-bold text-neutral-800">My Leagues</h2>
+            <h2 className="text-lg font-display font-bold text-neutral-800">My Leagues</h2>
             <Link
               to="/leagues"
               className="text-burgundy-500 hover:text-burgundy-600 text-sm font-semibold flex items-center gap-1"
@@ -315,7 +328,7 @@ export function Dashboard() {
           </div>
 
           {nonGlobalLeagues.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {nonGlobalLeagues.map((membership) => (
                 <LeagueCard
                   key={membership.league_id}
@@ -329,12 +342,12 @@ export function Dashboard() {
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl p-12 text-center border border-cream-200">
-              <div className="w-16 h-16 bg-cream-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-neutral-400" />
+            <div className="bg-white rounded-2xl p-8 text-center border border-cream-200">
+              <div className="w-12 h-12 bg-cream-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Users className="h-6 w-6 text-neutral-400" />
               </div>
               <h3 className="font-semibold text-neutral-800 mb-2">No leagues yet</h3>
-              <p className="text-neutral-500 mb-6">Join or create a league to start playing!</p>
+              <p className="text-neutral-500 mb-4">Join or create a league to start playing!</p>
               <div className="flex gap-3 justify-center">
                 <Link to="/leagues/create" className="btn btn-primary">
                   Create League
@@ -348,12 +361,7 @@ export function Dashboard() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="space-y-6">
-          {/* Trivia Callout - moved under announcements as special callout */}
-          <TriviaCalloutCard
-            seasonStarted={gamePhase === 'active' || gamePhase === 'post_season'}
-          />
-
+        <div className="space-y-4">
           {activeSeason && <SeasonInfoCard season={activeSeason} />}
           <WeeklyTimelineCard />
           <QuickLinksCard />
