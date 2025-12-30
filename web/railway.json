@@ -1,10 +1,6 @@
 {
-  "build": "npm install && npm run build",
-  "start": "npm run start"
-}
-{
   "$schema": "https://railway.com/railway.schema.json",
-  "$comment": "Railway service must have Root Directory set to 'web' in dashboard settings",
+  "$comment": "Set service root to 'web' in Railway. Builds Vite and serves dist.",
   "build": {
     "builder": "RAILPACK",
     "buildCommand": "npm install && npm run build"
