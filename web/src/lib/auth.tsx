@@ -204,6 +204,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const isSignInEvent = event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED';
         const retries = isSignInEvent ? 5 : 2;
         console.log('Fetching profile for user:', session.user.id);
+        // Defer the Supabase query to next tick to avoid deadlock
+        // The onAuthStateChange callback can block Supabase client operations
+        await new Promise((resolve) => setTimeout(resolve, 0));
         profileData = await fetchProfile(session.user.id, retries);
         console.log(
           'Profile fetched:',
