@@ -138,13 +138,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(currentSession);
           setUser(currentSession.user ?? null);
 
-          // Load profile in background - don't block on it
+          // Load profile and wait for it before setting loading to false
+          // This prevents ProtectedRoute from redirecting to profile setup
+          // before we know if the profile is complete
           if (currentSession.user) {
             const isFromMagicLink = window.location.hash.includes('access_token');
             const retries = isFromMagicLink ? 5 : 2;
-            fetchProfile(currentSession.user.id, retries)
-              .then(setProfile)
-              .catch((error) => console.error('Failed to fetch profile:', error));
+            try {
+              const profileData = await fetchProfile(currentSession.user.id, retries);
+              setProfile(profileData);
+            } catch (error) {
+              console.error('Failed to fetch profile:', error);
+            }
           }
         } else {
           // No session found - ensure state is cleared
