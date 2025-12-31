@@ -65,13 +65,14 @@ export default function CastawayDetail() {
     enabled: !!id,
   });
 
-  // Fetch episode scores for this castaway
+  // Fetch episode scores for this castaway (aggregated by episode)
   const { data: episodeScores } = useQuery({
     queryKey: ['castaway-scores', id],
     queryFn: async () => {
       if (!id) return [];
+      // Get all scoring events for this castaway
       const { data, error } = await supabase
-        .from('castaway_scores')
+        .from('episode_scores')
         .select(
           `
           episode_id,
@@ -86,11 +87,23 @@ export default function CastawayDetail() {
         .eq('castaway_id', id)
         .order('episodes(number)', { ascending: true });
       if (error) throw error;
-      return (data || []).map((score: any) => ({
-        episode_id: score.episode_id,
-        points: score.points,
-        episode: score.episodes,
-      })) as EpisodeScore[];
+
+      // Aggregate points by episode
+      const episodeMap = new Map<string, { episode_id: string; points: number; episode: any }>();
+      (data || []).forEach((score: any) => {
+        const existing = episodeMap.get(score.episode_id);
+        if (existing) {
+          existing.points += Number(score.points);
+        } else {
+          episodeMap.set(score.episode_id, {
+            episode_id: score.episode_id,
+            points: Number(score.points),
+            episode: score.episodes,
+          });
+        }
+      });
+
+      return Array.from(episodeMap.values()) as EpisodeScore[];
     },
     enabled: !!id,
   });
@@ -103,7 +116,7 @@ export default function CastawayDetail() {
 
       // Get total points for each castaway in the season
       const { data, error } = await supabase
-        .from('castaway_scores')
+        .from('episode_scores')
         .select('castaway_id, points, castaways!inner(season_id)')
         .eq('castaways.season_id', castaway.season_id);
 
@@ -113,7 +126,7 @@ export default function CastawayDetail() {
       const pointsBycastaway: Record<string, number> = {};
       (data || []).forEach((score: any) => {
         pointsBycastaway[score.castaway_id] =
-          (pointsBycastaway[score.castaway_id] || 0) + score.points;
+          (pointsBycastaway[score.castaway_id] || 0) + Number(score.points);
       });
 
       // Sort and rank
