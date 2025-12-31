@@ -314,12 +314,12 @@ export default function Leagues() {
                           Member
                         </span>
                       ) : league.is_public ? (
-                        <span className="inline-flex items-center gap-1 text-green-700 bg-green-100 px-2 py-1 rounded-full text-xs font-semibold">
+                        <span className="inline-flex items-center gap-1 text-teal-700 bg-teal-50 px-2 py-1 rounded-full text-xs font-semibold border border-teal-200">
                           <Globe className="h-3 w-3" />
                           Public
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-neutral-700 bg-neutral-100 px-2 py-1 rounded-full text-xs font-semibold">
+                        <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 px-2 py-1 rounded-full text-xs font-semibold border border-purple-200">
                           <Lock className="h-3 w-3" />
                           Private
                         </span>
@@ -328,11 +328,11 @@ export default function Leagues() {
 
                     <div className="col-span-2 text-center">
                       {league.require_donation && league.donation_amount ? (
-                        <span className="text-amber-700 bg-amber-50 px-2 py-1 rounded-full text-xs font-semibold border border-amber-100">
-                          ${league.donation_amount.toFixed(2)}
+                        <span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full text-xs font-bold border border-emerald-200">
+                          ${league.donation_amount.toFixed(0)}
                         </span>
                       ) : (
-                        <span className="text-neutral-400 text-sm">—</span>
+                        <span className="text-neutral-400 text-sm">Free</span>
                       )}
                     </div>
 

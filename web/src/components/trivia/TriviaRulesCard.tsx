@@ -51,7 +51,7 @@ export function TriviaRulesCard() {
             </div>
             <div>
               <p className="font-semibold text-neutral-800 mb-1">
-                Get One Wrong? <span className="text-red-600">It's Time For You To Go</span>
+                Get One Wrong? <span className="text-red-600">You have to try again tomorrow</span>
               </p>
               <p className="text-neutral-600 text-sm">
                 Miss a question or run out of time? You're locked out for 24 hours. Come back

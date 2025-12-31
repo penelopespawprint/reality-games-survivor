@@ -17,53 +17,53 @@ import { Footer } from '@/components/Footer';
 
 const TIMELINE_EVENTS = [
   {
-    day: 'Friday',
-    time: '2:00 PM PST',
+    day: 'Wednesday',
+    time: '5:00 PM PST / 8:00 PM EST',
     icon: Lock,
     color: 'burgundy',
     title: 'Picks Lock',
     description:
-      'All weekly picks are locked in. Make sure you\'ve selected which of your 2 castaways to "play" for this episode before this deadline.',
-    tip: 'Likely Wednesday at 10PM Pacific. Set a reminder! If you forget to pick, the system will randomly select from your available castaways.',
+      'All weekly picks lock when the episode starts airing. Make sure you\'ve selected which of your castaways to "play" for this episode before showtime.',
+    tip: 'Set a reminder for Wednesday afternoon! If you forget to pick, the system will randomly select from your available castaways.',
   },
   {
     day: 'Wednesday',
-    time: '8:00 PM EST',
+    time: '8:00 PM EST / 5:00 PM PST',
     icon: Tv,
     color: 'orange',
     title: 'Episode Airs',
     description:
-      'Survivor airs on CBS. Watch live or avoid spoilers until you can catch up. Scoring happens in real-time as events unfold.',
+      'Survivor airs on CBS. Watch live or avoid spoilers until you can catch up. Scoring events are tracked as they happen.',
     tip: 'Enable spoiler-safe mode in your settings to delay result notifications.',
   },
   {
-    day: 'Thursday',
-    time: 'All Day',
-    icon: Trophy,
-    color: 'amber',
-    title: 'Scoring Review',
-    description:
-      'Our team reviews the episode and finalizes all scoring events. We catch every confessional, idol play, and strategic move.',
-    tip: 'Scores are typically finalized within 24 hours of the episode airing.',
-  },
-  {
-    day: 'Wed/Thu Night',
-    time: 'After Airing',
+    day: 'Wednesday Night',
+    time: 'After West Coast Airing',
     icon: Bell,
     color: 'green',
     title: 'Results Posted',
     description:
-      'Usually released instantly after it airs on the west coast, but could take up to 8am the next morning to go live.',
+      'Results are usually released shortly after the episode finishes airing on the west coast (~9pm PST). In some cases, it may take until the next morning.',
     tip: 'Results notifications respect your spoiler delay settings.',
   },
   {
-    day: 'Saturday',
-    time: '12:00 PM PST',
+    day: 'Thursday',
+    time: 'Morning',
+    icon: Trophy,
+    color: 'amber',
+    title: 'Scoring Finalized',
+    description:
+      'Our team reviews the episode and finalizes all scoring events. We catch every confessional, idol play, and strategic move.',
+    tip: 'Scores are typically finalized within 12-24 hours of the episode airing.',
+  },
+  {
+    day: 'Thursday',
+    time: 'After Scoring',
     icon: RefreshCw,
     color: 'blue',
     title: 'Next Week Opens',
     description:
-      'Picks for the next episode open. You have until Wednesday 3pm PST to decide which of your castaways to play.',
+      'Picks for the next episode open after scoring is finalized. You have until the next Wednesday to decide which of your castaways to play.',
     tip: 'The earlier you pick, the less chance you forget!',
   },
 ];

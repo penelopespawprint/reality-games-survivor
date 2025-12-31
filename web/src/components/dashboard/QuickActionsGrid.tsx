@@ -15,6 +15,7 @@ interface QuickActionsGridProps {
   nextEpisode: Episode | null;
   primaryLeagueId?: string;
   castawayCount: number;
+  hasPickedForNextEpisode?: boolean;
 }
 
 export function QuickActionsGrid({
@@ -23,6 +24,7 @@ export function QuickActionsGrid({
   nextEpisode,
   primaryLeagueId,
   castawayCount,
+  hasPickedForNextEpisode = false,
 }: QuickActionsGridProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -54,29 +56,56 @@ export function QuickActionsGrid({
           )}
         </Link>
       ) : gamePhase === 'active' && nextEpisode ? (
-        <Link
-          to={primaryLeagueId ? `/leagues/${primaryLeagueId}/pick` : '/leagues'}
-          className="col-span-2 bg-burgundy-500 hover:bg-burgundy-600 text-white rounded-2xl p-6 transition-colors group"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-              <Target className="h-7 w-7" />
+        hasPickedForNextEpisode ? (
+          // User has already made their pick - show a "View Pick" card instead
+          <Link
+            to={primaryLeagueId ? `/leagues/${primaryLeagueId}/pick` : '/leagues'}
+            className="col-span-2 bg-green-600 hover:bg-green-700 text-white rounded-2xl p-6 transition-colors group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                <Target className="h-7 w-7" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-xl">Pick Submitted ✓</h3>
+                <p className="text-green-100 text-sm mt-1">
+                  Episode {nextEpisode.number} — Your pick is locked in!
+                </p>
+              </div>
+              <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
             </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-xl">Make Your Pick</h3>
-              <p className="text-burgundy-100 text-sm mt-1">
-                Episode {nextEpisode.number} — Lock in before Wednesday
-              </p>
+            <div className="mt-4 pt-4 border-t border-white/20 flex items-center gap-2">
+              <Clock className="h-4 w-4 text-green-200" />
+              <span className="text-sm text-green-100">
+                Episode airs in {getCountdownText(new Date(nextEpisode.air_date))}
+              </span>
             </div>
-            <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
-          </div>
-          <div className="mt-4 pt-4 border-t border-white/20 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-burgundy-200" />
-            <span className="text-sm text-burgundy-100">
-              Picks lock in {getCountdownText(new Date(nextEpisode.picks_lock_at))}
-            </span>
-          </div>
-        </Link>
+          </Link>
+        ) : (
+          <Link
+            to={primaryLeagueId ? `/leagues/${primaryLeagueId}/pick` : '/leagues'}
+            className="col-span-2 bg-burgundy-500 hover:bg-burgundy-600 text-white rounded-2xl p-6 transition-colors group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                <Target className="h-7 w-7" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-xl">Make Your Pick</h3>
+                <p className="text-burgundy-100 text-sm mt-1">
+                  Episode {nextEpisode.number} — Lock in before Wednesday
+                </p>
+              </div>
+              <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
+            </div>
+            <div className="mt-4 pt-4 border-t border-white/20 flex items-center gap-2">
+              <Clock className="h-4 w-4 text-burgundy-200" />
+              <span className="text-sm text-burgundy-100">
+                Picks lock in {getCountdownText(new Date(nextEpisode.picks_lock_at))}
+              </span>
+            </div>
+          </Link>
+        )
       ) : (
         <Link
           to="/leaderboard"

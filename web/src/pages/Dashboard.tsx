@@ -230,6 +230,28 @@ export function Dashboard() {
     enabled: !!user?.id && !!previousEpisode?.id && !!myLeagues,
   });
 
+  // Check if user has made picks for the next episode (to determine if "Make Your Pick" should show)
+  const { data: nextEpisodePicks } = useQuery({
+    queryKey: ['next-episode-picks', user?.id, nextEpisode?.id],
+    queryFn: async () => {
+      if (!nextEpisode || !myLeagues) return [];
+
+      const leagueIds = myLeagues.filter((l) => !l.league.is_global).map((l) => l.league_id);
+      if (leagueIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from('weekly_picks')
+        .select('league_id')
+        .eq('user_id', user!.id)
+        .eq('episode_id', nextEpisode.id)
+        .in('league_id', leagueIds);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id && !!nextEpisode?.id && !!myLeagues,
+  });
+
   // Group rosters by league
   const rostersByLeague =
     myRosters?.reduce(
@@ -295,6 +317,10 @@ export function Dashboard() {
           nextEpisode={nextEpisode || null}
           primaryLeagueId={primaryLeagueId}
           castawayCount={castawayCount || 0}
+          hasPickedForNextEpisode={
+            (nextEpisodePicks?.length || 0) >= nonGlobalLeagues.length &&
+            nonGlobalLeagues.length > 0
+          }
         />
       </div>
 

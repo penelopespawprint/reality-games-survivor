@@ -184,11 +184,20 @@ export default function LeagueHome() {
   const canManageLeague = isCommissioner || isAdmin;
 
   // Access control:
-  // - Public leagues: anyone can view
   // - Global leagues: anyone can view
+  // - Members, commissioners, admins: can always view
+  // - Public FREE leagues: anyone can view
+  // - Public PAID leagues: redirect to join page if not a member
   // - Private leagues: only members, commissioner, or admins can view
   const isGlobalLeague = league?.is_global === true;
   const isMember = !!myMembership;
+  const isPublicPaidLeague = league.is_public && league.require_donation && !isMember;
+
+  // For public paid leagues, redirect to join page so they can pay
+  if (isPublicPaidLeague && !isCommissioner && !isAdmin && !waitingForWebhook) {
+    return <Navigate to={`/join/${league.code}`} replace />;
+  }
+
   const hasAccess = league.is_public || isGlobalLeague || isMember || isCommissioner || isAdmin;
 
   // If we're waiting for the webhook to process (after Stripe redirect),

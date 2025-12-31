@@ -3,7 +3,7 @@ import { useAuth } from '@/lib/auth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useState, useEffect, useRef } from 'react';
-import { Shield, UserCircle, Menu, X, ChevronDown, Bell, Lightbulb } from 'lucide-react';
+import { Shield, UserCircle, Menu, X, ChevronDown, Lightbulb } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -363,17 +363,6 @@ export function Navigation() {
                 </button>
               )}
 
-              {/* Notification Bell */}
-              <Link
-                to="/profile/notifications"
-                className="relative p-2 text-neutral-400 hover:text-burgundy-600 hidden md:block rounded-full hover:bg-neutral-50 transition-colors"
-                title="Notification Settings"
-              >
-                <Bell className="w-5 h-5" />
-                {/* Red dot for unread - can be conditionally shown */}
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-              </Link>
-
               {/* User Menu - Desktop */}
               <div className="relative group hidden md:flex items-center">
                 <button
@@ -413,19 +402,19 @@ export function Navigation() {
                       Profile Settings
                     </Link>
                     <Link
-                      to="/profile/notifications"
-                      className="block px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50 rounded-lg"
-                      role="menuitem"
-                    >
-                      Notifications
-                    </Link>
-                    <Link
                       to="/profile/payments"
                       className="block px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50 rounded-lg"
                       role="menuitem"
                     >
                       Payment History
                     </Link>
+                    {/* SMS Notifications - Coming Soon */}
+                    <div className="px-3 py-2 text-sm text-neutral-400 flex items-center justify-between rounded-lg">
+                      <span>SMS Notifications</span>
+                      <span className="text-xs bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-full">
+                        Coming Soon
+                      </span>
+                    </div>
                     {isAdmin && (
                       <>
                         <hr className="my-2 border-neutral-100" />
@@ -544,12 +533,13 @@ export function Navigation() {
               <Link to="/profile" className="block px-4 py-3 text-sm text-neutral-600">
                 Profile Settings
               </Link>
-              <Link
-                to="/profile/notifications"
-                className="block px-4 py-3 text-sm text-neutral-600"
-              >
-                Notifications
-              </Link>
+              {/* SMS Notifications - Coming Soon */}
+              <div className="px-4 py-3 text-sm text-neutral-400 flex items-center justify-between">
+                <span>SMS Notifications</span>
+                <span className="text-xs bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-full">
+                  Coming Soon
+                </span>
+              </div>
               {isAdmin && (
                 <button
                   onClick={() => {

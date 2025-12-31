@@ -13,6 +13,7 @@ export { ProgressTracker } from './ProgressTracker';
 // Refactored trivia components (for Trivia.tsx page)
 export { TriviaRulesCard } from './TriviaRulesCard';
 export { TriviaProgressBar } from './TriviaProgressBar';
+export { TriviaTorchProgress } from './TriviaTorchProgress';
 export { TriviaLockoutCard } from './TriviaLockoutCard';
 export { TriviaCompletionCard } from './TriviaCompletionCard';
 export { TriviaQuestionCard } from './TriviaQuestionCard';
