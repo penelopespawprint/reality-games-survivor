@@ -310,8 +310,14 @@ export default function ProfileSetup() {
   };
 
   // Show skeleton while auth is initializing
-  if (authLoading || !user) {
+  if (authLoading) {
     return renderSkeleton();
+  }
+
+  // If auth has finished loading but there's no user, redirect to login
+  if (!user) {
+    navigate('/login?redirect=/profile/setup', { replace: true });
+    return null;
   }
 
   // Check if user has completed profile setup
