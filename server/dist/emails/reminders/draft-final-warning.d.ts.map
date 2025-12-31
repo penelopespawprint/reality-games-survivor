@@ -1,0 +1,1 @@
+{"version":3,"file":"draft-final-warning.d.ts","sourceRoot":"","sources":["../../../src/emails/reminders/draft-final-warning.ts"],"names":[],"mappings":"AAEA,UAAU,4BAA4B;IACpC,WAAW,EAAE,MAAM,CAAC;IACpB,UAAU,EAAE,MAAM,CAAC;IACnB,SAAS,EAAE,MAAM,CAAC;IAClB,QAAQ,EAAE,MAAM,CAAC;CAClB;AAED,wBAAgB,sBAAsB,CAAC,EAAE,WAAW,EAAE,UAAU,EAAE,SAAS,EAAE,QAAQ,EAAE,EAAE,4BAA4B,GAAG,MAAM,CAqB7H"}

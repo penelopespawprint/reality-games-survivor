@@ -1,0 +1,1 @@
+{"version":3,"file":"draft-reminder.d.ts","sourceRoot":"","sources":["../../../src/emails/reminders/draft-reminder.ts"],"names":[],"mappings":"AAEA,UAAU,wBAAwB;IAChC,WAAW,EAAE,MAAM,CAAC;IACpB,UAAU,EAAE,MAAM,CAAC;IACnB,QAAQ,EAAE,MAAM,CAAC;IACjB,QAAQ,EAAE,MAAM,CAAC;CAClB;AAED,wBAAgB,kBAAkB,CAAC,EAAE,WAAW,EAAE,UAAU,EAAE,QAAQ,EAAE,QAAQ,EAAE,EAAE,wBAAwB,GAAG,MAAM,CAqBpH"}

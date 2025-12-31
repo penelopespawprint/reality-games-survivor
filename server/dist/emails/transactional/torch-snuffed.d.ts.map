@@ -1,0 +1,1 @@
+{"version":3,"file":"torch-snuffed.d.ts","sourceRoot":"","sources":["../../../src/emails/transactional/torch-snuffed.ts"],"names":[],"mappings":"AAEA,UAAU,uBAAuB;IAC/B,WAAW,EAAE,MAAM,CAAC;IACpB,UAAU,EAAE,MAAM,CAAC;IACnB,QAAQ,EAAE,MAAM,CAAC;IACjB,aAAa,EAAE,MAAM,CAAC;CACvB;AAED,wBAAgB,iBAAiB,CAAC,EAChC,WAAW,EACX,UAAU,EACV,QAAQ,EACR,aAAa,EACd,EAAE,uBAAuB,GAAG,MAAM,CA+BlC"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"pick-final-warning.d.ts","sourceRoot":"","sources":["../../../src/emails/reminders/pick-final-warning.ts"],"names":[],"mappings":"AAEA,UAAU,2BAA2B;IACnC,WAAW,EAAE,MAAM,CAAC;IACpB,aAAa,EAAE,MAAM,CAAC;IACtB,WAAW,EAAE,MAAM,CAAC;IACpB,QAAQ,EAAE,MAAM,CAAC;CAClB;AAED,wBAAgB,qBAAqB,CAAC,EAAE,WAAW,EAAE,aAAa,EAAE,WAAW,EAAE,QAAQ,EAAE,EAAE,2BAA2B,GAAG,MAAM,CAqBhI"}
