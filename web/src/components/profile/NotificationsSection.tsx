@@ -14,6 +14,7 @@ interface NotificationsSectionProps {
   onEmailChange: (enabled: boolean) => void;
   onSmsChange: (enabled: boolean) => void;
   onPushChange: (enabled: boolean) => void;
+  hideSms?: boolean;
 }
 
 export function NotificationsSection({
@@ -24,6 +25,7 @@ export function NotificationsSection({
   onEmailChange,
   onSmsChange,
   onPushChange,
+  hideSms = false,
 }: NotificationsSectionProps) {
   return (
     <div className="bg-white rounded-2xl shadow-card p-6 border border-cream-200 mb-6">
@@ -53,27 +55,29 @@ export function NotificationsSection({
           </div>
         </div>
 
-        <div
-          className={`flex items-center justify-between p-3 bg-cream-50 rounded-xl border border-cream-200 transition-colors ${phoneVerified ? 'cursor-pointer hover:bg-cream-100' : 'opacity-60 cursor-not-allowed'}`}
-          onClick={() => phoneVerified && onSmsChange(!smsEnabled)}
-        >
-          <div className="flex items-center gap-3">
-            <Smartphone className="h-5 w-5 text-neutral-400" />
-            <div>
-              <p className="text-neutral-800 font-medium">SMS Notifications</p>
-              <p className="text-neutral-400 text-sm">
-                {phoneVerified ? 'Pick reminders and urgent alerts' : 'Verify phone to enable'}
-              </p>
+        {!hideSms && (
+          <div
+            className={`flex items-center justify-between p-3 bg-cream-50 rounded-xl border border-cream-200 transition-colors ${phoneVerified ? 'cursor-pointer hover:bg-cream-100' : 'opacity-60 cursor-not-allowed'}`}
+            onClick={() => phoneVerified && onSmsChange(!smsEnabled)}
+          >
+            <div className="flex items-center gap-3">
+              <Smartphone className="h-5 w-5 text-neutral-400" />
+              <div>
+                <p className="text-neutral-800 font-medium">SMS Notifications</p>
+                <p className="text-neutral-400 text-sm">
+                  {phoneVerified ? 'Pick reminders and urgent alerts' : 'Verify phone to enable'}
+                </p>
+              </div>
+            </div>
+            <div
+              className={`w-12 h-7 rounded-full p-1 transition-colors ${smsEnabled && phoneVerified ? 'bg-burgundy-500' : 'bg-neutral-300'}`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${smsEnabled && phoneVerified ? 'translate-x-5' : 'translate-x-0'}`}
+              />
             </div>
           </div>
-          <div
-            className={`w-12 h-7 rounded-full p-1 transition-colors ${smsEnabled && phoneVerified ? 'bg-burgundy-500' : 'bg-neutral-300'}`}
-          >
-            <div
-              className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${smsEnabled && phoneVerified ? 'translate-x-5' : 'translate-x-0'}`}
-            />
-          </div>
-        </div>
+        )}
 
         <div
           className="flex items-center justify-between cursor-pointer p-3 bg-cream-50 rounded-xl border border-cream-200 hover:bg-cream-100 transition-colors"

@@ -298,7 +298,7 @@ export default function Notifications() {
                 </button>
               </div>
 
-              {/* SMS Notifications */}
+              {/* SMS Notifications - hidden until feature launches
               <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-green-100 rounded-xl">
@@ -334,6 +334,7 @@ export default function Notifications() {
                   )}
                 </button>
               </div>
+              */}
 
               {/* Push Notifications */}
               <div className="p-4 flex items-center justify-between">

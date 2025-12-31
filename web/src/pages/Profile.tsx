@@ -9,12 +9,12 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { apiWithAuth } from '../lib/api';
+// import { apiWithAuth } from '../lib/api'; // Commented out until SMS feature launches
 import { useNavigate } from 'react-router-dom';
 import {
-  PhoneVerificationPrompt,
+  // PhoneVerificationPrompt, // Hidden until SMS feature launches
   ProfileHeader,
-  PhoneSection,
+  // PhoneSection, // Hidden until SMS feature launches
   NotificationsSection,
   SecuritySection,
   LogoutButton,
@@ -28,10 +28,10 @@ export default function Profile() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
 
-  // Phone state
-  const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [phoneSuccess, setPhoneSuccess] = useState<string | null>(null);
-  const [showVerification, setShowVerification] = useState(false);
+  // Phone state - commented out until SMS feature launches
+  // const [phoneError, setPhoneError] = useState<string | null>(null);
+  // const [phoneSuccess, setPhoneSuccess] = useState<string | null>(null);
+  // const [showVerification, setShowVerification] = useState(false);
 
   // Password state
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -113,7 +113,8 @@ export default function Profile() {
     },
   });
 
-  // Update phone mutation
+  // Phone mutations - commented out until SMS feature launches
+  /*
   const updatePhone = useMutation({
     mutationFn: async (newPhone: string) => {
       const {
@@ -145,7 +146,6 @@ export default function Profile() {
     },
   });
 
-  // Verify phone code mutation
   const verifyPhone = useMutation({
     mutationFn: async (code: string) => {
       const {
@@ -174,7 +174,6 @@ export default function Profile() {
     },
   });
 
-  // Resend verification code mutation
   const resendCode = useMutation({
     mutationFn: async () => {
       const {
@@ -200,6 +199,7 @@ export default function Profile() {
       setPhoneSuccess(null);
     },
   });
+  */
 
   // Change password mutation
   const changePassword = useMutation({
@@ -272,8 +272,9 @@ export default function Profile() {
         <p className="text-neutral-500">Manage your account settings</p>
       </div>
 
-      {/* Phone Verification Prompt */}
+      {/* Phone Verification Prompt - hidden until SMS feature launches
       {!user?.phone_verified && <PhoneVerificationPrompt />}
+      */}
 
       {/* Profile Info */}
       <ProfileHeader
@@ -288,7 +289,7 @@ export default function Profile() {
         success={profileSuccess}
       />
 
-      {/* Phone Number */}
+      {/* Phone Number - hidden until SMS feature launches
       <PhoneSection
         currentPhone={user?.phone || null}
         isPhoneVerified={user?.phone_verified ?? false}
@@ -303,16 +304,18 @@ export default function Profile() {
         showVerification={showVerification}
         onShowVerification={setShowVerification}
       />
+      */}
 
-      {/* Notification Preferences */}
+      {/* Notification Preferences - SMS option hidden until feature launches */}
       <NotificationsSection
         emailEnabled={user?.notification_email ?? true}
-        smsEnabled={user?.notification_sms ?? false}
+        smsEnabled={false}
         pushEnabled={user?.notification_push ?? true}
-        phoneVerified={user?.phone_verified ?? false}
+        phoneVerified={false}
         onEmailChange={(enabled) => updateNotifications.mutate({ notification_email: enabled })}
-        onSmsChange={(enabled) => updateNotifications.mutate({ notification_sms: enabled })}
+        onSmsChange={() => {}} // SMS disabled until feature launches
         onPushChange={(enabled) => updateNotifications.mutate({ notification_push: enabled })}
+        hideSms={true}
       />
 
       {/* Security / Password */}

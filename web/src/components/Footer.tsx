@@ -56,6 +56,7 @@ export function Footer() {
               Resources
             </h4>
             <ul className="space-y-2">
+              {/* SMS Commands - hidden until feature launches
               <li>
                 <Link
                   to="/sms"
@@ -64,6 +65,7 @@ export function Footer() {
                   SMS Commands
                 </Link>
               </li>
+              */}
               <li>
                 <Link
                   to="/contact"
