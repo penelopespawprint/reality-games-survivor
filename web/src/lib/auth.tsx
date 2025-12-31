@@ -92,7 +92,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Function to initialize auth state
     const initializeAuth = async () => {
       try {
-        // Get session once - Supabase handles URL hash extraction automatically
+        // Check if we're coming from a magic link (has access_token in hash)
+        // If so, don't call getSession() yet - let onAuthStateChange handle it
+        const hasAuthHash = window.location.hash.includes('access_token');
+
+        if (hasAuthHash) {
+          // Magic link flow: Supabase will automatically process the hash
+          // and fire onAuthStateChange with SIGNED_IN event
+          // Don't set loading to false here - wait for onAuthStateChange
+          console.log('Magic link detected, waiting for auth state change...');
+          return;
+        }
+
+        // Normal flow: Get session from localStorage
         // Add timeout to prevent hanging on invalid/expired tokens
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise<{ data: { session: null }; error: null }>((resolve) =>
@@ -101,14 +113,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const result = await Promise.race([sessionPromise, timeoutPromise]);
         const currentSession = result?.data?.session;
-
-        // Supabase automatically restores session from localStorage if persistSession is true
-        // No need to manually refresh - getSession() handles it
-
-        // Clear the URL hash after extracting session (if present)
-        if (window.location.hash.includes('access_token')) {
-          window.history.replaceState(null, '', window.location.pathname + window.location.search);
-        }
 
         if (currentSession) {
           // Verify the session is actually valid by checking the user
@@ -195,7 +199,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Clear URL hash if we just got a session from URL
+      console.log('Auth state change:', event, session?.user?.email);
+
+      // Clear URL hash if we just got a session from URL (magic link or OAuth)
       if (event === 'SIGNED_IN' && window.location.hash.includes('access_token')) {
         window.history.replaceState(null, '', window.location.pathname + window.location.search);
       }
@@ -213,6 +219,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setProfile(null);
       }
+
+      // Always set loading to false after processing auth state change
+      // This is especially important for magic link flow where initializeAuth returns early
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
