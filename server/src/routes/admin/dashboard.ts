@@ -11,6 +11,11 @@ import {
   getDashboardStats,
   getRecentActivity,
   getSystemHealth,
+  getDraftStats,
+  getPaymentStats,
+  getTriviaStats,
+  getLeagueBreakdown,
+  getNotificationStats,
 } from '../../services/admin-dashboard.js';
 
 const router = Router();
@@ -57,6 +62,103 @@ router.get('/system-health', async (req: AuthenticatedRequest, res: Response) =>
   } catch (err) {
     console.error('GET /api/admin/dashboard/system-health error:', err);
     res.status(500).json({ error: 'Failed to fetch system health' });
+  }
+});
+
+// GET /api/admin/dashboard/draft-stats - Get draft status overview
+router.get('/draft-stats', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const draftStats = await getDraftStats();
+    res.json(draftStats);
+  } catch (err) {
+    console.error('GET /api/admin/dashboard/draft-stats error:', err);
+    res.status(500).json({ error: 'Failed to fetch draft stats' });
+  }
+});
+
+// GET /api/admin/dashboard/payment-stats - Get payment/revenue stats
+router.get('/payment-stats', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const paymentStats = await getPaymentStats();
+    res.json(paymentStats);
+  } catch (err) {
+    console.error('GET /api/admin/dashboard/payment-stats error:', err);
+    res.status(500).json({ error: 'Failed to fetch payment stats' });
+  }
+});
+
+// GET /api/admin/dashboard/trivia-stats - Get trivia engagement stats
+router.get('/trivia-stats', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const triviaStats = await getTriviaStats();
+    res.json(triviaStats);
+  } catch (err) {
+    console.error('GET /api/admin/dashboard/trivia-stats error:', err);
+    res.status(500).json({ error: 'Failed to fetch trivia stats' });
+  }
+});
+
+// GET /api/admin/dashboard/league-breakdown - Get league breakdown by type
+router.get('/league-breakdown', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const leagueBreakdown = await getLeagueBreakdown();
+    res.json(leagueBreakdown);
+  } catch (err) {
+    console.error('GET /api/admin/dashboard/league-breakdown error:', err);
+    res.status(500).json({ error: 'Failed to fetch league breakdown' });
+  }
+});
+
+// GET /api/admin/dashboard/notification-stats - Get notification preference stats
+router.get('/notification-stats', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const notificationStats = await getNotificationStats();
+    res.json(notificationStats);
+  } catch (err) {
+    console.error('GET /api/admin/dashboard/notification-stats error:', err);
+    res.status(500).json({ error: 'Failed to fetch notification stats' });
+  }
+});
+
+// GET /api/admin/dashboard/all - Get all dashboard data in one request
+router.get('/all', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const [
+      timeline,
+      stats,
+      activity,
+      health,
+      draftStats,
+      paymentStats,
+      triviaStats,
+      leagueBreakdown,
+      notificationStats,
+    ] = await Promise.all([
+      getTimeline(),
+      getDashboardStats(),
+      getRecentActivity(20),
+      getSystemHealth(),
+      getDraftStats(),
+      getPaymentStats(),
+      getTriviaStats(),
+      getLeagueBreakdown(),
+      getNotificationStats(),
+    ]);
+
+    res.json({
+      timeline,
+      stats,
+      activity,
+      health,
+      draftStats,
+      paymentStats,
+      triviaStats,
+      leagueBreakdown,
+      notificationStats,
+    });
+  } catch (err) {
+    console.error('GET /api/admin/dashboard/all error:', err);
+    res.status(500).json({ error: 'Failed to fetch dashboard data' });
   }
 });
 

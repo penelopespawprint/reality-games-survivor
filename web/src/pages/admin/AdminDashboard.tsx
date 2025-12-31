@@ -8,6 +8,10 @@ import { StatsGrid } from '@/components/admin/StatsGrid';
 import { SystemHealthBanner } from '@/components/admin/SystemHealthBanner';
 import { ActivityFeed } from '@/components/admin/ActivityFeed';
 import { NotificationPrefsWidget } from '@/components/admin/NotificationPrefsWidget';
+import { DraftStatsCard } from '@/components/admin/DraftStatsCard';
+import { PaymentStatsCard } from '@/components/admin/PaymentStatsCard';
+import { TriviaStatsCard } from '@/components/admin/TriviaStatsCard';
+import { LeagueBreakdownCard } from '@/components/admin/LeagueBreakdownCard';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
 
@@ -281,8 +285,24 @@ export function AdminDashboard() {
               </div>
             </div>
 
+            {/* New Connected Stats Section */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="animate-slide-up" style={{ animationDelay: '0.18s' }}>
+                <DraftStatsCard />
+              </div>
+              <div className="animate-slide-up" style={{ animationDelay: '0.21s' }}>
+                <PaymentStatsCard />
+              </div>
+              <div className="animate-slide-up" style={{ animationDelay: '0.24s' }}>
+                <TriviaStatsCard />
+              </div>
+              <div className="animate-slide-up" style={{ animationDelay: '0.27s' }}>
+                <LeagueBreakdownCard />
+              </div>
+            </div>
+
             {/* Activity Feed */}
-            <div className="mb-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            <div className="mb-8 animate-slide-up" style={{ animationDelay: '0.3s' }}>
               {activity && <ActivityFeed activities={activity} />}
             </div>
 
