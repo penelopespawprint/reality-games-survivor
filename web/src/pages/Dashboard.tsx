@@ -147,6 +147,33 @@ export function Dashboard() {
     enabled: !!user?.id,
   });
 
+  // Fetch castaway points from weekly picks (for displaying on roster cards)
+  const { data: castawayPointsData } = useQuery({
+    queryKey: ['castaway-points', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('weekly_picks')
+        .select('league_id, castaway_id, points_earned')
+        .eq('user_id', user!.id)
+        .in('status', ['locked', 'auto_picked']);
+      if (error) throw error;
+
+      // Aggregate points by league and castaway
+      const pointsMap = new Map<string, Map<string, number>>();
+      data?.forEach((pick) => {
+        if (!pointsMap.has(pick.league_id)) {
+          pointsMap.set(pick.league_id, new Map());
+        }
+        const leagueMap = pointsMap.get(pick.league_id)!;
+        const currentPoints = leagueMap.get(pick.castaway_id) || 0;
+        leagueMap.set(pick.castaway_id, currentPoints + (pick.points_earned || 0));
+      });
+
+      return pointsMap;
+    },
+    enabled: !!user?.id,
+  });
+
   // Fetch next upcoming episode
   const { data: nextEpisode } = useQuery({
     queryKey: ['next-episode', activeSeason?.id],
@@ -272,6 +299,17 @@ export function Dashboard() {
       {} as Record<string, RosterEntry[]>
     ) || {};
 
+  // Helper to get castaway points for a league
+  const getCastawayPointsForLeague = (leagueId: string) => {
+    if (!castawayPointsData) return [];
+    const leagueMap = castawayPointsData.get(leagueId);
+    if (!leagueMap) return [];
+    return Array.from(leagueMap.entries()).map(([castaway_id, total_points]) => ({
+      castaway_id,
+      total_points,
+    }));
+  };
+
   const nonGlobalLeagues = myLeagues?.filter((l) => !l.league.is_global) || [];
   const globalLeague = myLeagues?.find((l) => l.league.is_global);
   const gamePhase = getGamePhase(activeSeason || null, nextEpisode || null);
@@ -374,6 +412,7 @@ export function Dashboard() {
                   rank={membership.rank}
                   rosters={rostersByLeague[membership.league_id] || []}
                   seasonId={membership.league.season_id}
+                  castawayPoints={getCastawayPointsForLeague(membership.league_id)}
                   showWeeklyPick={gamePhase === 'active'}
                 />
               ))}
