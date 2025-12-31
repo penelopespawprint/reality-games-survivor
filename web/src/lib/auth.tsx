@@ -204,7 +204,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         const isSignInEvent = event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED';
         const retries = isSignInEvent ? 5 : 2; // More retries for sign-in events
+        console.log('Fetching profile for user:', session.user.id);
         const profileData = await fetchProfile(session.user.id, retries);
+        console.log(
+          'Profile fetched:',
+          profileData?.display_name,
+          'setup_complete:',
+          profileData?.profile_setup_complete
+        );
         setProfile(profileData);
       } else {
         setProfile(null);
@@ -212,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Always set loading to false after processing auth state change
       // This is especially important for magic link flow where initializeAuth returns early
+      console.log('Setting loading to false after auth state change');
       setLoading(false);
     });
 
