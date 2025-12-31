@@ -114,10 +114,11 @@ export default function GlobalLeaderboard() {
     };
   };
 
-  const seasonTitle =
-    activeSeason?.number === 50
+  const seasonTitle = activeSeason
+    ? activeSeason.number === 50
       ? 'Survivor Season 50: In the Hands of the Fans'
-      : `Season ${activeSeason?.number}: ${activeSeason?.name}`;
+      : `Season ${activeSeason.number}: ${activeSeason.name}`
+    : 'Global Leaderboard';
 
   return (
     <div className="max-w-4xl mx-auto pb-24">
