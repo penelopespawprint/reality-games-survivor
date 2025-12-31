@@ -1,9 +1,5 @@
 #!/bin/sh
 set -e
 
-# Build and serve the Vite app
-npm install
-npm run build
-npm run start
-#!/bin/bash
+# Serve the pre-built Vite app (build happens in Railway build step)
 npx serve dist -s -l $PORT

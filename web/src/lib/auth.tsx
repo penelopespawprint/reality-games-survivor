@@ -93,9 +93,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initializeAuth = async () => {
       try {
         // Get session once - Supabase handles URL hash extraction automatically
+        // Add timeout to prevent hanging on invalid/expired tokens
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<{ data: { session: null }; error: null }>((resolve) =>
+          setTimeout(() => resolve({ data: { session: null }, error: null }), 5000)
+        );
+
         const {
           data: { session: currentSession },
-        } = await supabase.auth.getSession();
+        } = await Promise.race([sessionPromise, timeoutPromise]);
 
         // Supabase automatically restores session from localStorage if persistSession is true
         // No need to manually refresh - getSession() handles it
@@ -106,6 +112,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (currentSession) {
+          // Verify the session is actually valid by checking the user
+          // This catches cases where localStorage has an expired/invalid token
+          const {
+            data: { user: verifiedUser },
+            error: userError,
+          } = await supabase.auth.getUser();
+
+          if (userError || !verifiedUser) {
+            // Session is invalid - clear it and redirect to login
+            console.warn('Session invalid, clearing auth state:', userError?.message);
+            await supabase.auth.signOut();
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+            setLoading(false);
+            return;
+          }
+
           setSession(currentSession);
           setUser(currentSession.user ?? null);
 
@@ -133,6 +157,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       } catch (error) {
         console.error('Failed to initialize auth:', error);
+        // Clear auth state on error to prevent stuck loading
+        setSession(null);
+        setUser(null);
+        setProfile(null);
         setLoading(false);
       }
     };

@@ -6,6 +6,6 @@
     "buildCommand": "npm install && npm run build"
   },
   "deploy": {
-    "startCommand": "./start.sh"
+    "startCommand": "npm run start"
   }
 }

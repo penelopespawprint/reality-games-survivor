@@ -1,3 +1,4 @@
+node_modules/
 .env
 .env.*
 !.env.example
@@ -6,6 +7,7 @@
 *.backup
 *.old
 compressed/
+.history/
 
 # Mobile (Expo)
 mobile/.expo/
