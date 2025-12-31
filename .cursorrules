@@ -25,6 +25,20 @@ Never use `git worktree` commands. Ever.
 
 One repo, one branch checked out, one source of truth.
 
+## Pre-Push Checklist (MANDATORY)
+
+Before ANY `git push` command, run and verify ALL of these:
+```bash
+git worktree list              # Must show ONLY one entry
+git branch -a                  # No unexpected branches
+git log origin/main..HEAD      # Shows what you're about to push
+git status                     # Must be clean or only expected changes
+```
+
+If `git worktree list` shows more than one worktree, STOP. Remove them with `git worktree remove <path>` before pushing.
+
+Do NOT push until all four checks pass.
+
 ## Step 1: Name the Root Cause
 
 Before surface-level suggestions, explicitly state:
