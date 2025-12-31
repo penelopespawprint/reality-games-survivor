@@ -111,10 +111,14 @@ export function Trivia() {
     queryKey: ['trivia', 'next'],
     queryFn: async () => {
       if (!session?.access_token) throw new Error('Not authenticated');
-      const response = await apiWithAuth<TriviaResponse>('/trivia/next', session.access_token);
+      const response = await apiWithAuth<{ data: TriviaResponse }>(
+        '/trivia/next',
+        session.access_token
+      );
       if (response.error) throw new Error(response.error);
-      if (!response.data) throw new Error('No data returned');
-      return response.data;
+      if (!response.data?.data) throw new Error('No data returned');
+      // API wraps response in { data: ... }, so unwrap it
+      return response.data.data;
     },
     enabled: !!user && !!session?.access_token,
     retry: false,
@@ -125,10 +129,14 @@ export function Trivia() {
     queryKey: ['trivia', 'progress'],
     queryFn: async () => {
       if (!session?.access_token) throw new Error('Not authenticated');
-      const response = await apiWithAuth<ProgressData>('/trivia/progress', session.access_token);
+      const response = await apiWithAuth<{ data: ProgressData }>(
+        '/trivia/progress',
+        session.access_token
+      );
       if (response.error) throw new Error(response.error);
-      if (!response.data) throw new Error('No data returned');
-      return response.data;
+      if (!response.data?.data) throw new Error('No data returned');
+      // API wraps response in { data: ... }, so unwrap it
+      return response.data.data;
     },
     enabled: !!user && !!session?.access_token,
     refetchInterval: 60000,
@@ -138,10 +146,13 @@ export function Trivia() {
   const { data: allQuestionsData } = useQuery<{ questions: TriviaQuestionWithAnswer[] }>({
     queryKey: ['trivia', 'all-questions'],
     queryFn: async () => {
-      const response = await api<{ questions: TriviaQuestionWithAnswer[] }>('/trivia/questions');
+      const response = await api<{ data: { questions: TriviaQuestionWithAnswer[] } }>(
+        '/trivia/questions'
+      );
       if (response.error) throw new Error(response.error);
-      if (!response.data) throw new Error('No data returned');
-      return response.data;
+      if (!response.data?.data?.questions) throw new Error('No data returned');
+      // API wraps response in { data: ... }, so unwrap it
+      return { questions: response.data.data.questions };
     },
     staleTime: 1000 * 60 * 60, // Cache for 1 hour
   });
@@ -210,16 +221,21 @@ export function Trivia() {
       if (!session?.access_token) throw new Error('Not authenticated');
       if (!triviaData?.question) throw new Error('No question available');
 
-      const response = await apiWithAuth<AnswerResponse>('/trivia/answer', session.access_token, {
-        method: 'POST',
-        body: JSON.stringify({
-          questionId: triviaData.question.id,
-          selectedIndex,
-        }),
-      });
+      const response = await apiWithAuth<{ data: AnswerResponse }>(
+        '/trivia/answer',
+        session.access_token,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            questionId: triviaData.question.id,
+            selectedIndex,
+          }),
+        }
+      );
       if (response.error) throw new Error(response.error);
-      if (!response.data) throw new Error('No data returned');
-      return response.data;
+      if (!response.data?.data) throw new Error('No data returned');
+      // API wraps response in { data: ... }, so unwrap it
+      return response.data.data;
     },
     onSuccess: (data) => {
       setIsCorrect(data.isCorrect);

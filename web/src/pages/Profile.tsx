@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   // PhoneVerificationPrompt, // Hidden until SMS feature launches
   ProfileHeader,
+  ProfileInfo,
   // PhoneSection, // Hidden until SMS feature launches
   // NotificationsSection, // Hidden until notification features are implemented
   SecuritySection,
@@ -68,9 +69,16 @@ export default function Profile() {
     retryDelay: 1000,
   });
 
-  // Update profile mutation (display name, avatar)
+  // Update profile mutation (display name, avatar, bio, hometown, etc.)
   const updateProfile = useMutation({
-    mutationFn: async (updates: { display_name?: string; avatar_url?: string }) => {
+    mutationFn: async (updates: {
+      display_name?: string;
+      avatar_url?: string;
+      bio?: string;
+      hometown?: string;
+      favorite_castaway?: string;
+      favorite_season?: string;
+    }) => {
       const {
         data: { user: authUser },
       } = await supabase.auth.getUser();
@@ -289,6 +297,16 @@ export default function Profile() {
         isUpdating={updateProfile.isPending}
         error={nameError}
         success={profileSuccess}
+      />
+
+      {/* About You Section */}
+      <ProfileInfo
+        bio={user?.bio || null}
+        hometown={user?.hometown || null}
+        favoriteCastaway={user?.favorite_castaway || null}
+        favoriteSeason={user?.favorite_season || null}
+        onUpdate={(updates) => updateProfile.mutate(updates)}
+        isUpdating={updateProfile.isPending}
       />
 
       {/* Phone Number - hidden until SMS feature launches
