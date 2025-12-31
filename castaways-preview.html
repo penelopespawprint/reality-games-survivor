@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Castaways Page - Design Variations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Cream palette */
+      --cream-50: #FEFDFB;
+      --cream-100: #FBF8F3;
+      --cream-200: #F5F0E6;
+      --cream-300: #EDE5D5;
+      --cream-400: #E2D6C1;
+      --cream-500: #D4C4A8;
+      
+      /* Burgundy palette */
+      --burgundy-50: #FDF2F2;
+      --burgundy-100: #FCE7E7;
+      --burgundy-200: #FAD1D1;
+      --burgundy-300: #F5AEAE;
+      --burgundy-400: #EC7D7D;
+      --burgundy-500: #A52A2A;
+      --burgundy-600: #8B2323;
+      --burgundy-700: #751D1D;
+      --burgundy-800: #5C1717;
+      --burgundy-900: #4A1414;
+      --burgundy-950: #2D0A0A;
+      
+      /* Tribe colors */
+      --tribe-purple: #8B5CF6;
+      --tribe-teal: #14B8A6;
+      --tribe-orange: #F97316;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--cream-100);
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .font-display {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    
+    /* Navigation */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: var(--burgundy-900);
+      padding: 1rem 2rem;
+      z-index: 1000;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .nav a {
+      color: var(--cream-100);
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    
+    .nav a:hover {
+      background: var(--burgundy-700);
+    }
+    
+    /* Section styling */
+    section {
+      min-height: 100vh;
+      padding: 6rem 2rem 4rem;
+    }
+    
+    .section-label {
+      position: absolute;
+      top: 5rem;
+      left: 2rem;
+      background: var(--burgundy-600);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+    }
+    
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      padding: 1rem 1.5rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .stats-bar.dark {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--burgundy-600);
+    }
+    
+    .stat-value.light {
+      color: var(--cream-100);
+    }
+    
+    .stat-label {
+      font-size: 0.75rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .stat-label.light {
+      color: var(--cream-300);
+    }
+    
+    /* Sample castaway data */
+    .castaway-img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      background: linear-gradient(135deg, var(--cream-300), var(--cream-400));
+    }
+    
+    /* ==========================================
+       VARIATION A: POLAROID GALLERY
+       ========================================== */
+    #variation-a {
+      background: var(--cream-100);
+      position: relative;
+    }
+    
+    #variation-a h1 {
+      color: var(--burgundy-700);
+      text-align: center;
+    }
+    
+    #variation-a .subtitle {
+      text-align: center;
+    }
+    
+    .polaroid-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    
+    .polaroid-card {
+      background: white;
+      padding: 12px 12px 40px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .polaroid-card:nth-child(odd) {
+      transform: rotate(-2deg);
+    }
+    
+    .polaroid-card:nth-child(even) {
+      transform: rotate(2deg);
+    }
+    
+    .polaroid-card:nth-child(3n) {
+      transform: rotate(-1deg);
+    }
+    
+    .polaroid-card:hover {
+      transform: rotate(0deg) translateY(-8px);
+      box-shadow: 0 12px 30px rgba(165, 42, 42, 0.2);
+    }
+    
+    .polaroid-tape {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 20px;
+      background: var(--burgundy-200);
+      opacity: 0.8;
+    }
+    
+    .polaroid-card .castaway-img {
+      border-radius: 0;
+    }
+    
+    .polaroid-card .name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--burgundy-800);
+      margin-top: 12px;
+      text-align: center;
+    }
+    
+    .polaroid-card .tribe-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: white;
+      margin-top: 6px;
+    }
+    
+    .polaroid-card .info {
+      text-align: center;
+    }
+    
+    .tribe-purple { background: var(--tribe-purple); }
+    .tribe-teal { background: var(--tribe-teal); }
+    .tribe-orange { background: var(--tribe-orange); }
+    
+    .polaroid-card.eliminated {
+      opacity: 0.6;
+    }
+    
+    .polaroid-card.eliminated .castaway-img {
+      filter: grayscale(100%);
+    }
+    
+    .polaroid-card .eliminated-stamp {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-15deg);
+      background: var(--burgundy-600);
+      color: white;
+      padding: 4px 12px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      border-radius: 4px;
+    }
+    
+    /* ==========================================
+       VARIATION B: MAGAZINE EDITORIAL
+       ========================================== */
+    #variation-b {
+      background: linear-gradient(180deg, var(--burgundy-950) 0%, var(--burgundy-900) 100%);
+      position: relative;
+      color: var(--cream-100);
+    }
+    
+    #variation-b h1 {
+      color: var(--cream-100);
+      text-align: center;
+      font-size: 3rem;
+      letter-spacing: 0.2em;
+      font-weight: 400;
+      border-top: 1px solid var(--burgundy-500);
+      border-bottom: 1px solid var(--burgundy-500);
+      padding: 1rem 0;
+      margin-bottom: 0.5rem;
+    }
+    
+    #variation-b .subtitle {
+      text-align: center;
+      color: var(--burgundy-300);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 0.875rem;
+    }
+    
+    .magazine-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 3rem auto;
+    }
+    
+    .magazine-featured {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .magazine-featured .castaway-img {
+      aspect-ratio: 2/3;
+      filter: contrast(1.1);
+    }
+    
+    .magazine-featured .overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 3rem 1.5rem 1.5rem;
+      background: linear-gradient(to top, var(--burgundy-950), transparent);
+    }
+    
+    .magazine-featured .name {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--cream-100);
+      line-height: 1.2;
+    }
+    
+    .magazine-featured .name span {
+      display: block;
+      color: var(--burgundy-400);
+      font-weight: 400;
+    }
+    
+    .magazine-featured .tribe-line {
+      width: 40px;
+      height: 3px;
+      background: var(--burgundy-500);
+      margin: 1rem 0;
+    }
+    
+    .magazine-featured .occupation {
+      color: var(--cream-300);
+      font-size: 0.875rem;
+    }
+    
+    .magazine-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .magazine-card {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 3/4;
+      cursor: pointer;
+    }
+    
+    .magazine-card .castaway-img {
+      transition: all 0.4s ease;
+    }
+    
+    .magazine-card:hover .castaway-img {
+      transform: scale(1.05);
+      filter: brightness(0.8);
+    }
+    
+    .magazine-card .overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 2rem 0.75rem 0.75rem;
+      background: linear-gradient(to top, var(--burgundy-950), transparent);
+    }
+    
+    .magazine-card .name {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.9rem;
+      color: var(--cream-100);
+    }
+    
+    .magazine-card .tribe-dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    .magazine-card:hover {
+      box-shadow: 0 0 0 2px var(--burgundy-500);
+    }
+    
+    /* ==========================================
+       VARIATION C: TRIBAL COUNCIL
+       ========================================== */
+    #variation-c {
+      background: var(--cream-50);
+      position: relative;
+    }
+    
+    #variation-c::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30z' fill='%23A52A2A' fill-opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    
+    #variation-c h1 {
+      color: var(--burgundy-700);
+      text-align: center;
+      position: relative;
+    }
+    
+    #variation-c .subtitle {
+      text-align: center;
+      position: relative;
+    }
+    
+    .tribe-section {
+      max-width: 1200px;
+      margin: 0 auto 3rem;
+      position: relative;
+    }
+    
+    .tribe-header {
+      background: linear-gradient(90deg, var(--burgundy-600), var(--burgundy-700));
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .tribe-header.purple {
+      background: linear-gradient(90deg, #7C3AED, #6D28D9);
+    }
+    
+    .tribe-header.teal {
+      background: linear-gradient(90deg, #0D9488, #0F766E);
+    }
+    
+    .tribe-header.orange {
+      background: linear-gradient(90deg, #EA580C, #C2410C);
+    }
+    
+    .tribe-header .torch-icon {
+      font-size: 1.5rem;
+    }
+    
+    .tribe-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .tribe-header .count {
+      margin-left: auto;
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+    
+    .tribe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+      padding: 1.5rem;
+      background: white;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    .tribal-card {
+      background: var(--cream-50);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .tribal-card:hover {
+      border-color: var(--burgundy-500);
+      background: var(--burgundy-50);
+    }
+    
+    .tribal-card .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 0.75rem;
+      border: 3px solid var(--burgundy-300);
+      overflow: hidden;
+    }
+    
+    .tribal-card .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .tribal-card .name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--burgundy-800);
+      margin-bottom: 0.25rem;
+    }
+    
+    .tribal-card .occupation {
+      font-size: 0.75rem;
+      color: #666;
+    }
+    
+    .tribal-card .torch-status {
+      margin-top: 0.5rem;
+      font-size: 1.25rem;
+    }
+    
+    .tribal-card.eliminated {
+      opacity: 0.5;
+    }
+    
+    .tribal-card.eliminated .avatar {
+      border-color: var(--cream-400);
+    }
+    
+    .tribal-card.eliminated .avatar img {
+      filter: grayscale(100%);
+    }
+    
+    /* ==========================================
+       VARIATION D: LEADERBOARD STYLE
+       ========================================== */
+    #variation-d {
+      background: linear-gradient(180deg, var(--cream-100) 0%, white 100%);
+      position: relative;
+    }
+    
+    #variation-d h1 {
+      color: var(--burgundy-700);
+      text-align: center;
+    }
+    
+    #variation-d .subtitle {
+      text-align: center;
+    }
+    
+    .leaderboard-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    .leaderboard-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: white;
+      border-left: 4px solid var(--burgundy-500);
+      margin-bottom: 0.5rem;
+      border-radius: 0 8px 8px 0;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .leaderboard-row:nth-child(even) {
+      background: var(--cream-50);
+    }
+    
+    .leaderboard-row:hover {
+      border-left-width: 8px;
+      background: var(--burgundy-50);
+      transform: translateX(4px);
+    }
+    
+    .leaderboard-row.top-3 {
+      background: linear-gradient(90deg, var(--burgundy-50), white);
+      border-left-color: var(--burgundy-600);
+    }
+    
+    .leaderboard-row .rank {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--burgundy-500);
+      width: 40px;
+      text-align: center;
+    }
+    
+    .leaderboard-row.top-3:nth-child(1) .rank { color: #D4AF37; }
+    .leaderboard-row.top-3:nth-child(2) .rank { color: #A8A8A8; }
+    .leaderboard-row.top-3:nth-child(3) .rank { color: #CD7F32; }
+    
+    .leaderboard-row .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid var(--cream-300);
+    }
+    
+    .leaderboard-row .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .leaderboard-row .info {
+      flex: 1;
+    }
+    
+    .leaderboard-row .name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--burgundy-800);
+    }
+    
+    .leaderboard-row .meta {
+      font-size: 0.8rem;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .leaderboard-row .tribe-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    
+    .leaderboard-row .points {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--burgundy-600);
+    }
+    
+    .leaderboard-row .points span {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: #999;
+    }
+    
+    .leaderboard-row .trend {
+      font-size: 0.875rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    
+    .leaderboard-row .trend.up {
+      color: #16A34A;
+      background: #F0FDF4;
+    }
+    
+    .leaderboard-row .trend.down {
+      color: #DC2626;
+      background: #FEF2F2;
+    }
+    
+    .leaderboard-row.eliminated {
+      opacity: 0.5;
+      border-left-color: var(--cream-400);
+    }
+    
+    .leaderboard-row.eliminated .avatar img {
+      filter: grayscale(100%);
+    }
+    
+    /* ==========================================
+       VARIATION E: MOSAIC GRID
+       ========================================== */
+    #variation-e {
+      background: var(--burgundy-900);
+      position: relative;
+    }
+    
+    #variation-e::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+    }
+    
+    #variation-e h1 {
+      color: var(--cream-100);
+      text-align: center;
+      position: relative;
+    }
+    
+    #variation-e .subtitle {
+      text-align: center;
+      color: var(--burgundy-300);
+      position: relative;
+    }
+    
+    .mosaic-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-auto-rows: 150px;
+      gap: 8px;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+    }
+    
+    .mosaic-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    
+    .mosaic-card.featured {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+    
+    .mosaic-card.wide {
+      grid-column: span 2;
+    }
+    
+    .mosaic-card .castaway-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: all 0.4s ease;
+    }
+    
+    .mosaic-card:hover .castaway-img {
+      transform: scale(1.1);
+    }
+    
+    .mosaic-card:hover {
+      box-shadow: 0 0 0 3px var(--burgundy-500), 0 0 30px rgba(165, 42, 42, 0.4);
+      z-index: 10;
+    }
+    
+    .mosaic-card .overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 2.5rem 1rem 1rem;
+      background: linear-gradient(to top, var(--burgundy-950), transparent);
+    }
+    
+    .mosaic-card .tribe-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+    }
+    
+    .mosaic-card .name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--cream-100);
+    }
+    
+    .mosaic-card.featured .name {
+      font-size: 1.5rem;
+    }
+    
+    .mosaic-card .points {
+      color: var(--burgundy-300);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    
+    .mosaic-card.eliminated .castaway-img {
+      filter: grayscale(100%) brightness(0.6);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .polaroid-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+      }
+      
+      .magazine-hero {
+        grid-template-columns: 1fr;
+      }
+      
+      .magazine-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      
+      .tribe-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .leaderboard-row {
+        flex-wrap: wrap;
+      }
+      
+      .mosaic-grid {
+        grid-template-columns: repeat(3, 1fr);
+        grid-auto-rows: 120px;
+      }
+      
+      .mosaic-card.featured {
+        grid-column: span 2;
+        grid-row: span 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+    <a href="#variation-a">A: Polaroid</a>
+    <a href="#variation-b">B: Magazine</a>
+    <a href="#variation-c">C: Tribal</a>
+    <a href="#variation-d">D: Leaderboard</a>
+    <a href="#variation-e">E: Mosaic</a>
+  </nav>
+
+  <!-- ==========================================
+       VARIATION A: POLAROID GALLERY
+       ========================================== -->
+  <section id="variation-a">
+    <span class="section-label">VARIATION A</span>
+    <h1 class="font-display">CASTAWAYS</h1>
+    <p class="subtitle">Season 50 • 18 Castaways</p>
+    
+    <div class="stats-bar" style="max-width: 400px; margin: 0 auto 2rem;">
+      <div class="stat">
+        <div class="stat-value">18</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">14</div>
+        <div class="stat-label">Active</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">4</div>
+        <div class="stat-label">Eliminated</div>
+      </div>
+    </div>
+    
+    <div class="polaroid-grid">
+      <div class="polaroid-card">
+        <div class="polaroid-tape"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);"></div>
+        <div class="info">
+          <div class="name">Cirie Fields</div>
+          <span class="tribe-badge tribe-purple">Vatu</span>
+        </div>
+      </div>
+      <div class="polaroid-card">
+        <div class="polaroid-tape"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #14B8A6 0%, #2DD4BF 100%);"></div>
+        <div class="info">
+          <div class="name">Tony Vlachos</div>
+          <span class="tribe-badge tribe-teal">Kalo</span>
+        </div>
+      </div>
+      <div class="polaroid-card">
+        <div class="polaroid-tape"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #F97316 0%, #FB923C 100%);"></div>
+        <div class="info">
+          <div class="name">Parvati Shallow</div>
+          <span class="tribe-badge tribe-orange">Cila</span>
+        </div>
+      </div>
+      <div class="polaroid-card eliminated">
+        <div class="polaroid-tape"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #9CA3AF 0%, #D1D5DB 100%);"></div>
+        <span class="eliminated-stamp">ELIMINATED</span>
+        <div class="info">
+          <div class="name">Boston Rob</div>
+          <span class="tribe-badge" style="background: #6B7280;">Vatu</span>
+        </div>
+      </div>
+      <div class="polaroid-card">
+        <div class="polaroid-tape"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);"></div>
+        <div class="info">
+          <div class="name">Sandra Diaz</div>
+          <span class="tribe-badge tribe-purple">Vatu</span>
+        </div>
+      </div>
+      <div class="polaroid-card">
+        <div class="polaroid-tape"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #14B8A6 0%, #2DD4BF 100%);"></div>
+        <div class="info">
+          <div class="name">Kim Spradlin</div>
+          <span class="tribe-badge tribe-teal">Kalo</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       VARIATION B: MAGAZINE EDITORIAL
+       ========================================== -->
+  <section id="variation-b">
+    <span class="section-label">VARIATION B</span>
+    <h1 class="font-display">THE CAST</h1>
+    <p class="subtitle">Survivor Season 50 • The Greatest of All Time</p>
+    
+    <div class="magazine-hero">
+      <div class="magazine-featured">
+        <div class="castaway-img" style="background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);"></div>
+        <div class="overlay">
+          <div class="name">Cirie <span>Fields</span></div>
+          <div class="tribe-line"></div>
+          <div class="occupation">Nurse • Panama</div>
+        </div>
+      </div>
+      <div class="magazine-featured">
+        <div class="castaway-img" style="background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);"></div>
+        <div class="overlay">
+          <div class="name">Tony <span>Vlachos</span></div>
+          <div class="tribe-line"></div>
+          <div class="occupation">Police Officer • Cagayan</div>
+        </div>
+      </div>
+    </div>
+    
+    <h3 style="color: var(--burgundy-400); text-align: center; margin: 2rem 0 1rem; font-size: 0.875rem; letter-spacing: 0.2em;">ALSO COMPETING</h3>
+    
+    <div class="magazine-grid">
+      <div class="magazine-card">
+        <div class="tribe-dot tribe-orange"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);"></div>
+        <div class="overlay">
+          <div class="name">Parvati Shallow</div>
+        </div>
+      </div>
+      <div class="magazine-card">
+        <div class="tribe-dot tribe-purple"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);"></div>
+        <div class="overlay">
+          <div class="name">Sandra Diaz</div>
+        </div>
+      </div>
+      <div class="magazine-card">
+        <div class="tribe-dot tribe-teal"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);"></div>
+        <div class="overlay">
+          <div class="name">Kim Spradlin</div>
+        </div>
+      </div>
+      <div class="magazine-card">
+        <div class="tribe-dot tribe-purple"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);"></div>
+        <div class="overlay">
+          <div class="name">Jeremy Collins</div>
+        </div>
+      </div>
+      <div class="magazine-card">
+        <div class="tribe-dot tribe-orange"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);"></div>
+        <div class="overlay">
+          <div class="name">Tyson Apostol</div>
+        </div>
+      </div>
+      <div class="magazine-card">
+        <div class="tribe-dot tribe-teal"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);"></div>
+        <div class="overlay">
+          <div class="name">Wendell Holland</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       VARIATION C: TRIBAL COUNCIL
+       ========================================== -->
+  <section id="variation-c">
+    <span class="section-label">VARIATION C</span>
+    <h1 class="font-display">CASTAWAYS</h1>
+    <p class="subtitle">Grouped by Tribe</p>
+    
+    <div class="stats-bar" style="max-width: 400px; margin: 0 auto 2rem;">
+      <div class="stat">
+        <div class="stat-value">18</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">14</div>
+        <div class="stat-label">Active</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">4</div>
+        <div class="stat-label">Eliminated</div>
+      </div>
+    </div>
+    
+    <!-- Tribe: Vatu (Purple) -->
+    <div class="tribe-section">
+      <div class="tribe-header purple">
+        <span class="torch-icon">🔥</span>
+        <h3>Vatu Tribe</h3>
+        <span class="count">6 members</span>
+      </div>
+      <div class="tribe-grid">
+        <div class="tribal-card">
+          <div class="avatar">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #8B5CF6, #A78BFA);"></div>
+          </div>
+          <div class="name">Cirie Fields</div>
+          <div class="occupation">Nurse</div>
+          <div class="torch-status">🔥</div>
+        </div>
+        <div class="tribal-card">
+          <div class="avatar">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #8B5CF6, #A78BFA);"></div>
+          </div>
+          <div class="name">Sandra Diaz</div>
+          <div class="occupation">Office Assistant</div>
+          <div class="torch-status">🔥</div>
+        </div>
+        <div class="tribal-card eliminated">
+          <div class="avatar">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #9CA3AF, #D1D5DB);"></div>
+          </div>
+          <div class="name">Boston Rob</div>
+          <div class="occupation">Construction Worker</div>
+          <div class="torch-status">💨</div>
+        </div>
+        <div class="tribal-card">
+          <div class="avatar">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #8B5CF6, #A78BFA);"></div>
+          </div>
+          <div class="name">Jeremy Collins</div>
+          <div class="occupation">Firefighter</div>
+          <div class="torch-status">🔥</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tribe: Kalo (Teal) -->
+    <div class="tribe-section">
+      <div class="tribe-header teal">
+        <span class="torch-icon">🔥</span>
+        <h3>Kalo Tribe</h3>
+        <span class="count">6 members</span>
+      </div>
+      <div class="tribe-grid">
+        <div class="tribal-card">
+          <div class="avatar">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #14B8A6, #2DD4BF);"></div>
+          </div>
+          <div class="name">Tony Vlachos</div>
+          <div class="occupation">Police Officer</div>
+          <div class="torch-status">🔥</div>
+        </div>
+        <div class="tribal-card">
+          <div class="avatar">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #14B8A6, #2DD4BF);"></div>
+          </div>
+          <div class="name">Kim Spradlin</div>
+          <div class="occupation">Bridal Shop Owner</div>
+          <div class="torch-status">🔥</div>
+        </div>
+        <div class="tribal-card">
+          <div class="avatar">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #14B8A6, #2DD4BF);"></div>
+          </div>
+          <div class="name">Wendell Holland</div>
+          <div class="occupation">Furniture Designer</div>
+          <div class="torch-status">🔥</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tribe: Cila (Orange) -->
+    <div class="tribe-section">
+      <div class="tribe-header orange">
+        <span class="torch-icon">🔥</span>
+        <h3>Cila Tribe</h3>
+        <span class="count">6 members</span>
+      </div>
+      <div class="tribe-grid">
+        <div class="tribal-card">
+          <div class="avatar">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #F97316, #FB923C);"></div>
+          </div>
+          <div class="name">Parvati Shallow</div>
+          <div class="occupation">Yoga Instructor</div>
+          <div class="torch-status">🔥</div>
+        </div>
+        <div class="tribal-card">
+          <div class="avatar">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #F97316, #FB923C);"></div>
+          </div>
+          <div class="name">Tyson Apostol</div>
+          <div class="occupation">Former Cyclist</div>
+          <div class="torch-status">🔥</div>
+        </div>
+        <div class="tribal-card eliminated">
+          <div class="avatar">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #9CA3AF, #D1D5DB);"></div>
+          </div>
+          <div class="name">Amber Brkich</div>
+          <div class="occupation">Account Manager</div>
+          <div class="torch-status">💨</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       VARIATION D: LEADERBOARD STYLE
+       ========================================== -->
+  <section id="variation-d">
+    <span class="section-label">VARIATION D</span>
+    <h1 class="font-display">CASTAWAYS</h1>
+    <p class="subtitle">Ranked by Points</p>
+    
+    <div class="stats-bar" style="max-width: 400px; margin: 0 auto 2rem;">
+      <div class="stat">
+        <div class="stat-value">18</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">14</div>
+        <div class="stat-label">Active</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">4</div>
+        <div class="stat-label">Eliminated</div>
+      </div>
+    </div>
+    
+    <div class="leaderboard-container">
+      <div class="leaderboard-row top-3">
+        <div class="rank">1</div>
+        <div class="avatar">
+          <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #8B5CF6, #A78BFA);"></div>
+        </div>
+        <div class="info">
+          <div class="name">Cirie Fields</div>
+          <div class="meta">
+            <span class="tribe-dot tribe-purple"></span>
+            Vatu • Nurse
+          </div>
+        </div>
+        <div class="points">142 <span>pts</span></div>
+        <div class="trend up">↑ 12</div>
+      </div>
+      
+      <div class="leaderboard-row top-3">
+        <div class="rank">2</div>
+        <div class="avatar">
+          <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #14B8A6, #2DD4BF);"></div>
+        </div>
+        <div class="info">
+          <div class="name">Tony Vlachos</div>
+          <div class="meta">
+            <span class="tribe-dot tribe-teal"></span>
+            Kalo • Police Officer
+          </div>
+        </div>
+        <div class="points">138 <span>pts</span></div>
+        <div class="trend up">↑ 8</div>
+      </div>
+      
+      <div class="leaderboard-row top-3">
+        <div class="rank">3</div>
+        <div class="avatar">
+          <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #F97316, #FB923C);"></div>
+        </div>
+        <div class="info">
+          <div class="name">Parvati Shallow</div>
+          <div class="meta">
+            <span class="tribe-dot tribe-orange"></span>
+            Cila • Yoga Instructor
+          </div>
+        </div>
+        <div class="points">125 <span>pts</span></div>
+        <div class="trend down">↓ 3</div>
+      </div>
+      
+      <div class="leaderboard-row">
+        <div class="rank">4</div>
+        <div class="avatar">
+          <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #8B5CF6, #A78BFA);"></div>
+        </div>
+        <div class="info">
+          <div class="name">Sandra Diaz</div>
+          <div class="meta">
+            <span class="tribe-dot tribe-purple"></span>
+            Vatu • Office Assistant
+          </div>
+        </div>
+        <div class="points">118 <span>pts</span></div>
+        <div class="trend up">↑ 5</div>
+      </div>
+      
+      <div class="leaderboard-row">
+        <div class="rank">5</div>
+        <div class="avatar">
+          <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #14B8A6, #2DD4BF);"></div>
+        </div>
+        <div class="info">
+          <div class="name">Kim Spradlin</div>
+          <div class="meta">
+            <span class="tribe-dot tribe-teal"></span>
+            Kalo • Bridal Shop Owner
+          </div>
+        </div>
+        <div class="points">112 <span>pts</span></div>
+        <div class="trend up">↑ 2</div>
+      </div>
+      
+      <div class="leaderboard-row eliminated">
+        <div class="rank">15</div>
+        <div class="avatar">
+          <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #9CA3AF, #D1D5DB);"></div>
+        </div>
+        <div class="info">
+          <div class="name">Boston Rob</div>
+          <div class="meta">
+            <span class="tribe-dot" style="background: #9CA3AF;"></span>
+            Vatu • Eliminated Ep. 3
+          </div>
+        </div>
+        <div class="points" style="color: #9CA3AF;">45 <span>pts</span></div>
+        <div class="trend" style="background: #F3F4F6; color: #9CA3AF;">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       VARIATION E: MOSAIC GRID
+       ========================================== -->
+  <section id="variation-e">
+    <span class="section-label">VARIATION E</span>
+    <h1 class="font-display">CASTAWAYS</h1>
+    <p class="subtitle">Season 50 • 18 Competitors</p>
+    
+    <div class="stats-bar dark" style="max-width: 400px; margin: 0 auto 2rem; position: relative;">
+      <div class="stat">
+        <div class="stat-value light">18</div>
+        <div class="stat-label light">Total</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value light">14</div>
+        <div class="stat-label light">Active</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value light">4</div>
+        <div class="stat-label light">Eliminated</div>
+      </div>
+    </div>
+    
+    <div class="mosaic-grid">
+      <div class="mosaic-card featured">
+        <div class="tribe-bar tribe-purple"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);"></div>
+        <div class="overlay">
+          <div class="name">Cirie Fields</div>
+          <div class="points">142 pts</div>
+        </div>
+      </div>
+      
+      <div class="mosaic-card wide">
+        <div class="tribe-bar tribe-teal"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);"></div>
+        <div class="overlay">
+          <div class="name">Tony Vlachos</div>
+          <div class="points">138 pts</div>
+        </div>
+      </div>
+      
+      <div class="mosaic-card wide">
+        <div class="tribe-bar tribe-orange"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);"></div>
+        <div class="overlay">
+          <div class="name">Parvati Shallow</div>
+          <div class="points">125 pts</div>
+        </div>
+      </div>
+      
+      <div class="mosaic-card">
+        <div class="tribe-bar tribe-purple"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);"></div>
+        <div class="overlay">
+          <div class="name">Sandra Diaz</div>
+          <div class="points">118 pts</div>
+        </div>
+      </div>
+      
+      <div class="mosaic-card">
+        <div class="tribe-bar tribe-teal"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);"></div>
+        <div class="overlay">
+          <div class="name">Kim Spradlin</div>
+          <div class="points">112 pts</div>
+        </div>
+      </div>
+      
+      <div class="mosaic-card">
+        <div class="tribe-bar tribe-purple"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);"></div>
+        <div class="overlay">
+          <div class="name">Jeremy Collins</div>
+          <div class="points">105 pts</div>
+        </div>
+      </div>
+      
+      <div class="mosaic-card">
+        <div class="tribe-bar tribe-orange"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);"></div>
+        <div class="overlay">
+          <div class="name">Tyson Apostol</div>
+          <div class="points">98 pts</div>
+        </div>
+      </div>
+      
+      <div class="mosaic-card">
+        <div class="tribe-bar tribe-teal"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);"></div>
+        <div class="overlay">
+          <div class="name">Wendell Holland</div>
+          <div class="points">92 pts</div>
+        </div>
+      </div>
+      
+      <div class="mosaic-card eliminated">
+        <div class="tribe-bar" style="background: #6B7280;"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);"></div>
+        <div class="overlay">
+          <div class="name">Boston Rob</div>
+          <div class="points" style="color: #9CA3AF;">Eliminated</div>
+        </div>
+      </div>
+      
+      <div class="mosaic-card">
+        <div class="tribe-bar tribe-orange"></div>
+        <div class="castaway-img" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);"></div>
+        <div class="overlay">
+          <div class="name">Ethan Zohn</div>
+          <div class="points">78 pts</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Smooth scroll for navigation
+    document.querySelectorAll('.nav a').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        target.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>

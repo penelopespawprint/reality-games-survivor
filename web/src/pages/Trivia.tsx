@@ -434,7 +434,11 @@ export function Trivia() {
     );
   }
 
-  if (authLoading || questionLoading) {
+  // Show loading while auth is initializing OR while waiting for session to load trivia data
+  const isWaitingForSession = user && !session?.access_token;
+  const isLoadingTrivia = user && session?.access_token && questionLoading;
+
+  if (authLoading || isWaitingForSession || isLoadingTrivia) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex flex-col">
         <Navigation />
