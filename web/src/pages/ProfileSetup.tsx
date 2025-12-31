@@ -310,14 +310,18 @@ export default function ProfileSetup() {
   };
 
   // Redirect to login if auth has finished loading but there's no user
+  // BUT don't redirect if there's an access_token in the URL (magic link callback)
   useEffect(() => {
-    if (!authLoading && !user) {
+    const hasTokenInUrl = window.location.hash.includes('access_token');
+    if (!authLoading && !user && !hasTokenInUrl) {
       navigate('/login?redirect=/profile/setup', { replace: true });
     }
   }, [authLoading, user, navigate]);
 
   // Show skeleton while auth is initializing or no user yet
-  if (authLoading || !user) {
+  // Also show skeleton if there's an access_token in the URL (processing magic link)
+  const hasTokenInUrl = window.location.hash.includes('access_token');
+  if (authLoading || !user || hasTokenInUrl) {
     return renderSkeleton();
   }
 

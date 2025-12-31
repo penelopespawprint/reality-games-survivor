@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/auth';
 export function AdminRoute() {
   const { user, loading, isAdmin } = useAuth();
 
-  // Check if we are processing a magic link or OAuth callback
+  // Check if we're processing a magic link or OAuth callback
   // The hash contains access_token when coming from auth redirects
   const hasAuthHash = window.location.hash.includes('access_token');
 

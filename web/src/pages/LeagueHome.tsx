@@ -89,9 +89,13 @@ export default function LeagueHome() {
     }
   };
 
-  // Redirect unauthenticated users to login
+  // Note: ProtectedRoute already handles auth redirects
+  // This is kept as a safety net but should rarely execute
   if (!authLoading && !user) {
-    return <Navigate to={`/login?redirect=/leagues/${id}`} replace />;
+    // Check for magic link hash - don't redirect if processing auth
+    if (!window.location.hash.includes('access_token')) {
+      return <Navigate to={`/login?redirect=/leagues/${id}`} replace />;
+    }
   }
 
   if (leagueLoading || authLoading) {

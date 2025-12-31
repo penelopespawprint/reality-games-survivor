@@ -142,8 +142,11 @@ export default function JoinLeague() {
   });
 
   // Redirect to login if not authenticated
+  // Note: ProtectedRoute already handles this, but kept as safety net
   useEffect(() => {
-    if (!sessionLoading && !session && code) {
+    // Don't redirect if processing magic link hash
+    const hasAuthHash = window.location.hash.includes('access_token');
+    if (!sessionLoading && !session && code && !hasAuthHash) {
       navigate(`/login?redirect=/join/${code}`);
     }
   }, [session, sessionLoading, code, navigate]);

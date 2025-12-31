@@ -224,71 +224,70 @@ export function Navigation() {
     );
   }
 
-  // Authenticated player navigation - clean, Survivor-themed (Variation A)
+  // Authenticated player navigation - matches public nav design
   if (user) {
     return (
-      <nav className="bg-white rounded-b-2xl shadow-lg border border-cream-200 sticky top-0 z-50">
+      <nav className="bg-white border-b-2 border-burgundy-500 shadow-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
+          <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-burgundy-500 rounded-lg flex items-center justify-center">
-                <img src="/logo.png" alt="RGFL" className="h-5 w-auto" />
-              </div>
-              <span className="font-display text-xl text-burgundy-500 hidden sm:inline">
-                SURVIVOR FL
-              </span>
+              <img src="/logo.png" alt="RGFL" className="h-10 w-auto" />
             </Link>
 
-            {/* Center Nav Links */}
-            <div className="hidden lg:flex items-center gap-0.5">
+            {/* Center Nav Links - matching public nav style */}
+            <div className="hidden lg:flex items-center">
               <Link
                 to="/dashboard"
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
                   isActive('/dashboard')
-                    ? 'text-burgundy-600 bg-burgundy-50'
-                    : 'text-neutral-700 hover:bg-cream-100'
+                    ? 'text-burgundy-600'
+                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
                 }`}
               >
                 Dashboard
               </Link>
+              <span className="text-burgundy-300 mx-1">|</span>
               <Link
                 to="/leagues"
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
                   isActive('/leagues') && !location.pathname.includes('/create')
-                    ? 'text-burgundy-600 bg-burgundy-50'
-                    : 'text-neutral-700 hover:bg-cream-100'
+                    ? 'text-burgundy-600'
+                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
                 }`}
               >
                 Leagues
               </Link>
+              <span className="text-burgundy-300 mx-1">|</span>
               <Link
                 to="/castaways"
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
                   isActive('/castaways')
-                    ? 'text-burgundy-600 bg-burgundy-50'
-                    : 'text-neutral-700 hover:bg-cream-100'
+                    ? 'text-burgundy-600'
+                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
                 }`}
               >
                 Castaways
               </Link>
+              <span className="text-burgundy-300 mx-1">|</span>
               <Link
                 to="/leaderboard"
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
                   isActive('/leaderboard')
-                    ? 'text-burgundy-600 bg-burgundy-50'
-                    : 'text-neutral-700 hover:bg-cream-100'
+                    ? 'text-burgundy-600'
+                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
                 }`}
               >
                 Leaderboard
               </Link>
+              <span className="text-burgundy-300 mx-1">|</span>
               <div className="relative" ref={howToPlayRef}>
                 <button
                   onClick={() => setHowToPlayOpen(!howToPlayOpen)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+                  className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all flex items-center gap-1 ${
                     isActive('/how-to-play') || isActive('/scoring') || isActive('/timeline')
-                      ? 'text-burgundy-600 bg-burgundy-50'
-                      : 'text-neutral-700 hover:bg-cream-100'
+                      ? 'text-burgundy-600'
+                      : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
                   }`}
                 >
                   How to Play
@@ -334,11 +333,11 @@ export function Navigation() {
                   </div>
                 )}
               </div>
-
+              <span className="text-burgundy-300 mx-1">|</span>
               {/* TRIVIA - Highlighted */}
               <Link
                 to="/trivia"
-                className="trivia-pulse ml-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold rounded-lg text-sm flex items-center gap-1.5 hover:from-purple-600 hover:to-indigo-600 transition-all shadow-lg"
+                className="trivia-pulse ml-1 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold rounded-lg text-sm flex items-center gap-1.5 hover:from-purple-600 hover:to-indigo-600 transition-all shadow-lg uppercase tracking-wide"
               >
                 <Lightbulb className="w-4 h-4" />
                 Trivia
@@ -347,7 +346,7 @@ export function Navigation() {
             </div>
 
             {/* Right: User Menu */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -361,7 +360,7 @@ export function Navigation() {
               {/* Notification Bell */}
               <Link
                 to="/profile/notifications"
-                className="relative p-1.5 text-neutral-500 hover:text-neutral-700 hidden md:block"
+                className="relative p-1.5 text-neutral-500 hover:text-burgundy-600 hidden md:block"
                 title="Notification Settings"
               >
                 <Bell className="w-5 h-5" />
@@ -371,7 +370,7 @@ export function Navigation() {
               {isAdmin && (
                 <button
                   onClick={() => setViewMode('admin')}
-                  className="hidden sm:flex items-center gap-1 text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors"
+                  className="hidden sm:flex items-center gap-1 text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors uppercase tracking-wide"
                 >
                   <Shield className="h-3 w-3" />
                   Admin
@@ -379,12 +378,12 @@ export function Navigation() {
               )}
 
               {/* User Menu - Desktop */}
-              <div className="relative group hidden md:flex items-center gap-1.5 pl-3 border-l border-cream-200">
+              <div className="relative group hidden md:flex items-center gap-1.5 pl-3 border-l border-burgundy-200">
                 <button
-                  className="flex items-center gap-1.5 p-0.5 text-neutral-600 hover:text-neutral-800 transition-all"
+                  className="flex items-center gap-1.5 p-0.5 text-neutral-600 hover:text-burgundy-600 transition-all"
                   aria-haspopup="true"
                 >
-                  <div className="w-7 h-7 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                  <div className="w-8 h-8 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden">
                     {profile?.avatar_url ? (
                       <img
                         src={profile.avatar_url}
@@ -395,16 +394,16 @@ export function Navigation() {
                       getInitials(displayName) || '?'
                     )}
                   </div>
-                  <span className="text-neutral-700 text-sm font-medium hidden xl:inline">
+                  <span className="text-neutral-700 text-sm font-semibold hidden xl:inline uppercase tracking-wide">
                     {displayName?.split(' ')[0] || 'Player'}
                   </span>
                   <ChevronDown className="w-3 h-3 text-neutral-400" />
                 </button>
                 <div
-                  className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-float border border-cream-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all"
+                  className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-burgundy-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all"
                   role="menu"
                 >
-                  <div className="p-4 border-b border-cream-100">
+                  <div className="p-4 border-b border-burgundy-100">
                     <p className="font-semibold text-neutral-800">{displayName || 'Survivor'}</p>
                     <p className="text-sm text-neutral-400">Fantasy Player</p>
                   </div>
@@ -430,7 +429,7 @@ export function Navigation() {
                     >
                       Payment History
                     </Link>
-                    <hr className="my-2 border-cream-100" />
+                    <hr className="my-2 border-burgundy-100" />
                     <button
                       onClick={handleSignOut}
                       className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg focus:bg-red-50 focus:outline-none"
@@ -448,9 +447,9 @@ export function Navigation() {
           {mobileMenuOpen && (
             <div
               ref={mobileMenuRef}
-              className="lg:hidden border-t border-cream-200 py-2 bg-white rounded-b-2xl"
+              className="lg:hidden border-t border-burgundy-100 py-2 bg-white"
             >
-              <div className="px-4 py-3 border-b border-cream-100">
+              <div className="px-4 py-3 border-b border-burgundy-100">
                 <p className="font-semibold text-neutral-800">{displayName || 'Survivor'}</p>
                 <p className="text-sm text-neutral-400">Fantasy Player</p>
               </div>
@@ -459,7 +458,7 @@ export function Navigation() {
               <Link
                 to="/trivia"
                 onClick={() => setMobileMenuOpen(false)}
-                className="mx-4 mt-3 mb-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold rounded-xl flex items-center justify-center gap-2"
+                className="mx-4 mt-3 mb-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold rounded-lg flex items-center justify-center gap-2 uppercase tracking-wide"
               >
                 <Lightbulb className="w-5 h-5" />
                 Play Trivia
@@ -468,7 +467,7 @@ export function Navigation() {
 
               <Link
                 to="/dashboard"
-                className={`block px-4 py-3 text-sm font-semibold ${
+                className={`block px-4 py-3 text-sm font-semibold uppercase tracking-wide ${
                   isActive('/dashboard') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
                 }`}
               >
@@ -476,7 +475,7 @@ export function Navigation() {
               </Link>
               <Link
                 to="/leagues"
-                className={`block px-4 py-3 text-sm font-semibold ${
+                className={`block px-4 py-3 text-sm font-semibold uppercase tracking-wide ${
                   isActive('/leagues') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
                 }`}
               >
@@ -484,7 +483,7 @@ export function Navigation() {
               </Link>
               <Link
                 to="/castaways"
-                className={`block px-4 py-3 text-sm font-semibold ${
+                className={`block px-4 py-3 text-sm font-semibold uppercase tracking-wide ${
                   isActive('/castaways') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
                 }`}
               >
@@ -492,14 +491,16 @@ export function Navigation() {
               </Link>
               <Link
                 to="/leaderboard"
-                className={`block px-4 py-3 text-sm font-semibold ${
+                className={`block px-4 py-3 text-sm font-semibold uppercase tracking-wide ${
                   isActive('/leaderboard') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
                 }`}
               >
                 Leaderboard
               </Link>
               <div>
-                <div className="px-4 py-2 text-sm font-semibold text-neutral-800">How to Play</div>
+                <div className="px-4 py-2 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
+                  How to Play
+                </div>
                 <Link
                   to="/how-to-play"
                   className={`block px-8 py-2 text-sm ${
@@ -529,7 +530,7 @@ export function Navigation() {
                   Weekly Timeline
                 </Link>
               </div>
-              <hr className="my-2 border-cream-100" />
+              <hr className="my-2 border-burgundy-100" />
               <Link to="/profile" className="block px-4 py-3 text-sm text-neutral-600">
                 Profile Settings
               </Link>
@@ -545,15 +546,15 @@ export function Navigation() {
                     setViewMode('admin');
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full text-left px-4 py-3 text-sm text-orange-600 font-semibold"
+                  className="w-full text-left px-4 py-3 text-sm text-orange-600 font-semibold uppercase tracking-wide"
                 >
                   Switch to Admin View
                 </button>
               )}
-              <hr className="my-2 border-cream-100" />
+              <hr className="my-2 border-burgundy-100" />
               <button
                 onClick={handleSignOut}
-                className="w-full text-left px-4 py-3 text-sm text-red-600"
+                className="w-full text-left px-4 py-3 text-sm text-red-600 font-semibold"
               >
                 Sign out
               </button>

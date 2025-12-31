@@ -834,9 +834,6 @@ body {
 .ml-1 {
   margin-left: 0.25rem;
 }
-.ml-1\.5 {
-  margin-left: 0.375rem;
-}
 .ml-2 {
   margin-left: 0.5rem;
 }
@@ -1432,9 +1429,6 @@ body {
 .justify-between {
   justify-content: space-between;
 }
-.gap-0\.5 {
-  gap: 0.125rem;
-}
 .gap-1 {
   gap: 0.25rem;
 }
@@ -1552,10 +1546,6 @@ body {
 }
 .rounded-xl {
   border-radius: 12px;
-}
-.rounded-b-2xl {
-  border-bottom-right-radius: 16px;
-  border-bottom-left-radius: 16px;
 }
 .rounded-b-lg {
   border-bottom-right-radius: 0.5rem;
@@ -3693,10 +3683,6 @@ body {
 .hover\:text-neutral-600:hover {
   --tw-text-opacity: 1;
   color: rgb(82 82 82 / var(--tw-text-opacity, 1));
-}
-.hover\:text-neutral-700:hover {
-  --tw-text-opacity: 1;
-  color: rgb(64 64 64 / var(--tw-text-opacity, 1));
 }
 .hover\:text-neutral-800:hover {
   --tw-text-opacity: 1;
