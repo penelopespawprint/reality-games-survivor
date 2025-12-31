@@ -13,7 +13,7 @@ interface UserProfile {
 
 export function Navigation() {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
@@ -560,6 +560,24 @@ export function Navigation() {
               </button>
             </div>
           )}
+        </div>
+      </nav>
+    );
+  }
+
+  // While auth is loading, show a minimal nav to prevent flash of logged-out state
+  // This prevents the jarring switch from logged-in to logged-out UI during SPA navigation
+  if (loading) {
+    return (
+      <nav className="bg-white border-b-2 border-burgundy-500 shadow-sm sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="RGFL" className="h-10 w-auto" />
+            </Link>
+            {/* Empty right side while loading */}
+            <div className="w-24" />
+          </div>
         </div>
       </nav>
     );
