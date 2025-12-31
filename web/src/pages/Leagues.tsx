@@ -110,6 +110,10 @@ export default function Leagues() {
     const isMember = myMemberships?.includes(league.id);
     const isCommissioner = league.commissioner_id === user?.id;
 
+    // Hide private leagues unless user is a member or commissioner
+    // Users need the invite code to join private leagues
+    if (!league.is_public && !isMember && !isCommissioner) return false;
+
     if (filter === 'commissioner' && !isCommissioner) return false;
     if (filter === 'member' && !isMember) return false;
 
