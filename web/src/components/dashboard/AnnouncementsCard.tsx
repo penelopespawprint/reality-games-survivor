@@ -12,7 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 interface Announcement {
   id: string;
   title: string;
-  content: string;
+  body: string; // Database column is 'body', not 'content'
   priority: 'low' | 'medium' | 'high' | 'urgent';
   is_active: boolean;
   created_at: string;
@@ -111,7 +111,7 @@ export function AnnouncementsCard() {
                 <Icon className={`h-5 w-5 ${style.iconColor} flex-shrink-0 mt-0.5`} />
                 <div className="flex-1 min-w-0">
                   <h4 className={`font-semibold ${style.titleColor} mb-1`}>{announcement.title}</h4>
-                  <p className="text-neutral-600 text-sm line-clamp-2">{announcement.content}</p>
+                  <p className="text-neutral-600 text-sm line-clamp-2">{announcement.body}</p>
                   <p className="text-neutral-400 text-xs mt-2">
                     {formatDistanceToNow(new Date(announcement.created_at), { addSuffix: true })}
                   </p>
