@@ -2,15 +2,23 @@
  * Home Page - Main landing page for survivor.realitygamesfantasyleague.com
  *
  * Fantasy Survivor landing with Season 50 signup CTAs and trivia email signup.
+ * Redirects logged-in users to the dashboard.
  */
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { CheckCircle, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
 export function Home() {
+  const { user, loading } = useAuth();
+
+  // Redirect logged-in users to dashboard
+  if (!loading && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
