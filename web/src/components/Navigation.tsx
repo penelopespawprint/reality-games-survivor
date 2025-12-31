@@ -224,129 +224,82 @@ export function Navigation() {
     );
   }
 
-  // Authenticated player navigation - matches public nav design
+  // Authenticated player navigation - clean horizontal layout
   if (user) {
     return (
-      <nav className="bg-white border-b-2 border-burgundy-500 shadow-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="bg-white border-b border-neutral-200 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/dashboard" className="flex items-center gap-2">
+            {/* Logo only - no text */}
+            <Link to="/dashboard" className="flex-shrink-0">
               <img src="/logo.png" alt="RGFL" className="h-10 w-auto" />
             </Link>
 
-            {/* Center Nav Links - matching public nav style */}
-            <div className="hidden lg:flex items-center">
+            {/* Center Nav Links - clean horizontal style */}
+            <div className="hidden lg:flex items-center gap-1">
               <Link
                 to="/dashboard"
-                className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive('/dashboard')
-                    ? 'text-burgundy-600'
-                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
+                    ? 'text-burgundy-600 bg-burgundy-50'
+                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                 }`}
               >
                 Dashboard
               </Link>
-              <span className="text-burgundy-300 mx-1">|</span>
               <Link
                 to="/leagues"
-                className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive('/leagues') && !location.pathname.includes('/create')
-                    ? 'text-burgundy-600'
-                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
+                    ? 'text-burgundy-600 bg-burgundy-50'
+                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                 }`}
               >
                 Leagues
               </Link>
-              <span className="text-burgundy-300 mx-1">|</span>
               <Link
                 to="/castaways"
-                className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive('/castaways')
-                    ? 'text-burgundy-600'
-                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
+                    ? 'text-burgundy-600 bg-burgundy-50'
+                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                 }`}
               >
                 Castaways
               </Link>
-              <span className="text-burgundy-300 mx-1">|</span>
               <Link
                 to="/leaderboard"
-                className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   isActive('/leaderboard')
-                    ? 'text-burgundy-600'
-                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
+                    ? 'text-burgundy-600 bg-burgundy-50'
+                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                 }`}
               >
                 Leaderboard
               </Link>
-              <span className="text-burgundy-300 mx-1">|</span>
-              <div className="relative" ref={howToPlayRef}>
-                <button
-                  onClick={() => setHowToPlayOpen(!howToPlayOpen)}
-                  className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all flex items-center gap-1 ${
-                    isActive('/how-to-play') || isActive('/scoring') || isActive('/timeline')
-                      ? 'text-burgundy-600'
-                      : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
-                  }`}
-                >
-                  How to Play
-                  <ChevronDown
-                    className={`h-3 w-3 transition-transform ${howToPlayOpen ? 'rotate-180' : ''}`}
-                  />
-                </button>
-                {howToPlayOpen && (
-                  <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-cream-200 min-w-[200px] z-50">
-                    <Link
-                      to="/how-to-play"
-                      onClick={() => setHowToPlayOpen(false)}
-                      className={`block px-4 py-2 text-sm hover:bg-burgundy-50 rounded-t-lg ${
-                        isActive('/how-to-play') && !isActive('/scoring') && !isActive('/timeline')
-                          ? 'text-burgundy-600 bg-burgundy-50'
-                          : 'text-neutral-600'
-                      }`}
-                    >
-                      How to Play
-                    </Link>
-                    <Link
-                      to="/scoring-rules"
-                      onClick={() => setHowToPlayOpen(false)}
-                      className={`block px-4 py-2 text-sm hover:bg-burgundy-50 ${
-                        isActive('/scoring') || isActive('/scoring-rules')
-                          ? 'text-burgundy-600 bg-burgundy-50'
-                          : 'text-neutral-600'
-                      }`}
-                    >
-                      Scoring Rules
-                    </Link>
-                    <Link
-                      to="/timeline"
-                      onClick={() => setHowToPlayOpen(false)}
-                      className={`block px-4 py-2 text-sm hover:bg-burgundy-50 rounded-b-lg ${
-                        isActive('/timeline')
-                          ? 'text-burgundy-600 bg-burgundy-50'
-                          : 'text-neutral-600'
-                      }`}
-                    >
-                      Weekly Timeline
-                    </Link>
-                  </div>
-                )}
-              </div>
-              <span className="text-burgundy-300 mx-1">|</span>
-              {/* TRIVIA - Highlighted */}
+              <Link
+                to="/how-to-play"
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  isActive('/how-to-play') || isActive('/scoring') || isActive('/timeline')
+                    ? 'text-burgundy-600 bg-burgundy-50'
+                    : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
+                }`}
+              >
+                How to Play
+              </Link>
+              {/* TRIVIA - Highlighted with animation */}
               <Link
                 to="/trivia"
-                className="trivia-pulse ml-1 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold rounded-lg text-sm flex items-center gap-1.5 hover:from-purple-600 hover:to-indigo-600 transition-all shadow-lg uppercase tracking-wide"
+                className="trivia-pulse ml-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold rounded-full text-sm flex items-center gap-2 hover:from-purple-600 hover:to-indigo-600 transition-all shadow-md"
               >
                 <Lightbulb className="w-4 h-4" />
                 Trivia
-                <span className="bg-white/20 px-1 py-0.5 rounded text-[10px]">NEW</span>
+                <span className="bg-white/25 px-1.5 py-0.5 rounded text-[10px] font-bold">NEW</span>
               </Link>
             </div>
 
-            {/* Right: User Menu */}
-            <div className="flex items-center gap-3">
+            {/* Right: Notification + User Menu */}
+            <div className="flex items-center gap-2">
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -357,33 +310,35 @@ export function Navigation() {
                 {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
 
-              {/* Notification Bell */}
-              <Link
-                to="/profile/notifications"
-                className="relative p-1.5 text-neutral-500 hover:text-burgundy-600 hidden md:block"
-                title="Notification Settings"
-              >
-                <Bell className="w-5 h-5" />
-              </Link>
-
-              {/* Admin View Toggle (only for admins) */}
+              {/* Admin View Toggle (only for admins) - subtle */}
               {isAdmin && (
                 <button
                   onClick={() => setViewMode('admin')}
-                  className="hidden sm:flex items-center gap-1 text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors uppercase tracking-wide"
+                  className="hidden sm:flex items-center gap-1 text-xs font-medium text-orange-600 hover:text-orange-700 px-2 py-1 rounded transition-colors"
+                  title="Switch to Admin View"
                 >
-                  <Shield className="h-3 w-3" />
-                  Admin
+                  <Shield className="h-4 w-4" />
                 </button>
               )}
 
+              {/* Notification Bell */}
+              <Link
+                to="/profile/notifications"
+                className="relative p-2 text-neutral-400 hover:text-burgundy-600 hidden md:block rounded-full hover:bg-neutral-50 transition-colors"
+                title="Notification Settings"
+              >
+                <Bell className="w-5 h-5" />
+                {/* Red dot for unread - can be conditionally shown */}
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+              </Link>
+
               {/* User Menu - Desktop */}
-              <div className="relative group hidden md:flex items-center gap-1.5 pl-3 border-l border-burgundy-200">
+              <div className="relative group hidden md:flex items-center">
                 <button
-                  className="flex items-center gap-1.5 p-0.5 text-neutral-600 hover:text-burgundy-600 transition-all"
+                  className="flex items-center gap-2 p-1 pr-2 text-neutral-600 hover:bg-neutral-50 rounded-full transition-all"
                   aria-haspopup="true"
                 >
-                  <div className="w-8 h-8 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                  <div className="w-9 h-9 bg-burgundy-500 rounded-full flex items-center justify-center text-white text-sm font-bold overflow-hidden">
                     {profile?.avatar_url ? (
                       <img
                         src={profile.avatar_url}
@@ -394,45 +349,58 @@ export function Navigation() {
                       getInitials(displayName) || '?'
                     )}
                   </div>
-                  <span className="text-neutral-700 text-sm font-semibold hidden xl:inline uppercase tracking-wide">
+                  <span className="text-neutral-700 text-sm font-medium max-w-[100px] truncate">
                     {displayName?.split(' ')[0] || 'Player'}
                   </span>
-                  <ChevronDown className="w-3 h-3 text-neutral-400" />
+                  <ChevronDown className="w-4 h-4 text-neutral-400" />
                 </button>
                 <div
-                  className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-burgundy-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all"
+                  className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-neutral-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all"
                   role="menu"
                 >
-                  <div className="p-4 border-b border-burgundy-100">
+                  <div className="p-4 border-b border-neutral-100">
                     <p className="font-semibold text-neutral-800">{displayName || 'Survivor'}</p>
                     <p className="text-sm text-neutral-400">Fantasy Player</p>
                   </div>
                   <div className="p-2">
                     <Link
                       to="/profile"
-                      className="block px-3 py-2 text-sm text-neutral-600 hover:bg-burgundy-50 rounded-lg focus:bg-burgundy-50 focus:outline-none"
+                      className="block px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50 rounded-lg"
                       role="menuitem"
                     >
                       Profile Settings
                     </Link>
                     <Link
                       to="/profile/notifications"
-                      className="block px-3 py-2 text-sm text-neutral-600 hover:bg-burgundy-50 rounded-lg focus:bg-burgundy-50 focus:outline-none"
+                      className="block px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50 rounded-lg"
                       role="menuitem"
                     >
                       Notifications
                     </Link>
                     <Link
                       to="/profile/payments"
-                      className="block px-3 py-2 text-sm text-neutral-600 hover:bg-burgundy-50 rounded-lg focus:bg-burgundy-50 focus:outline-none"
+                      className="block px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50 rounded-lg"
                       role="menuitem"
                     >
                       Payment History
                     </Link>
-                    <hr className="my-2 border-burgundy-100" />
+                    {isAdmin && (
+                      <>
+                        <hr className="my-2 border-neutral-100" />
+                        <button
+                          onClick={() => setViewMode('admin')}
+                          className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2"
+                          role="menuitem"
+                        >
+                          <Shield className="h-4 w-4" />
+                          Switch to Admin
+                        </button>
+                      </>
+                    )}
+                    <hr className="my-2 border-neutral-100" />
                     <button
                       onClick={handleSignOut}
-                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg focus:bg-red-50 focus:outline-none"
+                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
                       role="menuitem"
                     >
                       Sign out
@@ -566,16 +534,14 @@ export function Navigation() {
   }
 
   // While auth is loading, show a minimal nav to prevent flash of logged-out state
-  // This prevents the jarring switch from logged-in to logged-out UI during SPA navigation
   if (loading) {
     return (
-      <nav className="bg-white border-b-2 border-burgundy-500 shadow-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="bg-white border-b border-neutral-200 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/" className="flex-shrink-0">
               <img src="/logo.png" alt="RGFL" className="h-10 w-auto" />
             </Link>
-            {/* Empty right side while loading */}
             <div className="w-24" />
           </div>
         </div>
@@ -583,63 +549,62 @@ export function Navigation() {
     );
   }
 
-  // Public/unauthenticated navigation
+  // Public/unauthenticated navigation - clean horizontal layout
   return (
-    <nav className="bg-white border-b-2 border-burgundy-500 shadow-sm sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-white border-b border-neutral-200 shadow-sm sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
+          {/* Logo only */}
+          <Link to="/" className="flex-shrink-0">
             <img src="/logo.png" alt="RGFL" className="h-10 w-auto" />
           </Link>
 
-          <div className="hidden md:flex items-center">
+          {/* Center Nav Links */}
+          <div className="hidden md:flex items-center gap-1">
             <Link
               to="/"
-              className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                 location.pathname === '/'
-                  ? 'text-burgundy-600'
-                  : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
+                  ? 'text-burgundy-600 bg-burgundy-50'
+                  : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
               }`}
             >
               Home
             </Link>
-            <span className="text-burgundy-300 mx-1">|</span>
             <Link
               to="/how-to-play"
-              className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                 isActive('/how-to-play')
-                  ? 'text-burgundy-600'
-                  : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
+                  ? 'text-burgundy-600 bg-burgundy-50'
+                  : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
               }`}
             >
               How to Play
             </Link>
-            <span className="text-burgundy-300 mx-1">|</span>
             <Link
               to="/scoring-rules"
-              className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                 isActive('/scoring-rules') || isActive('/scoring')
-                  ? 'text-burgundy-600'
-                  : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
+                  ? 'text-burgundy-600 bg-burgundy-50'
+                  : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
               }`}
             >
               Scoring Rules
             </Link>
-            <span className="text-burgundy-300 mx-1">|</span>
             <Link
               to="/contact"
-              className={`px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                 isActive('/contact')
-                  ? 'text-burgundy-600'
-                  : 'text-neutral-600 hover:text-burgundy-600 hover:bg-burgundy-50'
+                  ? 'text-burgundy-600 bg-burgundy-50'
+                  : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
               }`}
             >
               Contact
             </Link>
           </div>
 
+          {/* Right: Login + Sign Up */}
           <div className="flex items-center gap-3">
-            {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 text-neutral-600 hover:text-burgundy-600"
@@ -650,11 +615,14 @@ export function Navigation() {
             </button>
             <Link
               to="/login"
-              className="hidden sm:block text-neutral-600 hover:text-burgundy-600 font-semibold text-sm uppercase tracking-wide"
+              className="hidden sm:block text-neutral-600 hover:text-burgundy-600 font-medium text-sm px-4 py-2 rounded-lg hover:bg-neutral-50 transition-colors"
             >
               Login
             </Link>
-            <Link to="/signup" className="btn btn-primary shadow-elevated">
+            <Link
+              to="/signup"
+              className="bg-burgundy-500 hover:bg-burgundy-600 text-white font-semibold text-sm px-5 py-2 rounded-full transition-colors shadow-sm"
+            >
               Sign Up Free
             </Link>
           </div>
@@ -662,43 +630,49 @@ export function Navigation() {
 
         {/* Mobile Menu - Public */}
         {mobileMenuOpen && (
-          <div ref={mobileMenuRef} className="md:hidden border-t border-burgundy-100 py-2 bg-white">
+          <div ref={mobileMenuRef} className="md:hidden border-t border-neutral-100 py-2 bg-white">
             <Link
               to="/"
-              className={`block px-4 py-3 text-sm font-semibold ${
-                location.pathname === '/' ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
+              className={`block px-4 py-3 text-sm font-medium rounded-lg mx-2 ${
+                location.pathname === '/'
+                  ? 'text-burgundy-600 bg-burgundy-50'
+                  : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >
               Home
             </Link>
             <Link
               to="/how-to-play"
-              className={`block px-4 py-3 text-sm font-semibold ${
-                isActive('/how-to-play') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
+              className={`block px-4 py-3 text-sm font-medium rounded-lg mx-2 ${
+                isActive('/how-to-play')
+                  ? 'text-burgundy-600 bg-burgundy-50'
+                  : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >
               How to Play
             </Link>
             <Link
               to="/scoring-rules"
-              className={`block px-4 py-3 text-sm font-semibold ${
+              className={`block px-4 py-3 text-sm font-medium rounded-lg mx-2 ${
                 isActive('/scoring-rules') || isActive('/scoring')
                   ? 'text-burgundy-600 bg-burgundy-50'
-                  : 'text-neutral-600'
+                  : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >
               Scoring Rules
             </Link>
             <Link
               to="/contact"
-              className={`block px-4 py-3 text-sm font-semibold ${
-                isActive('/contact') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
+              className={`block px-4 py-3 text-sm font-medium rounded-lg mx-2 ${
+                isActive('/contact')
+                  ? 'text-burgundy-600 bg-burgundy-50'
+                  : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >
               Contact
             </Link>
-            <hr className="my-2 border-cream-100" />
-            <Link to="/login" className="block px-4 py-3 text-sm font-semibold text-neutral-600">
+            <hr className="my-2 border-neutral-100 mx-4" />
+            <Link to="/login" className="block px-4 py-3 text-sm font-medium text-neutral-600 mx-2">
               Login
             </Link>
           </div>
