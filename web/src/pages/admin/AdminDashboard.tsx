@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { Navigation } from '@/components/Navigation';
+import { AdminNavigation } from '@/components/AdminNavigation';
 import { TimelineFeed } from '@/components/admin/TimelineFeed';
 import { StatsGrid } from '@/components/admin/StatsGrid';
 import { SystemHealthBanner } from '@/components/admin/SystemHealthBanner';
@@ -256,7 +256,7 @@ export function AdminDashboard() {
   if (profile && profile.role !== 'admin') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200">
-        <Navigation />
+        <AdminNavigation />
         <main className="max-w-4xl mx-auto px-4 py-16 text-center">
           <div className="bg-white rounded-2xl shadow-elevated p-12">
             <div className="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
@@ -279,7 +279,7 @@ export function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#faf8f5]">
-      <Navigation />
+      <AdminNavigation />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}

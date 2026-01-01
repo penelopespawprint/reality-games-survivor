@@ -4,7 +4,7 @@
  * Functions for determining the current game and weekly phase.
  */
 
-import type { Season, Episode, GamePhase, WeeklyPhase, WeeklyPhaseInfo } from '@/types';
+import type { Season, Episode, GamePhase, WeeklyPhaseInfo } from '@/types';
 
 /**
  * Determine the current game phase based on season and episode data

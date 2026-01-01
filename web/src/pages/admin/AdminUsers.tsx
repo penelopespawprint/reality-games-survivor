@@ -13,7 +13,7 @@ import {
 import { apiWithAuth } from '@/lib/api';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { Navigation } from '@/components/Navigation';
+import { AdminNavigation } from '@/components/AdminNavigation';
 import { UserStats, UserFilters, UserCard } from '@/components/admin/users';
 
 type UserRole = 'player' | 'commissioner' | 'admin';
@@ -206,7 +206,7 @@ export function AdminUsers() {
   if (fetchError) {
     return (
       <>
-        <Navigation />
+        <AdminNavigation />
         <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-card p-8 border border-red-200 text-center max-w-md">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -231,7 +231,7 @@ export function AdminUsers() {
   if (isLoading) {
     return (
       <>
-        <Navigation />
+        <AdminNavigation />
         <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
           <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
         </div>
@@ -241,7 +241,7 @@ export function AdminUsers() {
 
   return (
     <>
-      <Navigation />
+      <AdminNavigation />
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">

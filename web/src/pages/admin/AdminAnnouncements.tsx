@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { apiWithAuth } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { Navigation } from '@/components/Navigation';
+import { AdminNavigation } from '@/components/AdminNavigation';
 import { formatDistanceToNow, format } from 'date-fns';
 
 type Priority = 'low' | 'medium' | 'high' | 'urgent';
@@ -189,11 +189,9 @@ export function AdminAnnouncements() {
     mutationFn: async (id: string) => {
       if (!session?.access_token) throw new Error('Not authenticated');
 
-      const response = await apiWithAuth(
-        `/admin/announcements/${id}`,
-        session.access_token,
-        { method: 'DELETE' }
-      );
+      const response = await apiWithAuth(`/admin/announcements/${id}`, session.access_token, {
+        method: 'DELETE',
+      });
 
       if (response.error) throw new Error(response.error);
       return response.data;
@@ -255,16 +253,13 @@ export function AdminAnnouncements() {
 
   return (
     <div className="min-h-screen bg-cream-50">
-      <Navigation />
+      <AdminNavigation />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link
-              to="/admin"
-              className="p-2 hover:bg-cream-200 rounded-lg transition-colors"
-            >
+            <Link to="/admin" className="p-2 hover:bg-cream-200 rounded-lg transition-colors">
               <ArrowLeft className="h-5 w-5 text-neutral-600" />
             </Link>
             <div>
@@ -312,9 +307,7 @@ export function AdminAnnouncements() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  Title *
-                </label>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Title *</label>
                 <input
                   type="text"
                   value={form.title}
@@ -325,9 +318,7 @@ export function AdminAnnouncements() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
-                  Content *
-                </label>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Content *</label>
                 <textarea
                   value={form.content}
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
@@ -386,7 +377,7 @@ export function AdminAnnouncements() {
                   disabled={createMutation.isPending || updateMutation.isPending}
                   className="btn btn-primary flex items-center gap-2"
                 >
-                  {(createMutation.isPending || updateMutation.isPending) ? (
+                  {createMutation.isPending || updateMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Save className="h-4 w-4" />
@@ -422,10 +413,7 @@ export function AdminAnnouncements() {
               Create your first announcement to display on user dashboards.
             </p>
             {!isCreating && (
-              <button
-                onClick={() => setIsCreating(true)}
-                className="btn btn-primary"
-              >
+              <button onClick={() => setIsCreating(true)} className="btn btn-primary">
                 Create Announcement
               </button>
             )}
@@ -449,35 +437,37 @@ export function AdminAnnouncements() {
                           )}`}
                         >
                           {getPriorityIcon(announcement.priority)}
-                          {announcement.priority.charAt(0).toUpperCase() + announcement.priority.slice(1)}
+                          {announcement.priority.charAt(0).toUpperCase() +
+                            announcement.priority.slice(1)}
                         </span>
                         {!announcement.is_active && (
                           <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600">
                             Inactive
                           </span>
                         )}
-                        {announcement.expires_at && new Date(announcement.expires_at) < new Date() && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">
-                            Expired
-                          </span>
-                        )}
+                        {announcement.expires_at &&
+                          new Date(announcement.expires_at) < new Date() && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">
+                              Expired
+                            </span>
+                          )}
                       </div>
 
-                      <h3 className="font-semibold text-neutral-800 mb-1">
-                        {announcement.title}
-                      </h3>
-                      <p className="text-neutral-600 text-sm mb-3">
-                        {announcement.content}
-                      </p>
+                      <h3 className="font-semibold text-neutral-800 mb-1">{announcement.title}</h3>
+                      <p className="text-neutral-600 text-sm mb-3">{announcement.content}</p>
 
                       <div className="flex items-center gap-4 text-xs text-neutral-400">
                         <span>
-                          Created {formatDistanceToNow(new Date(announcement.created_at), { addSuffix: true })}
+                          Created{' '}
+                          {formatDistanceToNow(new Date(announcement.created_at), {
+                            addSuffix: true,
+                          })}
                         </span>
                         {announcement.expires_at && (
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            Expires {format(new Date(announcement.expires_at), 'MMM d, yyyy h:mm a')}
+                            Expires{' '}
+                            {format(new Date(announcement.expires_at), 'MMM d, yyyy h:mm a')}
                           </span>
                         )}
                       </div>

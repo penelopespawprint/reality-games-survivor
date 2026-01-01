@@ -15,7 +15,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { Navigation } from '@/components/Navigation';
+import { AdminNavigation } from '@/components/AdminNavigation';
 
 export function AdminEpisodes() {
   const { seasonId } = useParams<{ seasonId: string }>();
@@ -113,16 +113,13 @@ export function AdminEpisodes() {
       if (!session) throw new Error('Not authenticated');
 
       const apiBase = import.meta.env.VITE_API_URL || '';
-      const response = await fetch(
-        `${apiBase}/api/admin/episodes/${episodeId}/lock`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await fetch(`${apiBase}/api/admin/episodes/${episodeId}/lock`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
       const data = await response.json();
 
@@ -150,16 +147,13 @@ export function AdminEpisodes() {
       if (!session) throw new Error('Not authenticated');
 
       const apiBase = import.meta.env.VITE_API_URL || '';
-      const response = await fetch(
-        `${apiBase}/api/admin/episodes/${episodeId}/release-results`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await fetch(`${apiBase}/api/admin/episodes/${episodeId}/release-results`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
       const data = await response.json();
 
@@ -263,7 +257,7 @@ export function AdminEpisodes() {
   if (isLoading) {
     return (
       <>
-        <Navigation />
+        <AdminNavigation />
         <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex items-center justify-center">
           <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
         </div>
@@ -273,7 +267,7 @@ export function AdminEpisodes() {
 
   return (
     <>
-      <Navigation />
+      <AdminNavigation />
       <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -503,9 +497,7 @@ export function AdminEpisodes() {
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-center gap-2 text-amber-600 text-sm py-2">
                     <Lock className="h-4 w-4" />
-                    <span>
-                      Locked - releasing automatically
-                    </span>
+                    <span>Locked - releasing automatically</span>
                   </div>
                   <button
                     onClick={() => {
