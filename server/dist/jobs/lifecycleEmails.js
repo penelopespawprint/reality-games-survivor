@@ -1,22 +1,55 @@
 /**
  * Lifecycle Email Jobs
  * Scheduled jobs that send emails based on user lifecycle stage
+ *
+ * RATE LIMITING:
+ * - Max 2 lifecycle (non-transactional) emails per user per week
+ * - Same email type cannot be sent twice within 3 days
+ * - Skip users who have already completed the action the email is nudging them to do
  */
 import { supabaseAdmin } from '../config/supabase.js';
 import { EmailService } from '../emails/service.js';
 import { DateTime } from 'luxon';
 const BASE_URL = process.env.FRONTEND_URL || 'https://survivor.realitygamesfantasyleague.com';
+const MAX_LIFECYCLE_EMAILS_PER_WEEK = 2;
+/**
+ * Check if a user can receive a lifecycle email (rate limit check)
+ */
+async function canSendLifecycleEmail(userId, emailType) {
+    const { data } = await supabaseAdmin.rpc('can_send_lifecycle_email', {
+        p_user_id: userId,
+        p_email_type: emailType,
+        p_max_per_week: MAX_LIFECYCLE_EMAILS_PER_WEEK,
+    });
+    return data === true;
+}
+/**
+ * Log that a lifecycle email was sent
+ */
+async function logLifecycleEmail(userId, emailType) {
+    await supabaseAdmin.rpc('log_lifecycle_email', {
+        p_user_id: userId,
+        p_email_type: emailType,
+    });
+}
 /**
  * Send join league nudge emails
  * Target: Users who signed up 3+ days ago but haven't joined any non-global league
+ * Skip: Users who have already joined a league, made picks, or completed draft rankings
  */
 export async function sendJoinLeagueNudges() {
-    const result = { success: false, emailsSent: 0, errors: [] };
+    const result = {
+        success: false,
+        emailsSent: 0,
+        skippedRateLimit: 0,
+        skippedAlreadyActioned: 0,
+        errors: []
+    };
     try {
+        const EMAIL_TYPE = 'join-league-nudge';
         // Get users who signed up 3-7 days ago
         const threeDaysAgo = DateTime.now().minus({ days: 3 }).toISO();
         const sevenDaysAgo = DateTime.now().minus({ days: 7 }).toISO();
-        // Get all users who signed up in this window
         const { data: users, error: usersError } = await supabaseAdmin
             .from('users')
             .select('id, email, display_name, created_at')
@@ -27,22 +60,51 @@ export async function sendJoinLeagueNudges() {
             result.success = true;
             return result;
         }
-        // Get users who are in non-global leagues
+        // Get users who are already in non-global leagues (they've actioned!)
         const { data: leagueMembers } = await supabaseAdmin
             .from('league_members')
             .select('user_id, leagues!inner(is_global)')
             .eq('leagues.is_global', false)
             .in('user_id', users.map((u) => u.id));
         const usersInPrivateLeagues = new Set(leagueMembers?.map((m) => m.user_id) || []);
+        // Get users who have made ANY picks (they're engaged!)
+        const { data: pickers } = await supabaseAdmin
+            .from('weekly_picks')
+            .select('user_id')
+            .in('user_id', users.map((u) => u.id));
+        const usersWithPicks = new Set(pickers?.map((p) => p.user_id) || []);
+        // Get users who have completed draft rankings (they're engaged!)
+        const { data: rankers } = await supabaseAdmin
+            .from('draft_rankings')
+            .select('user_id')
+            .in('user_id', users.map((u) => u.id));
+        const usersWithRankings = new Set(rankers?.map((r) => r.user_id) || []);
         // Get current season info
         const { data: season } = await supabaseAdmin
             .from('seasons')
             .select('name, premiere_date')
             .eq('is_active', true)
             .single();
-        // Filter to users who need the nudge
-        const usersToNudge = users.filter((u) => !usersInPrivateLeagues.has(u.id));
-        for (const user of usersToNudge) {
+        for (const user of users) {
+            // Skip if user has already taken action
+            if (usersInPrivateLeagues.has(user.id)) {
+                result.skippedAlreadyActioned++;
+                continue;
+            }
+            if (usersWithPicks.has(user.id)) {
+                result.skippedAlreadyActioned++;
+                continue;
+            }
+            if (usersWithRankings.has(user.id)) {
+                result.skippedAlreadyActioned++;
+                continue;
+            }
+            // Check rate limit
+            const canSend = await canSendLifecycleEmail(user.id, EMAIL_TYPE);
+            if (!canSend) {
+                result.skippedRateLimit++;
+                continue;
+            }
             try {
                 const daysSinceSignup = Math.floor(DateTime.now().diff(DateTime.fromISO(user.created_at), 'days').days);
                 await EmailService.sendJoinLeagueNudge({
@@ -52,6 +114,7 @@ export async function sendJoinLeagueNudges() {
                     seasonName: season?.name || 'Season 50',
                     premiereDate: season?.premiere_date ? new Date(season.premiere_date) : new Date(),
                 });
+                await logLifecycleEmail(user.id, EMAIL_TYPE);
                 result.emailsSent++;
             }
             catch (err) {
@@ -68,11 +131,19 @@ export async function sendJoinLeagueNudges() {
 }
 /**
  * Send pre-season hype emails
- * Target: All users, sent at specific intervals before premiere (14, 7, 3, 1 days)
+ * Target: Users at specific intervals before premiere (14, 7, 3, 1 days)
+ * Skip: Users who have already completed their draft rankings for this season
  */
 export async function sendPreSeasonHype() {
-    const result = { success: false, emailsSent: 0, errors: [] };
+    const result = {
+        success: false,
+        emailsSent: 0,
+        skippedRateLimit: 0,
+        skippedAlreadyActioned: 0,
+        errors: []
+    };
     try {
+        const EMAIL_TYPE = 'pre-season-hype';
         // Get active season
         const { data: season } = await supabaseAdmin
             .from('seasons')
@@ -103,17 +174,49 @@ export async function sendPreSeasonHype() {
         // Get users in leagues for this season
         const { data: leagueMembers } = await supabaseAdmin
             .from('league_members')
-            .select('user_id, leagues!inner(name)')
+            .select('user_id, leagues!inner(name, id)')
             .eq('leagues.season_id', season.id);
         const userLeagues = new Map();
+        const usersInLeagues = new Set();
         leagueMembers?.forEach((m) => {
+            usersInLeagues.add(m.user_id);
             if (!userLeagues.has(m.user_id)) {
                 userLeagues.set(m.user_id, m.leagues.name);
             }
         });
+        // Get users who have completed their draft rankings for this season
+        // These users are "ready" - the hype email would be redundant
+        const { data: completedRankings } = await supabaseAdmin
+            .from('draft_rankings')
+            .select('user_id, league_id')
+            .in('user_id', users.map((u) => u.id));
+        // Count rankings per user - if they have 24 (all castaways ranked), they're done
+        const userRankingCounts = new Map();
+        completedRankings?.forEach((r) => {
+            const count = userRankingCounts.get(r.user_id) || 0;
+            userRankingCounts.set(r.user_id, count + 1);
+        });
+        // Users with 24+ rankings have completed their prep
+        const usersFullyPrepped = new Set();
+        userRankingCounts.forEach((count, userId) => {
+            if (count >= 24)
+                usersFullyPrepped.add(userId);
+        });
         for (const user of users) {
+            const hasLeague = usersInLeagues.has(user.id);
+            const isFullyPrepped = usersFullyPrepped.has(user.id);
+            // Skip users who are fully prepped - they don't need hype, they're ready!
+            if (isFullyPrepped) {
+                result.skippedAlreadyActioned++;
+                continue;
+            }
+            // Check rate limit
+            const canSend = await canSendLifecycleEmail(user.id, EMAIL_TYPE);
+            if (!canSend) {
+                result.skippedRateLimit++;
+                continue;
+            }
             try {
-                const hasLeague = userLeagues.has(user.id);
                 await EmailService.sendPreSeasonHype({
                     displayName: user.display_name || 'Survivor Fan',
                     email: user.email,
@@ -124,6 +227,7 @@ export async function sendPreSeasonHype() {
                     hasLeague,
                     leagueName: hasLeague ? userLeagues.get(user.id) : undefined,
                 });
+                await logLifecycleEmail(user.id, EMAIL_TYPE);
                 result.emailsSent++;
             }
             catch (err) {
@@ -140,11 +244,19 @@ export async function sendPreSeasonHype() {
 }
 /**
  * Send inactivity reminder emails
- * Target: Users who haven't logged in or made a pick in 7+ days during active season
+ * Target: Users who haven't made a pick in 7+ days during active season
+ * Skip: Users who have made a pick for the current/upcoming episode
  */
 export async function sendInactivityReminders() {
-    const result = { success: false, emailsSent: 0, errors: [] };
+    const result = {
+        success: false,
+        emailsSent: 0,
+        skippedRateLimit: 0,
+        skippedAlreadyActioned: 0,
+        errors: []
+    };
     try {
+        const EMAIL_TYPE = 'inactivity-reminder';
         // Get active season
         const { data: season } = await supabaseAdmin
             .from('seasons')
@@ -155,39 +267,79 @@ export async function sendInactivityReminders() {
             result.success = true;
             return result;
         }
+        // Get the current/upcoming episode (next one that isn't locked)
+        const { data: currentEpisode } = await supabaseAdmin
+            .from('episodes')
+            .select('id, episode_number')
+            .eq('season_id', season.id)
+            .eq('picks_locked', false)
+            .order('episode_number', { ascending: true })
+            .limit(1)
+            .single();
+        // Get users who have already made a pick for the current episode
+        // These users are active - don't bug them!
+        const usersWithCurrentPick = new Set();
+        if (currentEpisode) {
+            const { data: currentPicks } = await supabaseAdmin
+                .from('weekly_picks')
+                .select('user_id')
+                .eq('episode_id', currentEpisode.id);
+            currentPicks?.forEach((p) => usersWithCurrentPick.add(p.user_id));
+        }
         const sevenDaysAgo = DateTime.now().minus({ days: 7 }).toISO();
-        // Get users who have made picks in this season
+        // Get users who have made picks recently (last 7 days) - they're active
         const { data: recentPickers } = await supabaseAdmin
             .from('weekly_picks')
             .select('user_id')
             .gte('created_at', sevenDaysAgo);
-        const activeUserIds = new Set(recentPickers?.map((p) => p.user_id) || []);
-        // Get users in leagues for this season who haven't been active
+        const recentActiveUserIds = new Set(recentPickers?.map((p) => p.user_id) || []);
+        // Get users in leagues for this season
         const { data: leagueMembers } = await supabaseAdmin
             .from('league_members')
             .select('user_id, users!inner(email, display_name, last_sign_in_at)')
             .not('users.email', 'is', null);
-        // Count missed episodes per user
+        // Count total locked episodes
         const { data: episodes } = await supabaseAdmin
             .from('episodes')
             .select('id')
             .eq('season_id', season.id)
             .eq('picks_locked', true);
         const totalLockedEpisodes = episodes?.length || 0;
+        // Deduplicate users (they might be in multiple leagues)
+        const processedUsers = new Set();
         for (const member of leagueMembers || []) {
             const userId = member.user_id;
             const user = member.users;
-            // Skip if user was recently active
-            if (activeUserIds.has(userId))
+            // Skip if already processed
+            if (processedUsers.has(userId))
                 continue;
-            // Check last sign in
+            processedUsers.add(userId);
+            // Skip if user made a pick for the current episode - they're engaged!
+            if (usersWithCurrentPick.has(userId)) {
+                result.skippedAlreadyActioned++;
+                continue;
+            }
+            // Skip if user was recently active (made any pick in last 7 days)
+            if (recentActiveUserIds.has(userId)) {
+                result.skippedAlreadyActioned++;
+                continue;
+            }
+            // Check last sign in - skip if they logged in recently
             const lastSignIn = user.last_sign_in_at
                 ? DateTime.fromISO(user.last_sign_in_at)
                 : null;
-            if (lastSignIn && lastSignIn > DateTime.now().minus({ days: 7 }))
+            if (lastSignIn && lastSignIn > DateTime.now().minus({ days: 7 })) {
+                result.skippedAlreadyActioned++;
                 continue;
+            }
+            // Check rate limit
+            const canSend = await canSendLifecycleEmail(userId, EMAIL_TYPE);
+            if (!canSend) {
+                result.skippedRateLimit++;
+                continue;
+            }
             try {
-                // Count this user's picks
+                // Count this user's picks to calculate missed episodes
                 const { count: pickCount } = await supabaseAdmin
                     .from('weekly_picks')
                     .select('*', { count: 'exact', head: true })
@@ -202,6 +354,7 @@ export async function sendInactivityReminders() {
                     daysSinceLastActivity: daysSinceActivity,
                     missedEpisodes: Math.max(0, missedEpisodes),
                 });
+                await logLifecycleEmail(userId, EMAIL_TYPE);
                 result.emailsSent++;
             }
             catch (err) {
@@ -219,12 +372,20 @@ export async function sendInactivityReminders() {
 /**
  * Send trivia progress emails
  * Target: Users who started trivia but didn't finish (50%+ progress, not completed)
+ * Skip: Users who have completed trivia or joined a league (trivia is mainly for acquisition)
  */
 export async function sendTriviaProgressEmails() {
-    const result = { success: false, emailsSent: 0, errors: [] };
+    const result = {
+        success: false,
+        emailsSent: 0,
+        skippedRateLimit: 0,
+        skippedAlreadyActioned: 0,
+        errors: []
+    };
     try {
+        const EMAIL_TYPE = 'trivia-progress';
         const totalQuestions = 24;
-        // Get users with partial trivia progress
+        // Get users with partial trivia progress who haven't completed
         const { data: users } = await supabaseAdmin
             .from('users')
             .select('id, email, display_name, trivia_score, trivia_completed')
@@ -235,10 +396,26 @@ export async function sendTriviaProgressEmails() {
             result.success = true;
             return result;
         }
+        // Get users who have joined any league - they've converted, no need for trivia nudge
+        const { data: leagueMembers } = await supabaseAdmin
+            .from('league_members')
+            .select('user_id')
+            .in('user_id', users.map((u) => u.id));
+        const usersInLeagues = new Set(leagueMembers?.map((m) => m.user_id) || []);
         for (const user of users) {
+            // Skip if user has joined a league - they've converted!
+            if (usersInLeagues.has(user.id)) {
+                result.skippedAlreadyActioned++;
+                continue;
+            }
+            // Check rate limit
+            const canSend = await canSendLifecycleEmail(user.id, EMAIL_TYPE);
+            if (!canSend) {
+                result.skippedRateLimit++;
+                continue;
+            }
             try {
                 const questionsAnswered = user.trivia_score || 0;
-                const percentComplete = Math.round((questionsAnswered / totalQuestions) * 100);
                 await EmailService.sendTriviaProgress({
                     displayName: user.display_name || 'Survivor Fan',
                     email: user.email,
@@ -246,6 +423,7 @@ export async function sendTriviaProgressEmails() {
                     questionsCorrect: questionsAnswered, // In our trivia, answered = correct
                     totalQuestions,
                 });
+                await logLifecycleEmail(user.id, EMAIL_TYPE);
                 result.emailsSent++;
             }
             catch (err) {
