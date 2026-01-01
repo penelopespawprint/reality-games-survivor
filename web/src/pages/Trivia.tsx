@@ -92,6 +92,7 @@ const WRONG_MESSAGES = [
 export function Trivia() {
   const { user, loading: authLoading, session } = useAuth();
   const queryClient = useQueryClient();
+  const [gameStarted, setGameStarted] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(20);
   const [isTimedOut, setIsTimedOut] = useState(false);
@@ -120,9 +121,16 @@ export function Trivia() {
       // API wraps response in { data: ... }, so unwrap it
       return response.data.data;
     },
-    enabled: !!user && !!session?.access_token,
+    enabled: !!user && !!session?.access_token && gameStarted,
     retry: false,
   });
+
+  // Auto-start game if user already has progress
+  useEffect(() => {
+    if (progress && progress.questionsAnswered > 0) {
+      setGameStarted(true);
+    }
+  }, [progress]);
 
   // Fetch progress separately
   const { data: progress } = useQuery<ProgressData>({
@@ -498,8 +506,38 @@ export function Trivia() {
           <TriviaCompletionCard daysToComplete={progress.daysToComplete} />
         )}
 
+        {/* Start Button - shown when game not started and not locked/complete */}
+        {!gameStarted && !isLocked && !isComplete && (progress?.questionsAnswered || 0) === 0 && (
+          <div className="bg-white rounded-2xl shadow-card p-8 border-2 border-burgundy-200 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-full mb-6 shadow-lg">
+              <Trophy className="h-10 w-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-display font-bold text-neutral-800 mb-4">
+              Ready to Begin?
+            </h2>
+            <p className="text-neutral-600 mb-6 max-w-md mx-auto">
+              You have 20 seconds per question. Get one wrong and you're locked out for 24 hours.
+              Answer all 24 correctly to join the leaderboard!
+            </p>
+            <button
+              onClick={() => setGameStarted(true)}
+              className="px-8 py-4 bg-gradient-to-r from-burgundy-600 to-burgundy-700 text-white font-bold text-lg rounded-xl hover:from-burgundy-500 hover:to-burgundy-600 transition-all shadow-lg transform hover:scale-105"
+            >
+              Start Trivia Challenge
+            </button>
+            <p className="text-sm text-neutral-500 mt-4">Your progress is saved automatically.</p>
+          </div>
+        )}
+
+        {/* Loading state when game started but question not loaded */}
+        {gameStarted && !isLocked && !isComplete && questionLoading && (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 text-burgundy-500 animate-spin" />
+          </div>
+        )}
+
         {/* Question Card */}
-        {!isLocked && !isComplete && question && (
+        {gameStarted && !isLocked && !isComplete && question && (
           <TriviaQuestionCard
             question={question}
             totalQuestions={progress?.totalQuestions || 24}

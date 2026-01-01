@@ -41,12 +41,13 @@ export function TriviaLeaderboardModal({
   const { data, isLoading } = useQuery({
     queryKey: ['trivia', 'leaderboard'],
     queryFn: async () => {
-      const response = await apiWithAuth<{ leaderboard: LeaderboardEntry[] }>(
+      const response = await apiWithAuth<{ data: { leaderboard: LeaderboardEntry[] } }>(
         '/trivia/leaderboard',
         accessToken
       );
       if (response.error) throw new Error(response.error);
-      return response.data;
+      // API wraps response in { data: ... }, so unwrap it
+      return response.data?.data || { leaderboard: [] };
     },
     enabled: isOpen && !!accessToken,
   });

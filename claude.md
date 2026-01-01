@@ -187,6 +187,30 @@ Before making any fix:
 - Check `payments` table for pending status
 - Verify `process_league_payment` RPC function
 
+### Resend Email Verification Protocol
+
+Before any email send operation, verify the following for realitygamesfantasyleague.com:
+
+**Domain Status**: Confirm domain shows "Verified" at resend.com/domains—not pending, failed, or temporary_failure
+
+**DNS Records**: All three must be green:
+- SPF record
+- DKIM record  
+- DMARC record (optional but recommended)
+
+**API Key Scope**: Verify the API key being used has permission for this specific domain
+
+**Region Match**: Confirm sending region in code matches the region where domain was verified
+
+**From Address**: Ensure the "from" address uses @realitygamesfantasyleague.com or a verified subdomain
+
+**If emails aren't sending**:
+1. Check resend.com/logs for delivery status and error messages
+2. Run domain through dns.email to verify DNS propagation
+3. Look for 403 "domain not verified" errors in API responses
+
+**IMPORTANT**: Never assume emails are working. After any deployment or DNS change, send a test email and confirm delivery in Resend logs before marking email functionality as complete.
+
 ## Testing
 
 ### Local Development
