@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Users, Search, Loader2, Crown, DollarSign, Globe } from 'lucide-react';
+import { ArrowLeft, Users, Search, Loader2, Crown, DollarSign, Globe, Target } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { AdminNavigation } from '@/components/AdminNavigation';
 
@@ -34,6 +34,55 @@ export function AdminLeagues() {
         counts[m.league_id] = (counts[m.league_id] || 0) + 1;
       });
       return counts;
+    },
+  });
+
+  // Fetch pick completion rates for current episode
+  const { data: pickStats } = useQuery({
+    queryKey: ['admin-league-pick-stats'],
+    queryFn: async () => {
+      // Get current episode
+      const { data: currentEpisode } = await supabase
+        .from('episodes')
+        .select('id')
+        .eq('status', 'current')
+        .single();
+
+      if (!currentEpisode) return {};
+
+      // Get picks for current episode grouped by league
+      const { data: picks } = await supabase
+        .from('weekly_picks')
+        .select('league_id, status')
+        .eq('episode_id', currentEpisode.id);
+
+      // Get member counts per league
+      const { data: members } = await supabase.from('league_members').select('league_id');
+
+      const membersByLeague: Record<string, number> = {};
+      members?.forEach((m) => {
+        membersByLeague[m.league_id] = (membersByLeague[m.league_id] || 0) + 1;
+      });
+
+      const picksByLeague: Record<string, number> = {};
+      picks?.forEach((p) => {
+        if (p.status === 'submitted' || p.status === 'locked') {
+          picksByLeague[p.league_id] = (picksByLeague[p.league_id] || 0) + 1;
+        }
+      });
+
+      const stats: Record<string, { submitted: number; total: number; percentage: number }> = {};
+      Object.keys(membersByLeague).forEach((leagueId) => {
+        const total = membersByLeague[leagueId];
+        const submitted = picksByLeague[leagueId] || 0;
+        stats[leagueId] = {
+          submitted,
+          total,
+          percentage: total > 0 ? Math.round((submitted / total) * 100) : 0,
+        };
+      });
+
+      return stats;
     },
   });
 
@@ -177,6 +226,42 @@ export function AdminLeagues() {
                   <span>{league.seasons?.number}</span>
                 </div>
               </div>
+
+              {/* Pick Completion */}
+              {pickStats?.[league.id] && (
+                <div className="mb-3">
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <div className="flex items-center gap-1 text-neutral-500">
+                      <Target className="h-4 w-4" />
+                      <span>Pick Completion</span>
+                    </div>
+                    <span
+                      className={`font-medium ${
+                        pickStats[league.id].percentage >= 70
+                          ? 'text-green-600'
+                          : pickStats[league.id].percentage >= 40
+                            ? 'text-amber-600'
+                            : 'text-red-600'
+                      }`}
+                    >
+                      {pickStats[league.id].submitted}/{pickStats[league.id].total} (
+                      {pickStats[league.id].percentage}%)
+                    </span>
+                  </div>
+                  <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        pickStats[league.id].percentage >= 70
+                          ? 'bg-green-500'
+                          : pickStats[league.id].percentage >= 40
+                            ? 'bg-amber-500'
+                            : 'bg-red-500'
+                      }`}
+                      style={{ width: `${pickStats[league.id].percentage}%` }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {league.require_donation && (
                 <div className="flex items-center gap-1 text-sm text-green-600 mb-3">
