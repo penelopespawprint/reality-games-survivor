@@ -489,15 +489,22 @@ router.post('/:id/message', async (req: AuthenticatedRequest, res: Response) => 
       .eq('id', id)
       .single();
 
-    if (!league?.users) {
-      return res.status(404).json({ error: 'League or commissioner not found' });
+    if (!league) {
+      return res.status(404).json({ error: 'League not found' });
+    }
+    
+    // users is an array from the join, get the first element
+    const commissioner = Array.isArray(league.users) ? league.users[0] : league.users;
+    
+    if (!commissioner?.email) {
+      return res.status(404).json({ error: 'Commissioner not found' });
     }
 
     // Queue email
     const { error: emailError } = await supabaseAdmin
       .from('email_queue')
       .insert({
-        to_email: (league.users as { email: string }).email,
+        to_email: commissioner.email,
         subject,
         body,
         template_name: 'admin_message',

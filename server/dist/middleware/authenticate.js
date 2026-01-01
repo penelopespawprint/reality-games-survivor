@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { supabase, supabaseAdmin } from '../config/supabase.js';
 export async function authenticate(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
@@ -11,7 +11,8 @@ export async function authenticate(req, res, next) {
             return res.status(401).json({ error: 'Invalid or expired token' });
         }
         // Get user role from public.users table
-        const { data: userData } = await supabase
+        // Use supabaseAdmin to bypass RLS and ensure we always get the role
+        const { data: userData } = await supabaseAdmin
             .from('users')
             .select('role')
             .eq('id', user.id)

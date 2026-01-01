@@ -23,33 +23,33 @@ const jobs = [
     },
     {
         name: 'lock-picks',
-        // Wed 3pm PST (auto-adjusts for DST)
-        schedule: pstToCron(15, 0, 3),
-        description: 'Lock all pending picks',
+        // Wed 5pm PST (when episode airs) - auto-adjusts for DST
+        schedule: pstToCron(17, 0, 3),
+        description: 'Lock all pending picks when episode airs',
         handler: lockPicks,
         enabled: true,
     },
     {
         name: 'auto-pick',
-        // Wed 3:05pm PST (auto-adjusts for DST)
-        schedule: pstToCron(15, 5, 3),
+        // Wed 5:05pm PST (shortly after lock) - auto-adjusts for DST
+        schedule: pstToCron(17, 5, 3),
         description: 'Fill missing picks with auto-select',
         handler: autoPick,
         enabled: true,
     },
     {
         name: 'pick-reminders',
-        // Wed 12pm PST (auto-adjusts for DST)
-        schedule: pstToCron(12, 0, 3),
+        // Wed 2pm PST (3 hours before lock) - auto-adjusts for DST
+        schedule: pstToCron(14, 0, 3),
         description: 'Send pick reminder emails',
         handler: sendPickReminders,
         enabled: true,
     },
     {
         name: 'results-notification',
-        // Fri 12pm PST (auto-adjusts for DST)
-        schedule: pstToCron(12, 0, 5),
-        description: 'Send episode results',
+        // Thu 10am PST (morning after episode) - auto-adjusts for DST
+        schedule: pstToCron(10, 0, 4),
+        description: 'Send episode results notification',
         handler: sendEpisodeResults,
         enabled: true,
     },

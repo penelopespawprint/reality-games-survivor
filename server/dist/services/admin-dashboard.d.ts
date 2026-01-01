@@ -71,6 +71,75 @@ export declare function getDashboardStats(): Promise<DashboardStats>;
  */
 export declare function getRecentActivity(limit?: number): Promise<ActivityItem[]>;
 /**
+ * Get draft status overview
+ */
+export declare function getDraftStats(): Promise<{
+    pending: number;
+    inProgress: number;
+    completed: number;
+    total: number;
+    awaitingDraft: number;
+}>;
+/**
+ * Get payment/revenue stats
+ */
+export declare function getPaymentStats(): Promise<{
+    totalPayments: number;
+    byStatus: {
+        completed: number;
+        pending: number;
+        failed: number;
+    };
+    revenue: {
+        today: number;
+        thisWeek: number;
+        thisMonth: number;
+        allTime: number;
+    };
+}>;
+/**
+ * Get trivia engagement stats
+ */
+export declare function getTriviaStats(): Promise<{
+    totalAttempts: number;
+    completedTrivia: number;
+    inProgress: number;
+    completionRate: number;
+    avgQuestionsAnswered: number;
+    avgQuestionsCorrect: number;
+}>;
+/**
+ * Get league breakdown by type
+ */
+export declare function getLeagueBreakdown(): Promise<{
+    byVisibility: {
+        public: number;
+        private: number;
+    };
+    byPayment: {
+        paid: number;
+        free: number;
+    };
+}>;
+/**
+ * Get notification stats
+ */
+export declare function getNotificationStats(): Promise<{
+    email: {
+        enabled: number;
+        percentage: number;
+    };
+    sms: {
+        enabled: number;
+        percentage: number;
+    };
+    push: {
+        enabled: number;
+        percentage: number;
+    };
+    totalUsers: number;
+}>;
+/**
  * Get system health status
  */
 export declare function getSystemHealth(): Promise<SystemHealth>;

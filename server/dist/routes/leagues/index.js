@@ -83,17 +83,15 @@ router.post('/', authenticate, validate(createLeagueSchema), async (req, res) =>
             }
             return res.status(400).json({ error: error.message || 'Failed to create league' });
         }
-        // SECURITY: Only add commissioner to free leagues immediately
-        // For paid leagues, commissioner is added after payment via webhook
-        if (!league.require_donation) {
-            await supabaseAdmin
-                .from('league_members')
-                .insert({
-                league_id: league.id,
-                user_id: userId,
-                draft_position: 1,
-            });
-        }
+        // Always add commissioner as the first member of the league
+        // The commissioner doesn't need to pay to join their own league
+        await supabaseAdmin
+            .from('league_members')
+            .insert({
+            league_id: league.id,
+            user_id: userId,
+            draft_position: 1,
+        });
         // Send league created email
         try {
             const { data: user } = await supabaseAdmin

@@ -6,6 +6,7 @@
 
 import { Router, Response } from 'express';
 import { AuthenticatedRequest } from '../../middleware/authenticate.js';
+import { supabaseAdmin } from '../../config/supabase.js';
 import {
   getTimeline,
   getDashboardStats,
@@ -19,6 +20,40 @@ import {
 } from '../../services/admin-dashboard.js';
 
 const router = Router();
+
+// GET /api/admin/dashboard/badges - Get badge counts for navigation
+router.get('/badges', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Get failed emails count
+    const { count: failedEmails } = await supabaseAdmin
+      .from('failed_emails')
+      .select('*', { count: 'exact', head: true })
+      .eq('retry_attempted', false);
+
+    // Get failed jobs count (last 24 hours)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count: failedJobs } = await supabaseAdmin
+      .from('job_runs')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'failed')
+      .gte('started_at', twentyFourHoursAgo);
+
+    // Get pending donations count
+    const { count: pendingDonations } = await supabaseAdmin
+      .from('payments')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
+
+    res.json({
+      failedEmails: failedEmails || 0,
+      failedJobs: failedJobs || 0,
+      pendingDonations: pendingDonations || 0,
+    });
+  } catch (err) {
+    console.error('GET /api/admin/dashboard/badges error:', err);
+    res.status(500).json({ error: 'Failed to fetch badges' });
+  }
+});
 
 // GET /api/admin/dashboard/timeline - Get upcoming events timeline
 router.get('/timeline', async (req: AuthenticatedRequest, res: Response) => {

@@ -310,6 +310,74 @@ export interface SystemHealth {
   lastJobRun?: string;
 }
 
+// Alert types for admin dashboard
+export type AlertSeverity = 'critical' | 'warning' | 'info';
+export type AlertActionType = 'link' | 'mutation';
+
+export interface SystemAlert {
+  id: string;
+  severity: AlertSeverity;
+  title: string;
+  message: string;
+  actionLabel: string;
+  actionType: AlertActionType;
+  actionEndpoint: string;
+  metadata?: Record<string, unknown>;
+}
+
+// Timeline types for admin dashboard
+export type TimelineEventStatus = 'upcoming' | 'in_progress' | 'completed';
+
+export interface TimelineEvent {
+  id: string;
+  eventType: string;
+  title: string;
+  scheduledAt: string;
+  status: TimelineEventStatus;
+  statusDetail?: string;
+  actionLabel?: string;
+  actionEndpoint?: string;
+}
+
+// Vitals types for admin dashboard
+export interface VitalsData {
+  activeUsers: { current: number; total: number };
+  picksSubmitted: { current: number; total: number; percentage: number };
+  leaguesActive: { current: number; total: number };
+  systemHealth: 'healthy' | 'warning' | 'critical';
+}
+
+// Activity types for admin dashboard
+export interface ActivityItem {
+  id: string;
+  activityType: string;
+  icon: string;
+  description: string;
+  createdAt: string;
+  isTestAccount: boolean;
+  user?: {
+    id: string;
+    display_name: string;
+    email: string;
+  };
+}
+
+// Dashboard response type
+export interface AdminDashboardData {
+  alerts: SystemAlert[];
+  timeline: TimelineEvent[];
+  vitals: VitalsData;
+  activity: ActivityItem[];
+  lastUpdated: string;
+}
+
+// Badge response type for navigation
+export interface NavBadges {
+  failedEmails: number;
+  failedJobs: number;
+  pendingDonations: number;
+}
+
 // ============================================================================
 // Notification Preferences Types
 // ============================================================================

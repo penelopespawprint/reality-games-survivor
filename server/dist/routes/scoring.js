@@ -101,20 +101,5 @@ router.get('/:id/scores/:castawayId', authenticate, async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch castaway scores' });
     }
 });
-// POST /api/scoring/recalculate - Recalculate all standings (admin)
-router.post('/recalculate', requireAdmin, async (req, res) => {
-    try {
-        const { season_id } = req.body;
-        const result = await ScoringService.recalculateStandings(season_id);
-        if (result.error) {
-            return res.status(result.status || 500).json({ error: result.error });
-        }
-        res.json(result.data);
-    }
-    catch (err) {
-        console.error('POST /api/scoring/recalculate error:', err);
-        res.status(500).json({ error: 'Failed to recalculate standings' });
-    }
-});
 export default router;
 //# sourceMappingURL=scoring.js.map

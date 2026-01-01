@@ -56,20 +56,21 @@ export async function getTimeline() {
             }
         }
         // 3. Scheduled jobs - next run times
+        // These times match the scheduler.ts definitions
         const jobSchedules = [
-            { name: 'lock-picks', day: 3, hour: 15, minute: 0, description: 'Lock Weekly Picks' },
-            { name: 'auto-pick', day: 3, hour: 15, minute: 5, description: 'Auto-Pick Missing' },
+            { name: 'lock-picks', day: 3, hour: 17, minute: 0, description: 'Lock Weekly Picks' },
+            { name: 'auto-pick', day: 3, hour: 17, minute: 5, description: 'Auto-Pick Missing' },
             {
                 name: 'pick-reminders',
                 day: 3,
-                hour: 12,
+                hour: 14,
                 minute: 0,
                 description: 'Pick Reminder Emails',
             },
             {
                 name: 'results-notification',
-                day: 5,
-                hour: 12,
+                day: 4, // Thursday
+                hour: 10,
                 minute: 0,
                 description: 'Episode Results Posted',
             },
@@ -443,6 +444,247 @@ export async function getRecentActivity(limit = 20) {
     // Sort by timestamp (most recent first)
     activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     return activities.slice(0, limit);
+}
+/**
+ * Get draft status overview
+ */
+export async function getDraftStats() {
+    try {
+        const [pending, inProgress, completed, totalLeagues] = await Promise.all([
+            supabaseAdmin
+                .from('leagues')
+                .select('id', { count: 'exact', head: true })
+                .eq('draft_status', 'pending')
+                .eq('is_global', false),
+            supabaseAdmin
+                .from('leagues')
+                .select('id', { count: 'exact', head: true })
+                .eq('draft_status', 'in_progress')
+                .eq('is_global', false),
+            supabaseAdmin
+                .from('leagues')
+                .select('id', { count: 'exact', head: true })
+                .eq('draft_status', 'completed')
+                .eq('is_global', false),
+            supabaseAdmin
+                .from('leagues')
+                .select('id', { count: 'exact', head: true })
+                .eq('is_global', false),
+        ]);
+        // Get leagues awaiting draft (pending with 2+ members)
+        const { data: leaguesAwaitingDraft } = await supabaseAdmin
+            .from('leagues')
+            .select(`
+        id,
+        name,
+        code,
+        league_members (count)
+      `)
+            .eq('draft_status', 'pending')
+            .eq('is_global', false);
+        const awaitingDraft = leaguesAwaitingDraft?.filter((l) => (l.league_members?.[0]?.count || 0) >= 2).length || 0;
+        return {
+            pending: pending.count || 0,
+            inProgress: inProgress.count || 0,
+            completed: completed.count || 0,
+            total: totalLeagues.count || 0,
+            awaitingDraft,
+        };
+    }
+    catch (error) {
+        console.error('Error getting draft stats:', error);
+        throw error;
+    }
+}
+/**
+ * Get payment/revenue stats
+ */
+export async function getPaymentStats() {
+    const now = DateTime.now().setZone('America/Los_Angeles');
+    const todayStart = now.startOf('day').toISO();
+    const weekStart = now.startOf('week').toISO();
+    const monthStart = now.startOf('month').toISO();
+    try {
+        const [totalPayments, completedPayments, pendingPayments, failedPayments, todayRevenue, weekRevenue, monthRevenue, allTimeRevenue,] = await Promise.all([
+            supabaseAdmin.from('payments').select('id', { count: 'exact', head: true }),
+            supabaseAdmin
+                .from('payments')
+                .select('id', { count: 'exact', head: true })
+                .eq('status', 'completed'),
+            supabaseAdmin
+                .from('payments')
+                .select('id', { count: 'exact', head: true })
+                .eq('status', 'pending'),
+            supabaseAdmin
+                .from('payments')
+                .select('id', { count: 'exact', head: true })
+                .eq('status', 'failed'),
+            supabaseAdmin
+                .from('payments')
+                .select('amount')
+                .eq('status', 'completed')
+                .gte('created_at', todayStart),
+            supabaseAdmin
+                .from('payments')
+                .select('amount')
+                .eq('status', 'completed')
+                .gte('created_at', weekStart),
+            supabaseAdmin
+                .from('payments')
+                .select('amount')
+                .eq('status', 'completed')
+                .gte('created_at', monthStart),
+            supabaseAdmin.from('payments').select('amount').eq('status', 'completed'),
+        ]);
+        const sumAmounts = (data) => data?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+        return {
+            totalPayments: totalPayments.count || 0,
+            byStatus: {
+                completed: completedPayments.count || 0,
+                pending: pendingPayments.count || 0,
+                failed: failedPayments.count || 0,
+            },
+            revenue: {
+                today: sumAmounts(todayRevenue.data) / 100,
+                thisWeek: sumAmounts(weekRevenue.data) / 100,
+                thisMonth: sumAmounts(monthRevenue.data) / 100,
+                allTime: sumAmounts(allTimeRevenue.data) / 100,
+            },
+        };
+    }
+    catch (error) {
+        console.error('Error getting payment stats:', error);
+        throw error;
+    }
+}
+/**
+ * Get trivia engagement stats
+ */
+export async function getTriviaStats() {
+    try {
+        // Get users who have attempted trivia
+        const { data: triviaProgress } = await supabaseAdmin
+            .from('trivia_progress')
+            .select('user_id, questions_answered, questions_correct');
+        const totalAttempts = triviaProgress?.length || 0;
+        const completedTrivia = triviaProgress?.filter((p) => p.questions_correct >= 24).length || 0;
+        const inProgress = triviaProgress?.filter((p) => p.questions_answered > 0 && p.questions_correct < 24).length || 0;
+        // Calculate average questions answered
+        const avgQuestionsAnswered = totalAttempts > 0
+            ? triviaProgress.reduce((sum, p) => sum + p.questions_answered, 0) / totalAttempts
+            : 0;
+        // Calculate average questions correct
+        const avgQuestionsCorrect = totalAttempts > 0
+            ? triviaProgress.reduce((sum, p) => sum + p.questions_correct, 0) / totalAttempts
+            : 0;
+        // Get total users for completion rate
+        const { count: totalUsers } = await supabaseAdmin
+            .from('users')
+            .select('id', { count: 'exact', head: true });
+        const completionRate = totalUsers && totalUsers > 0 ? (completedTrivia / totalUsers) * 100 : 0;
+        return {
+            totalAttempts,
+            completedTrivia,
+            inProgress,
+            completionRate: Math.round(completionRate * 10) / 10,
+            avgQuestionsAnswered: Math.round(avgQuestionsAnswered * 10) / 10,
+            avgQuestionsCorrect: Math.round(avgQuestionsCorrect * 10) / 10,
+        };
+    }
+    catch (error) {
+        console.error('Error getting trivia stats:', error);
+        throw error;
+    }
+}
+/**
+ * Get league breakdown by type
+ */
+export async function getLeagueBreakdown() {
+    try {
+        const [publicLeagues, privateLeagues, paidLeagues, freeLeagues] = await Promise.all([
+            supabaseAdmin
+                .from('leagues')
+                .select('id', { count: 'exact', head: true })
+                .eq('is_public', true)
+                .eq('is_global', false),
+            supabaseAdmin
+                .from('leagues')
+                .select('id', { count: 'exact', head: true })
+                .eq('is_public', false)
+                .eq('is_global', false),
+            supabaseAdmin
+                .from('leagues')
+                .select('id', { count: 'exact', head: true })
+                .eq('require_donation', true)
+                .eq('is_global', false),
+            supabaseAdmin
+                .from('leagues')
+                .select('id', { count: 'exact', head: true })
+                .eq('require_donation', false)
+                .eq('is_global', false),
+        ]);
+        return {
+            byVisibility: {
+                public: publicLeagues.count || 0,
+                private: privateLeagues.count || 0,
+            },
+            byPayment: {
+                paid: paidLeagues.count || 0,
+                free: freeLeagues.count || 0,
+            },
+        };
+    }
+    catch (error) {
+        console.error('Error getting league breakdown:', error);
+        throw error;
+    }
+}
+/**
+ * Get notification stats
+ */
+export async function getNotificationStats() {
+    try {
+        const [emailEnabled, smsEnabled, pushEnabled, totalUsers] = await Promise.all([
+            supabaseAdmin
+                .from('users')
+                .select('id', { count: 'exact', head: true })
+                .eq('email_notifications', true),
+            supabaseAdmin
+                .from('users')
+                .select('id', { count: 'exact', head: true })
+                .eq('sms_notifications', true),
+            supabaseAdmin
+                .from('users')
+                .select('id', { count: 'exact', head: true })
+                .eq('push_notifications', true),
+            supabaseAdmin.from('users').select('id', { count: 'exact', head: true }),
+        ]);
+        return {
+            email: {
+                enabled: emailEnabled.count || 0,
+                percentage: totalUsers.count && totalUsers.count > 0
+                    ? Math.round(((emailEnabled.count || 0) / totalUsers.count) * 100)
+                    : 0,
+            },
+            sms: {
+                enabled: smsEnabled.count || 0,
+                percentage: totalUsers.count && totalUsers.count > 0
+                    ? Math.round(((smsEnabled.count || 0) / totalUsers.count) * 100)
+                    : 0,
+            },
+            push: {
+                enabled: pushEnabled.count || 0,
+                percentage: totalUsers.count && totalUsers.count > 0
+                    ? Math.round(((pushEnabled.count || 0) / totalUsers.count) * 100)
+                    : 0,
+            },
+            totalUsers: totalUsers.count || 0,
+        };
+    }
+    catch (error) {
+        console.error('Error getting notification stats:', error);
+        throw error;
+    }
 }
 /**
  * Get system health status

@@ -4,6 +4,7 @@
  * Tracks execution history for all scheduled jobs in a circular buffer.
  * Provides observability into job success/failure rates, execution times,
  * and error patterns without relying on external logging infrastructure.
+ * Also persists to job_runs database table for long-term analytics.
  */
 export interface JobExecution {
     jobName: string;
