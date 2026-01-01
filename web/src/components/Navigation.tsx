@@ -3,7 +3,21 @@ import { useAuth } from '@/lib/auth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useState, useEffect, useRef } from 'react';
-import { Shield, UserCircle, Menu, X, ChevronDown, Lightbulb } from 'lucide-react';
+import {
+  Shield,
+  UserCircle,
+  Menu,
+  X,
+  ChevronDown,
+  Lightbulb,
+  Users,
+  Trophy,
+  Zap,
+  MessageSquare,
+  Bell,
+  Mail,
+  MessageCircle,
+} from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -102,21 +116,35 @@ export function Navigation() {
   const isAdmin = profile?.role === 'admin';
   const showAdminNav = isAdmin && viewMode === 'admin';
 
-  // Admin navigation - dramatically different styling
+  // State for admin Manage dropdown
+  const [adminManageOpen, setAdminManageOpen] = useState(false);
+  const adminManageRef = useRef<HTMLDivElement>(null);
+
+  // Close admin manage dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (adminManageRef.current && !adminManageRef.current.contains(event.target as Node)) {
+        setAdminManageOpen(false);
+      }
+    };
+    if (adminManageOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [adminManageOpen]);
+
+  // Admin navigation - Updated structure per Blake's request
   if (user && showAdminNav) {
     return (
       <>
-        {/* Very prominent Admin Mode Banner */}
-        <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 text-white py-3 px-4 sticky top-0 z-[60]">
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
+        {/* Admin Mode Banner */}
+        <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 text-white py-2 px-4 sticky top-0 z-[60]">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
                 <Shield className="h-4 w-4" />
-                <span className="font-bold text-sm tracking-wide">ADMIN CONTROL PANEL</span>
+                <span className="font-bold text-sm tracking-wide">ADMIN</span>
               </div>
-              <span className="text-white/80 text-sm hidden sm:inline">
-                Full system access enabled
-              </span>
             </div>
             <button
               onClick={() => setViewMode('player')}
@@ -127,37 +155,152 @@ export function Navigation() {
             </button>
           </div>
         </div>
-        <nav className="bg-cream-50 border-b-4 border-orange-400 shadow-lg sticky top-[52px] z-50">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="bg-white border-b-2 border-orange-400 shadow-sm sticky top-[44px] z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-14">
-              <Link to="/admin" className="flex items-center gap-3">
+              {/* Logo - links to admin dashboard */}
+              <Link to="/admin" className="flex items-center gap-2">
                 <img src="/logo.png" alt="Admin" className="h-8 w-auto" />
-                <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded">
-                  ADMIN
-                </span>
               </Link>
 
+              {/* Main Admin Nav */}
               <div className="hidden md:flex items-center gap-1">
-                {[
-                  { path: '/admin/seasons', label: 'Seasons' },
-                  { path: '/admin/leagues', label: 'Leagues' },
-                  { path: '/admin/users', label: 'Users' },
-                  { path: '/admin/payments', label: 'Payments' },
-                  { path: '/admin/scoring-rules', label: 'Scoring' },
-                  { path: '/admin/jobs', label: 'Jobs' },
-                ].map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive(item.path)
-                        ? 'bg-orange-500 text-white'
+                {/* Leagues */}
+                <Link
+                  to="/admin/leagues"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    isActive('/admin/leagues')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:text-orange-600 hover:bg-orange-50'
+                  }`}
+                >
+                  <Trophy className="h-4 w-4" />
+                  Leagues
+                </Link>
+
+                {/* Scoring */}
+                <Link
+                  to="/admin/scoring"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    isActive('/admin/scoring')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:text-orange-600 hover:bg-orange-50'
+                  }`}
+                >
+                  <Zap className="h-4 w-4" />
+                  Scoring
+                </Link>
+
+                {/* Manage Dropdown */}
+                <div className="relative" ref={adminManageRef}>
+                  <button
+                    onClick={() => setAdminManageOpen(!adminManageOpen)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+                      isActive('/admin/leagues') ||
+                      isActive('/admin/castaways') ||
+                      isActive('/admin/users')
+                        ? 'text-orange-600'
                         : 'text-neutral-600 hover:text-orange-600 hover:bg-orange-50'
                     }`}
                   >
-                    {item.label}
-                  </Link>
-                ))}
+                    Manage
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${adminManageOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {adminManageOpen && (
+                    <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-neutral-200 min-w-[180px] z-50 py-1">
+                      <Link
+                        to="/admin/leagues"
+                        onClick={() => setAdminManageOpen(false)}
+                        className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-orange-50 ${
+                          isActive('/admin/leagues')
+                            ? 'text-orange-600 bg-orange-50'
+                            : 'text-neutral-600'
+                        }`}
+                      >
+                        <Trophy className="h-4 w-4" />
+                        Leagues
+                      </Link>
+                      <Link
+                        to="/admin/castaways"
+                        onClick={() => setAdminManageOpen(false)}
+                        className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-orange-50 ${
+                          isActive('/admin/castaways')
+                            ? 'text-orange-600 bg-orange-50'
+                            : 'text-neutral-600'
+                        }`}
+                      >
+                        <Users className="h-4 w-4" />
+                        Castaways
+                      </Link>
+                      <Link
+                        to="/admin/users"
+                        onClick={() => setAdminManageOpen(false)}
+                        className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-orange-50 ${
+                          isActive('/admin/users')
+                            ? 'text-orange-600 bg-orange-50'
+                            : 'text-neutral-600'
+                        }`}
+                      >
+                        <Users className="h-4 w-4" />
+                        Players
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Announcements */}
+                <Link
+                  to="/admin/announcements"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    isActive('/admin/announcements')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:text-orange-600 hover:bg-orange-50'
+                  }`}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Announcements
+                </Link>
+
+                {/* Push Notifications */}
+                <Link
+                  to="/admin/push-notifications"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    isActive('/admin/push-notifications')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:text-orange-600 hover:bg-orange-50'
+                  }`}
+                >
+                  <Bell className="h-4 w-4" />
+                  Push
+                </Link>
+
+                {/* Email Queue */}
+                <Link
+                  to="/admin/email-queue"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    isActive('/admin/email-queue')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:text-orange-600 hover:bg-orange-50'
+                  }`}
+                >
+                  <Mail className="h-4 w-4" />
+                  Email
+                </Link>
+
+                {/* SMS */}
+                <Link
+                  to="/admin/sms"
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    isActive('/admin/sms')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:text-orange-600 hover:bg-orange-50'
+                  }`}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  SMS
+                </Link>
               </div>
 
               <div className="flex items-center gap-3">
@@ -186,26 +329,98 @@ export function Navigation() {
             {/* Mobile Admin Menu */}
             {mobileMenuOpen && (
               <div ref={mobileMenuRef} className="md:hidden border-t border-orange-200 py-2">
-                {[
-                  { path: '/admin/seasons', label: 'Seasons' },
-                  { path: '/admin/leagues', label: 'Leagues' },
-                  { path: '/admin/users', label: 'Users' },
-                  { path: '/admin/payments', label: 'Payments' },
-                  { path: '/admin/scoring-rules', label: 'Scoring' },
-                  { path: '/admin/jobs', label: 'Jobs' },
-                ].map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`block px-4 py-3 text-sm font-medium ${
-                      isActive(item.path)
-                        ? 'bg-orange-500 text-white'
-                        : 'text-neutral-600 hover:bg-orange-50'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                <Link
+                  to="/admin"
+                  className={`block px-4 py-3 text-sm font-medium ${
+                    location.pathname === '/admin'
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:bg-orange-50'
+                  }`}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/admin/leagues"
+                  className={`block px-4 py-3 text-sm font-medium ${
+                    isActive('/admin/leagues')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:bg-orange-50'
+                  }`}
+                >
+                  Leagues
+                </Link>
+                <Link
+                  to="/admin/scoring"
+                  className={`block px-4 py-3 text-sm font-medium ${
+                    isActive('/admin/scoring')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:bg-orange-50'
+                  }`}
+                >
+                  Scoring
+                </Link>
+                <div className="px-4 py-2 text-xs font-semibold text-neutral-400 uppercase">
+                  Manage
+                </div>
+                <Link
+                  to="/admin/leagues"
+                  className="block px-8 py-2 text-sm text-neutral-600 hover:bg-orange-50"
+                >
+                  Leagues
+                </Link>
+                <Link
+                  to="/admin/castaways"
+                  className="block px-8 py-2 text-sm text-neutral-600 hover:bg-orange-50"
+                >
+                  Castaways
+                </Link>
+                <Link
+                  to="/admin/users"
+                  className="block px-8 py-2 text-sm text-neutral-600 hover:bg-orange-50"
+                >
+                  Players
+                </Link>
+                <hr className="my-2 border-orange-200" />
+                <Link
+                  to="/admin/announcements"
+                  className={`block px-4 py-3 text-sm font-medium ${
+                    isActive('/admin/announcements')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:bg-orange-50'
+                  }`}
+                >
+                  Announcements
+                </Link>
+                <Link
+                  to="/admin/push-notifications"
+                  className={`block px-4 py-3 text-sm font-medium ${
+                    isActive('/admin/push-notifications')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:bg-orange-50'
+                  }`}
+                >
+                  Push Notifications
+                </Link>
+                <Link
+                  to="/admin/email-queue"
+                  className={`block px-4 py-3 text-sm font-medium ${
+                    isActive('/admin/email-queue')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:bg-orange-50'
+                  }`}
+                >
+                  Email Queue
+                </Link>
+                <Link
+                  to="/admin/sms"
+                  className={`block px-4 py-3 text-sm font-medium ${
+                    isActive('/admin/sms')
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-600 hover:bg-orange-50'
+                  }`}
+                >
+                  SMS
+                </Link>
                 <hr className="my-2 border-orange-200" />
                 <button
                   onClick={handleSignOut}
