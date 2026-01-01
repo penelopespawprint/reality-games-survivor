@@ -4,7 +4,9 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
 export const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
-export const FROM_EMAIL = 'Reality Games: Survivor <noreply@rgfl.app>';
+// IMPORTANT: FROM_EMAIL must use the verified domain (realitygamesfantasyleague.com)
+// Using an unverified domain will cause 403 "domain not verified" errors
+export const FROM_EMAIL = 'Reality Games: Survivor <noreply@realitygamesfantasyleague.com>';
 export const REPLY_TO = 'support@realitygamesfantasyleague.com';
 
 interface EmailParams {
@@ -17,13 +19,16 @@ interface EmailParams {
 export async function sendEmail({ to, subject, html, text }: EmailParams): Promise<boolean> {
   try {
     if (!resend) {
-      console.log(`[Email] Would send to ${to}: ${subject}`);
+      console.log(`[Email] Resend API key not configured - would send to ${to}: ${subject}`);
       return true;
     }
 
+    const recipients = Array.isArray(to) ? to : [to];
+    console.log(`[Email] Sending to ${recipients.join(', ')}: ${subject}`);
+
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
-      to: Array.isArray(to) ? to : [to],
+      to: recipients,
       reply_to: REPLY_TO,
       subject,
       html,
@@ -31,14 +36,21 @@ export async function sendEmail({ to, subject, html, text }: EmailParams): Promi
     });
 
     if (error) {
-      console.error('Email send error:', error);
+      // Log detailed error information for debugging
+      console.error('[Email] Send error:', {
+        name: error.name,
+        message: error.message,
+        to: recipients,
+        subject,
+        from: FROM_EMAIL,
+      });
       return false;
     }
 
-    console.log(`Email sent: ${data?.id}`);
+    console.log(`[Email] Sent successfully: ${data?.id} to ${recipients.join(', ')}`);
     return true;
   } catch (err) {
-    console.error('Email send failed:', err);
+    console.error('[Email] Send failed with exception:', err);
     return false;
   }
 }

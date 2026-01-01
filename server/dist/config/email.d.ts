@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 export declare const resend: Resend | null;
-export declare const FROM_EMAIL = "Reality Games: Survivor <noreply@rgfl.app>";
+export declare const FROM_EMAIL = "Reality Games: Survivor <noreply@realitygamesfantasyleague.com>";
 export declare const REPLY_TO = "support@realitygamesfantasyleague.com";
 interface EmailParams {
     to: string | string[];
