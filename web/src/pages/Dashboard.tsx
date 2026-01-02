@@ -161,6 +161,7 @@ export function Dashboard() {
       // Aggregate points by league and castaway
       const pointsMap = new Map<string, Map<string, number>>();
       data?.forEach((pick) => {
+        if (!pick.castaway_id) return; // Skip picks without a castaway
         if (!pointsMap.has(pick.league_id)) {
           pointsMap.set(pick.league_id, new Map());
         }

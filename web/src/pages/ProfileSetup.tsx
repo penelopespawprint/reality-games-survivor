@@ -11,6 +11,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, Loader2, Bell, MapPin, Star, FileText } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import type { Database } from '@/types/supabase';
+
+type UserInsert = Database['public']['Tables']['users']['Insert'];
 
 const ALL_SURVIVOR_SEASONS = [
   { value: '', label: 'Select a season (optional)' },
@@ -190,7 +193,7 @@ export default function ProfileSetup() {
         .maybeSingle();
 
       // Build upsert payload
-      const updateDataWithId: Record<string, unknown> = {
+      const updateDataWithId: UserInsert = {
         id: user!.id,
         email: user!.email || '',
         display_name: data.display_name,
