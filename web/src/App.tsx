@@ -135,11 +135,13 @@ export default function App() {
 
             {/* Admin routes - require admin role */}
             <Route element={<AdminRoute />}>
-              <Route path="/admin" element={withAdminErrorBoundary(AdminDashboard)} />
+              {/* /admin redirects to command-center as the main admin entry point */}
+              <Route path="/admin" element={<Navigate to="/admin/command-center" replace />} />
               <Route
                 path="/admin/command-center"
                 element={withAdminErrorBoundary(AdminCommandCenter)}
               />
+              <Route path="/admin/dashboard" element={withAdminErrorBoundary(AdminDashboard)} />
               <Route path="/admin/picks" element={withAdminErrorBoundary(AdminPicks)} />
               <Route path="/admin/drafts" element={withAdminErrorBoundary(AdminDrafts)} />
               <Route path="/admin/scoring" element={withAdminErrorBoundary(AdminScoring)} />
