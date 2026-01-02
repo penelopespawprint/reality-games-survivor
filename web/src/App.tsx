@@ -46,6 +46,9 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Trivia from './pages/Trivia';
 
+// Stats Pages
+import { StatsOverview, PlayerStats, CastawayStats, LeagueStats } from './pages/stats';
+
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminCommandCenter } from './pages/admin/AdminCommandCenter';
@@ -101,6 +104,12 @@ export default function App() {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/results/:weekNumber" element={<Results />} />
+
+            {/* Stats routes (public) */}
+            <Route path="/stats" element={<StatsOverview />} />
+            <Route path="/stats/players" element={<PlayerStats />} />
+            <Route path="/stats/castaways" element={<CastawayStats />} />
+            <Route path="/stats/leagues" element={<LeagueStats />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
