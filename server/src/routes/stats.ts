@@ -1583,12 +1583,12 @@ router.get('/biggest-bust', async (_req: Request, res: Response) => {
         const avgDraftPosition = draft.totalPick / draft.count;
         const pointsPerEpisode = points.total / points.episodes.size;
         
-        // Bust score: lower = bigger bust (high draft position, low PPE)
+        // Bust score: higher = bigger bust (early draft pick with low PPE)
         // We want to highlight high picks who underperformed
         // Only consider early picks (top 12) as potential busts
         if (avgDraftPosition > 12) return null;
         
-        const bustScore = pointsPerEpisode / avgDraftPosition;
+        const bustScore = pointsPerEpisode > 0 ? (13 - avgDraftPosition) / pointsPerEpisode : 0;
 
         return {
           castaway_id: c.id,
@@ -1599,7 +1599,7 @@ router.get('/biggest-bust', async (_req: Request, res: Response) => {
         };
       })
       .filter((c): c is NonNullable<typeof c> => c !== null)
-      .sort((a, b) => a.bust_score - b.bust_score) // Lower = bigger bust
+      .sort((a, b) => b.bust_score - a.bust_score) // Higher = bigger bust
       .slice(0, 10);
 
     res.json({ data: { leaderboard } });
@@ -1687,7 +1687,7 @@ router.get('/biggest-steal', async (_req: Request, res: Response) => {
         // Only consider late picks (pick 10+) as potential steals
         if (avgDraftPosition < 10) return null;
         
-        const stealScore = pointsPerEpisode / avgDraftPosition;
+        const stealScore = pointsPerEpisode * avgDraftPosition;
 
         return {
           castaway_id: c.id,
