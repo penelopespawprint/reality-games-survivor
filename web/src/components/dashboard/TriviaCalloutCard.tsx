@@ -5,7 +5,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { Brain, Trophy, Zap, ArrowRight, Megaphone } from 'lucide-react';
+import { Brain, Trophy, ArrowRight, Sparkles } from 'lucide-react';
 
 interface TriviaCalloutCardProps {
   /** Whether the season has started (hide if true) */
@@ -17,48 +17,42 @@ export function TriviaCalloutCard({ seasonStarted = false }: TriviaCalloutCardPr
   if (seasonStarted) return null;
 
   return (
-    <div className="bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 rounded-xl p-4 text-white shadow-elevated relative overflow-hidden">
-      {/* Special Announcement Badge */}
-      <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full">
-        <Megaphone className="h-3 w-3" />
-        <span className="text-xs font-medium">Featured</span>
-      </div>
-
+    <div className="bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+      <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
+      <div className="absolute bottom-0 left-1/2 w-20 h-20 bg-white/5 rounded-full translate-y-1/2" />
 
-      {/* Content - Horizontal Layout for Above the Fold */}
-      <div className="relative">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Brain className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-display font-bold text-lg">Daily Survivor Trivia</h3>
-              <p className="text-purple-200 text-sm">24 questions • Test your knowledge!</p>
-            </div>
+      {/* Content */}
+      <div className="relative flex items-center justify-between gap-4">
+        {/* Left side - Icon and text */}
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
+            <Brain className="h-7 w-7 text-white" />
           </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-display font-bold text-xl">Survivor Trivia</h3>
+              <Sparkles className="h-4 w-4 text-yellow-300" />
+            </div>
+            <p className="text-teal-100 text-sm">
+              Test your knowledge with 24 questions while you wait for the season!
+            </p>
+          </div>
+        </div>
 
-          {/* Stats/Features - Horizontal */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="bg-white/10 rounded-lg px-3 py-2 text-center">
-              <Zap className="h-4 w-4 mx-auto mb-1 text-yellow-300" />
-              <p className="text-xs text-purple-200">24 Questions</p>
-            </div>
-            <div className="bg-white/10 rounded-lg px-3 py-2 text-center">
-              <Trophy className="h-4 w-4 mx-auto mb-1 text-yellow-300" />
-              <p className="text-xs text-purple-200">Leaderboard</p>
-            </div>
-            <Link
-              to="/trivia"
-              className="flex items-center justify-center gap-2 bg-white text-purple-600 font-bold px-4 py-2 rounded-lg hover:bg-purple-50 transition-colors whitespace-nowrap"
-            >
-              Play Now
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+        {/* Right side - Stats and CTA */}
+        <div className="flex items-center gap-4 flex-shrink-0">
+          <div className="hidden md:flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-lg px-3 py-2">
+            <Trophy className="h-4 w-4 text-yellow-300" />
+            <span className="text-sm font-medium">Compete for #1</span>
           </div>
+          <Link
+            to="/trivia"
+            className="flex items-center justify-center gap-2 bg-white text-teal-600 font-bold px-5 py-2.5 rounded-xl hover:bg-teal-50 transition-colors whitespace-nowrap shadow-md"
+          >
+            Play Now
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </div>
