@@ -30,7 +30,14 @@ import { StatCard, HorizontalBarChart, TwoColumnLeaderboard, AwardList } from '@
 import { usePlayerStats } from '@/lib/hooks/stats';
 
 export function PlayerStats() {
-  const { mostLeagues, isLoading, error } = usePlayerStats();
+  const {
+    mostLeagues,
+    lastMinuteLarry,
+    earlyBird,
+    // submissionSpeed used in LeagueStats page instead
+    isLoading,
+    error,
+  } = usePlayerStats();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex flex-col">
@@ -115,7 +122,13 @@ export function PlayerStats() {
               icon={<Clock className="h-5 w-5" />}
             >
               <HorizontalBarChart
-                data={[]}
+                data={
+                  lastMinuteLarry?.leaderboard?.map((e) => ({
+                    label: e.display_name,
+                    value: e.ratio,
+                    sublabel: `${e.last_minute_picks}/${e.total_picks} picks`,
+                  })) || []
+                }
                 valueFormatter={(v) => `${v}%`}
                 emptyMessage="Data available after more picks"
               />
@@ -128,7 +141,13 @@ export function PlayerStats() {
               icon={<Bird className="h-5 w-5" />}
             >
               <HorizontalBarChart
-                data={[]}
+                data={
+                  earlyBird?.leaderboard?.map((e) => ({
+                    label: e.display_name,
+                    value: e.ratio,
+                    sublabel: `${e.early_picks}/${e.total_picks} picks`,
+                  })) || []
+                }
                 valueFormatter={(v) => `${v}%`}
                 colorScale="green"
                 emptyMessage="Data available after more picks"

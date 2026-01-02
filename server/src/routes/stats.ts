@@ -377,4 +377,439 @@ router.get('/activity-by-hour', async (_req: Request, res: Response) => {
   }
 });
 
+/**
+ * Stat 4: Last-Minute Larry
+ * GET /api/stats/last-minute-larry
+ * 
+ * Percentage of picks submitted in final hour before deadline
+ */
+router.get('/last-minute-larry', async (_req: Request, res: Response) => {
+  try {
+    // Get active season
+    const { data: season } = await supabase
+      .from('seasons')
+      .select('id')
+      .eq('is_active', true)
+      .single();
+    
+    if (!season) {
+      return res.json({ data: { leaderboard: [] } });
+    }
+
+    // Get all episodes with their lock times
+    const { data: episodes, error: episodesError } = await supabase
+      .from('episodes')
+      .select('id, picks_lock_at')
+      .eq('season_id', season.id);
+    
+    if (episodesError) throw episodesError;
+
+    const episodeLockTimes: Record<string, Date> = {};
+    (episodes || []).forEach((e) => {
+      if (e.picks_lock_at) {
+        episodeLockTimes[e.id] = new Date(e.picks_lock_at);
+      }
+    });
+
+    // Get all picks with user info
+    const { data: picks, error: picksError } = await supabase
+      .from('weekly_picks')
+      .select(`
+        user_id,
+        episode_id,
+        submitted_at,
+        users!inner(display_name)
+      `)
+      .not('submitted_at', 'is', null);
+    
+    if (picksError) throw picksError;
+
+    // Count last-minute picks per user
+    const userStats: Record<string, { 
+      user_id: string; 
+      display_name: string; 
+      last_minute: number; 
+      total: number 
+    }> = {};
+
+    (picks || []).forEach((pick: any) => {
+      const lockTime = episodeLockTimes[pick.episode_id];
+      if (!lockTime || !pick.submitted_at) return;
+
+      const submittedAt = new Date(pick.submitted_at);
+      const hourBeforeLock = new Date(lockTime.getTime() - 60 * 60 * 1000);
+      const isLastMinute = submittedAt >= hourBeforeLock && submittedAt <= lockTime;
+
+      if (!userStats[pick.user_id]) {
+        userStats[pick.user_id] = {
+          user_id: pick.user_id,
+          display_name: pick.users?.display_name || 'Unknown',
+          last_minute: 0,
+          total: 0,
+        };
+      }
+
+      userStats[pick.user_id].total++;
+      if (isLastMinute) {
+        userStats[pick.user_id].last_minute++;
+      }
+    });
+
+    const leaderboard = Object.values(userStats)
+      .filter((u) => u.total >= 3) // Minimum picks threshold
+      .map((u) => ({
+        user_id: u.user_id,
+        display_name: u.display_name,
+        last_minute_picks: u.last_minute,
+        total_picks: u.total,
+        ratio: u.total > 0 ? Math.round((u.last_minute / u.total) * 100) : 0,
+      }))
+      .sort((a, b) => b.ratio - a.ratio)
+      .slice(0, 10);
+
+    res.json({ data: { leaderboard } });
+  } catch (err) {
+    console.error('Error fetching last-minute-larry stat:', err);
+    res.status(500).json({ error: 'Failed to fetch stat' });
+  }
+});
+
+/**
+ * Stat 5: Early Bird
+ * GET /api/stats/early-bird
+ * 
+ * Percentage of picks submitted within first hour of window opening
+ */
+router.get('/early-bird', async (_req: Request, res: Response) => {
+  try {
+    // Get active season
+    const { data: season } = await supabase
+      .from('seasons')
+      .select('id')
+      .eq('is_active', true)
+      .single();
+    
+    if (!season) {
+      return res.json({ data: { leaderboard: [] } });
+    }
+
+    // Get all episodes with air dates (pick window opens after previous ep)
+    const { data: episodes, error: episodesError } = await supabase
+      .from('episodes')
+      .select('id, number, air_date, picks_lock_at')
+      .eq('season_id', season.id)
+      .order('number', { ascending: true });
+    
+    if (episodesError) throw episodesError;
+
+    // Build pick window open times (after previous episode air date)
+    const episodeWindowOpen: Record<string, Date> = {};
+    (episodes || []).forEach((e, i) => {
+      if (i > 0 && episodes[i - 1].air_date) {
+        // Pick window opens after previous episode airs
+        episodeWindowOpen[e.id] = new Date(episodes[i - 1].air_date);
+      } else if (e.air_date) {
+        // For first episode, use a week before
+        const windowOpen = new Date(e.air_date);
+        windowOpen.setDate(windowOpen.getDate() - 7);
+        episodeWindowOpen[e.id] = windowOpen;
+      }
+    });
+
+    // Get all picks with user info
+    const { data: picks, error: picksError } = await supabase
+      .from('weekly_picks')
+      .select(`
+        user_id,
+        episode_id,
+        submitted_at,
+        users!inner(display_name)
+      `)
+      .not('submitted_at', 'is', null);
+    
+    if (picksError) throw picksError;
+
+    // Count early bird picks per user
+    const userStats: Record<string, { 
+      user_id: string; 
+      display_name: string; 
+      early: number; 
+      total: number 
+    }> = {};
+
+    (picks || []).forEach((pick: any) => {
+      const windowOpen = episodeWindowOpen[pick.episode_id];
+      if (!windowOpen || !pick.submitted_at) return;
+
+      const submittedAt = new Date(pick.submitted_at);
+      const hourAfterOpen = new Date(windowOpen.getTime() + 60 * 60 * 1000);
+      const isEarly = submittedAt >= windowOpen && submittedAt <= hourAfterOpen;
+
+      if (!userStats[pick.user_id]) {
+        userStats[pick.user_id] = {
+          user_id: pick.user_id,
+          display_name: pick.users?.display_name || 'Unknown',
+          early: 0,
+          total: 0,
+        };
+      }
+
+      userStats[pick.user_id].total++;
+      if (isEarly) {
+        userStats[pick.user_id].early++;
+      }
+    });
+
+    const leaderboard = Object.values(userStats)
+      .filter((u) => u.total >= 3)
+      .map((u) => ({
+        user_id: u.user_id,
+        display_name: u.display_name,
+        early_picks: u.early,
+        total_picks: u.total,
+        ratio: u.total > 0 ? Math.round((u.early / u.total) * 100) : 0,
+      }))
+      .sort((a, b) => b.ratio - a.ratio)
+      .slice(0, 10);
+
+    res.json({ data: { leaderboard } });
+  } catch (err) {
+    console.error('Error fetching early-bird stat:', err);
+    res.status(500).json({ error: 'Failed to fetch stat' });
+  }
+});
+
+/**
+ * Stat 27: Submission Speed
+ * GET /api/stats/submission-speed
+ * 
+ * Average time from window open to submission
+ */
+router.get('/submission-speed', async (_req: Request, res: Response) => {
+  try {
+    // Get active season
+    const { data: season } = await supabase
+      .from('seasons')
+      .select('id')
+      .eq('is_active', true)
+      .single();
+    
+    if (!season) {
+      return res.json({ data: { leaderboard: [] } });
+    }
+
+    // Get all episodes with air dates
+    const { data: episodes, error: episodesError } = await supabase
+      .from('episodes')
+      .select('id, number, air_date')
+      .eq('season_id', season.id)
+      .order('number', { ascending: true });
+    
+    if (episodesError) throw episodesError;
+
+    // Build pick window open times
+    const episodeWindowOpen: Record<string, Date> = {};
+    (episodes || []).forEach((e, i) => {
+      if (i > 0 && episodes[i - 1].air_date) {
+        episodeWindowOpen[e.id] = new Date(episodes[i - 1].air_date);
+      } else if (e.air_date) {
+        const windowOpen = new Date(e.air_date);
+        windowOpen.setDate(windowOpen.getDate() - 7);
+        episodeWindowOpen[e.id] = windowOpen;
+      }
+    });
+
+    // Get all picks with user info
+    const { data: picks, error: picksError } = await supabase
+      .from('weekly_picks')
+      .select(`
+        user_id,
+        episode_id,
+        submitted_at,
+        users!inner(display_name)
+      `)
+      .not('submitted_at', 'is', null);
+    
+    if (picksError) throw picksError;
+
+    // Calculate submission times per user
+    const userStats: Record<string, { 
+      user_id: string; 
+      display_name: string; 
+      total_hours: number;
+      fastest: number;
+      slowest: number;
+      count: number 
+    }> = {};
+
+    (picks || []).forEach((pick: any) => {
+      const windowOpen = episodeWindowOpen[pick.episode_id];
+      if (!windowOpen || !pick.submitted_at) return;
+
+      const submittedAt = new Date(pick.submitted_at);
+      const hoursToSubmit = (submittedAt.getTime() - windowOpen.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursToSubmit < 0) return; // Invalid - submitted before window
+
+      if (!userStats[pick.user_id]) {
+        userStats[pick.user_id] = {
+          user_id: pick.user_id,
+          display_name: pick.users?.display_name || 'Unknown',
+          total_hours: 0,
+          fastest: Infinity,
+          slowest: 0,
+          count: 0,
+        };
+      }
+
+      userStats[pick.user_id].total_hours += hoursToSubmit;
+      userStats[pick.user_id].count++;
+      userStats[pick.user_id].fastest = Math.min(userStats[pick.user_id].fastest, hoursToSubmit);
+      userStats[pick.user_id].slowest = Math.max(userStats[pick.user_id].slowest, hoursToSubmit);
+    });
+
+    const leaderboard = Object.values(userStats)
+      .filter((u) => u.count >= 3)
+      .map((u) => ({
+        user_id: u.user_id,
+        display_name: u.display_name,
+        avg_hours_to_submit: u.count > 0 ? u.total_hours / u.count : 0,
+        fastest_submission: u.fastest === Infinity ? 0 : u.fastest,
+        slowest_submission: u.slowest,
+      }))
+      .sort((a, b) => a.avg_hours_to_submit - b.avg_hours_to_submit) // Fastest first
+      .slice(0, 10);
+
+    res.json({ data: { leaderboard } });
+  } catch (err) {
+    console.error('Error fetching submission-speed stat:', err);
+    res.status(500).json({ error: 'Failed to fetch stat' });
+  }
+});
+
+/**
+ * Stat 24: Submission Timing Distribution
+ * GET /api/stats/submission-timing
+ * 
+ * First hour vs last hour pick distribution per user
+ */
+router.get('/submission-timing', async (_req: Request, res: Response) => {
+  try {
+    // Get active season
+    const { data: season } = await supabase
+      .from('seasons')
+      .select('id')
+      .eq('is_active', true)
+      .single();
+    
+    if (!season) {
+      return res.json({ data: { early_birds: [], procrastinators: [] } });
+    }
+
+    // Get all episodes with window times
+    const { data: episodes, error: episodesError } = await supabase
+      .from('episodes')
+      .select('id, number, air_date, picks_lock_at')
+      .eq('season_id', season.id)
+      .order('number', { ascending: true });
+    
+    if (episodesError) throw episodesError;
+
+    // Build episode timing info
+    const episodeTiming: Record<string, { windowOpen: Date; lockTime: Date }> = {};
+    (episodes || []).forEach((e, i) => {
+      const lockTime = e.picks_lock_at ? new Date(e.picks_lock_at) : null;
+      let windowOpen: Date | null = null;
+      
+      if (i > 0 && episodes[i - 1].air_date) {
+        windowOpen = new Date(episodes[i - 1].air_date);
+      } else if (e.air_date) {
+        windowOpen = new Date(e.air_date);
+        windowOpen.setDate(windowOpen.getDate() - 7);
+      }
+
+      if (windowOpen && lockTime) {
+        episodeTiming[e.id] = { windowOpen, lockTime };
+      }
+    });
+
+    // Get all picks with user info
+    const { data: picks, error: picksError } = await supabase
+      .from('weekly_picks')
+      .select(`
+        user_id,
+        episode_id,
+        submitted_at,
+        users!inner(display_name)
+      `)
+      .not('submitted_at', 'is', null);
+    
+    if (picksError) throw picksError;
+
+    // Track timing per user
+    const userStats: Record<string, { 
+      user_id: string; 
+      display_name: string;
+      first_hour: number;
+      last_hour: number;
+      total: number 
+    }> = {};
+
+    (picks || []).forEach((pick: any) => {
+      const timing = episodeTiming[pick.episode_id];
+      if (!timing || !pick.submitted_at) return;
+
+      const submittedAt = new Date(pick.submitted_at);
+      const firstHourEnd = new Date(timing.windowOpen.getTime() + 60 * 60 * 1000);
+      const lastHourStart = new Date(timing.lockTime.getTime() - 60 * 60 * 1000);
+
+      const isFirstHour = submittedAt >= timing.windowOpen && submittedAt <= firstHourEnd;
+      const isLastHour = submittedAt >= lastHourStart && submittedAt <= timing.lockTime;
+
+      if (!userStats[pick.user_id]) {
+        userStats[pick.user_id] = {
+          user_id: pick.user_id,
+          display_name: pick.users?.display_name || 'Unknown',
+          first_hour: 0,
+          last_hour: 0,
+          total: 0,
+        };
+      }
+
+      userStats[pick.user_id].total++;
+      if (isFirstHour) userStats[pick.user_id].first_hour++;
+      if (isLastHour) userStats[pick.user_id].last_hour++;
+    });
+
+    const allUsers = Object.values(userStats).filter((u) => u.total >= 3);
+
+    const early_birds = allUsers
+      .map((u) => ({
+        user_id: u.user_id,
+        display_name: u.display_name,
+        first_hour_picks: u.first_hour,
+        total_picks: u.total,
+        ratio: u.total > 0 ? Math.round((u.first_hour / u.total) * 100) : 0,
+      }))
+      .sort((a, b) => b.ratio - a.ratio)
+      .slice(0, 5);
+
+    const procrastinators = allUsers
+      .map((u) => ({
+        user_id: u.user_id,
+        display_name: u.display_name,
+        last_hour_picks: u.last_hour,
+        total_picks: u.total,
+        ratio: u.total > 0 ? Math.round((u.last_hour / u.total) * 100) : 0,
+      }))
+      .sort((a, b) => b.ratio - a.ratio)
+      .slice(0, 5);
+
+    res.json({ data: { early_birds, procrastinators } });
+  } catch (err) {
+    console.error('Error fetching submission-timing stat:', err);
+    res.status(500).json({ error: 'Failed to fetch stat' });
+  }
+});
+
 export default router;

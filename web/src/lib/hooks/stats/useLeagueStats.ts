@@ -41,6 +41,18 @@ interface ActivityByHourResponse {
   hours: ActivityByHourEntry[];
 }
 
+interface SubmissionSpeedEntry {
+  user_id: string;
+  display_name: string;
+  avg_hours_to_submit: number;
+  fastest_submission: number;
+  slowest_submission: number;
+}
+
+interface SubmissionSpeedResponse {
+  leaderboard: SubmissionSpeedEntry[];
+}
+
 export function useLeagueStats() {
   // Stat 22: League Scoring
   const leagueScoringQuery = useQuery({
@@ -75,19 +87,35 @@ export function useLeagueStats() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Stat 27: Submission Speed
+  const submissionSpeedQuery = useQuery({
+    queryKey: ['stats', 'submission-speed'],
+    queryFn: async () => {
+      const response = await api<{ data: SubmissionSpeedResponse }>('/stats/submission-speed');
+      if (response.error) throw new Error(response.error);
+      return response.data?.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const isLoading =
-    leagueScoringQuery.isLoading || activityByDayQuery.isLoading || activityByHourQuery.isLoading;
+    leagueScoringQuery.isLoading ||
+    activityByDayQuery.isLoading ||
+    activityByHourQuery.isLoading ||
+    submissionSpeedQuery.isLoading;
 
   const error =
     leagueScoringQuery.error?.message ||
     activityByDayQuery.error?.message ||
     activityByHourQuery.error?.message ||
+    submissionSpeedQuery.error?.message ||
     null;
 
   return {
     leagueScoring: leagueScoringQuery.data,
     activityByDay: activityByDayQuery.data,
     activityByHour: activityByHourQuery.data,
+    submissionSpeed: submissionSpeedQuery.data,
     isLoading,
     error,
   };

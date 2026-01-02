@@ -22,7 +22,8 @@ import { StatCard, HorizontalBarChart, BarChart, InsightCard } from '@/component
 import { useLeagueStats } from '@/lib/hooks/stats';
 
 export function LeagueStats() {
-  const { leagueScoring, activityByDay, activityByHour, isLoading, error } = useLeagueStats();
+  const { leagueScoring, activityByDay, activityByHour, submissionSpeed, isLoading, error } =
+    useLeagueStats();
 
   // Day name mapping
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -112,8 +113,15 @@ export function LeagueStats() {
                 icon={<Timer className="h-5 w-5" />}
               >
                 <HorizontalBarChart
-                  data={[]}
+                  data={
+                    submissionSpeed?.leaderboard?.map((e) => ({
+                      label: e.display_name,
+                      value: e.avg_hours_to_submit,
+                      sublabel: `Fastest: ${e.fastest_submission.toFixed(1)}h`,
+                    })) || []
+                  }
                   valueFormatter={(v) => `${v.toFixed(1)}h`}
+                  colorScale="green"
                   emptyMessage="Data available after more picks"
                 />
               </StatCard>
