@@ -4,37 +4,37 @@ import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 
-// Scoring rules organized by category with exact point values
+// Scoring rules organized by category - positive = true means earn points, false means lose points
 const SCORING_RULES = [
   {
     category: 'Pre-Merge Team Reward and Immunity Challenge Scoring',
     rules: [
       {
-        points: 1,
-        text: "point if your player's team wins a reward challenge (if three teams, get 1st or 2nd)",
+        positive: true,
+        text: "Your player's team wins a reward challenge (if three teams, get 1st or 2nd)",
       },
       {
-        points: -1,
-        text: 'point if your player sits out of a reward, immunity or combined immunity/reward challenge',
+        positive: false,
+        text: 'Your player sits out of a reward, immunity or combined immunity/reward challenge',
       },
       {
-        points: 1,
-        text: 'point if your player gives up their chance for reward to someone else before the challenge; not penalized for sitting out',
+        positive: true,
+        text: 'Your player gives up their chance for reward to someone else before the challenge; not penalized for sitting out',
       },
     ],
   },
   {
     category: 'Pre-Merge Tribal Council Scoring',
     rules: [
-      { points: 5, text: "points if your player doesn't go to tribal council" },
-      { points: 5, text: 'points if your player goes to tribal council but does not get snuffed' },
+      { positive: true, text: "Your player doesn't go to tribal council" },
+      { positive: true, text: 'Your player goes to tribal council but does not get snuffed' },
       {
-        points: -1,
-        text: 'point for each vote your player receives to vote them out and does count.',
+        positive: false,
+        text: 'Each vote your player receives to vote them out and does count',
       },
       {
-        points: 1,
-        text: 'point for each vote your players receives but does not count. (eg Player is now immune after votes were cast.)',
+        positive: true,
+        text: 'Each vote your player receives but does not count (eg Player is now immune after votes were cast)',
       },
     ],
   },
@@ -42,12 +42,12 @@ const SCORING_RULES = [
     category: 'Post-Merge Reward and Individual Immunity Challenge Scoring',
     rules: [
       {
-        points: 1,
-        text: 'point if your player gives up their chance for reward to someone else before the challenge; not penalized for sitting out',
+        positive: true,
+        text: 'Your player gives up their chance for reward to someone else before the challenge; not penalized for sitting out',
       },
       {
-        points: -1,
-        text: 'if your player is the first individual eliminated in an individual reward or immunity challenge.',
+        positive: false,
+        text: 'Your player is the first individual eliminated in an individual reward or immunity challenge',
       },
     ],
   },
@@ -55,20 +55,20 @@ const SCORING_RULES = [
     category: 'Advantages Scoring',
     rules: [
       {
-        points: -1,
-        text: 'point if your player is on a journey, must play (no choice), and incurs a disadvantage',
+        positive: false,
+        text: 'Your player is on a journey, must play (no choice), and incurs a disadvantage',
       },
       {
-        points: -1,
-        text: "point if your player finds a hidden advantage but 'plays it safe' and puts it back",
+        positive: false,
+        text: "Your player finds a hidden advantage but 'plays it safe' and puts it back",
       },
       {
-        points: -3,
-        text: 'points if your player uses a real or fake advantage unsuccessfully for themselves or another player',
+        positive: false,
+        text: 'Your player uses a real or fake advantage unsuccessfully for themselves or another player',
       },
       {
-        points: -1,
-        text: "point if your player finds a fake advantage and believes it is real (eg 'It's a fucking stick!' incident (if the stick was an advantage rather than an idol) would yield Jason -1 because he believed it was real but yield Eliza 0 because she did not believe it was real)",
+        positive: false,
+        text: "Your player finds a fake advantage and believes it is real (eg 'It's a fucking stick!' incident (if the stick was an advantage rather than an idol) would yield Jason -1 because he believed it was real but yield Eliza 0 because she did not believe it was real)",
       },
     ],
   },
@@ -76,32 +76,32 @@ const SCORING_RULES = [
     category: 'Hidden Immunity Idols Scoring',
     rules: [
       {
-        points: 1,
-        text: 'point if your player gives their hidden immunity idol to another player',
+        positive: true,
+        text: 'Your player gives their hidden immunity idol to another player',
       },
-      { points: 5, text: 'points if your player uses their Shot in the Dark successfully' },
+      { positive: true, text: 'Your player uses their Shot in the Dark successfully' },
     ],
   },
   {
     category: 'Random Scoring',
     rules: [
       {
-        points: 1,
-        text: "point for wardrobe malfunction (must be more than blurring of a crack or through-the-pants; we're talking boobs fully popping out or Free Willy)",
+        positive: true,
+        text: "Wardrobe malfunction (must be more than blurring of a crack or through-the-pants; we're talking boobs fully popping out or Free Willy)",
       },
-      { points: -1, text: 'point for crying/brink of tears for negative reasons (upset, bullied)' },
+      { positive: false, text: 'Crying/brink of tears for negative reasons (upset, bullied)' },
       {
-        points: 2,
-        text: "points if your player secretly eats food and doesn't share with the entire tribe",
+        positive: true,
+        text: "Your player secretly eats food and doesn't share with the entire tribe",
       },
     ],
   },
   {
     category: 'Final Three',
     rules: [
-      { points: 2, text: 'points if you are chosen by another castaway to be in the final three' },
-      { points: 2, text: 'points for each vote your player receives in the final vote' },
-      { points: 10, text: 'if your player wins the season' },
+      { positive: true, text: 'You are chosen by another castaway to be in the final three' },
+      { positive: true, text: 'Each vote your player receives in the final vote' },
+      { positive: true, text: 'Your player wins the season' },
     ],
   },
 ];
@@ -148,12 +148,11 @@ export default function ScoringRules() {
                 {section.rules.map((rule, i) => (
                   <div key={i} className="px-6 py-4 flex items-start gap-4">
                     <span
-                      className={`font-mono font-bold text-lg min-w-[50px] text-right ${
-                        rule.points >= 0 ? 'text-green-600' : 'text-red-600'
+                      className={`font-bold text-xl min-w-[30px] text-center ${
+                        rule.positive ? 'text-green-600' : 'text-red-600'
                       }`}
                     >
-                      {rule.points >= 0 ? '+' : ''}
-                      {rule.points}
+                      {rule.positive ? '+' : '−'}
                     </span>
                     <p className="text-neutral-700 flex-1">{rule.text}</p>
                   </div>
