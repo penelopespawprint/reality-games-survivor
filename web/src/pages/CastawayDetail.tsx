@@ -212,20 +212,20 @@ export default function CastawayDetail() {
           Back to Castaways
         </Link>
 
-        {/* Hero Section */}
+        {/* Hero Section - Large Photo Layout */}
         <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden mb-6">
-          <div className="md:flex">
-            {/* Photo */}
-            <div className="md:w-1/3 relative">
+          <div className="lg:flex">
+            {/* Large Photo */}
+            <div className="lg:w-2/5 relative">
               {castaway.photo_url ? (
                 <img
                   src={castaway.photo_url}
                   alt={castaway.name}
-                  className="w-full h-64 md:h-full object-cover"
+                  className="w-full h-80 lg:h-full lg:min-h-[500px] object-cover object-top"
                 />
               ) : (
-                <div className="w-full h-64 md:h-full bg-gradient-to-br from-burgundy-400 to-burgundy-600 flex items-center justify-center">
-                  <span className="text-6xl text-white/80 font-display">
+                <div className="w-full h-80 lg:h-full lg:min-h-[500px] bg-gradient-to-br from-burgundy-400 to-burgundy-600 flex items-center justify-center">
+                  <span className="text-8xl text-white/80 font-display">
                     {castaway.name.charAt(0)}
                   </span>
                 </div>
@@ -233,17 +233,17 @@ export default function CastawayDetail() {
               {/* Status Badge */}
               <div className="absolute top-4 left-4">
                 {castaway.status === 'eliminated' ? (
-                  <div className="flex items-center gap-1.5 bg-neutral-800/90 text-white px-3 py-1.5 rounded-full text-sm font-medium">
+                  <div className="flex items-center gap-1.5 bg-neutral-800/90 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                     <Skull className="h-4 w-4" />
                     Eliminated
                   </div>
                 ) : castaway.status === 'winner' ? (
-                  <div className="flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1.5 rounded-full text-sm font-medium">
+                  <div className="flex items-center gap-1.5 bg-amber-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                     <Trophy className="h-4 w-4" />
                     Winner
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1.5 rounded-full text-sm font-medium">
+                  <div className="flex items-center gap-1.5 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                     <Flame className="h-4 w-4" />
                     Active
                   </div>
@@ -252,50 +252,65 @@ export default function CastawayDetail() {
             </div>
 
             {/* Info */}
-            <div className="md:w-2/3 p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h1 className="text-3xl font-display font-bold text-neutral-800 mb-2">
-                    {castaway.name}
-                  </h1>
-                  <div
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${tribeColors.bg} ${tribeColors.text} ${tribeColors.border} border`}
-                  >
-                    {castaway.tribe_original || 'Unknown Tribe'}
-                  </div>
+            <div className="lg:w-3/5 p-6 lg:p-8 flex flex-col">
+              <div className="mb-6">
+                <div
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${tribeColors.bg} ${tribeColors.text} ${tribeColors.border} border mb-3`}
+                >
+                  {castaway.tribe_original || 'Unknown Tribe'}
                 </div>
+                <h1 className="text-4xl font-display font-bold text-neutral-800">
+                  {castaway.name}
+                </h1>
               </div>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {/* Quick Stats Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
                 {castaway.age && (
-                  <div className="flex items-center gap-2 text-neutral-600">
-                    <Calendar className="h-4 w-4 text-burgundy-500" />
-                    <span>{castaway.age} years old</span>
+                  <div className="bg-cream-50 rounded-xl p-4">
+                    <div className="flex items-center gap-2 text-neutral-600">
+                      <Calendar className="h-5 w-5 text-burgundy-500" />
+                      <div>
+                        <p className="text-xs text-neutral-500 uppercase tracking-wide">Age</p>
+                        <p className="font-semibold text-neutral-800">{castaway.age} years old</p>
+                      </div>
+                    </div>
                   </div>
                 )}
                 {castaway.hometown && (
-                  <div className="flex items-center gap-2 text-neutral-600">
-                    <MapPin className="h-4 w-4 text-burgundy-500" />
-                    <span>{castaway.hometown}</span>
+                  <div className="bg-cream-50 rounded-xl p-4">
+                    <div className="flex items-center gap-2 text-neutral-600">
+                      <MapPin className="h-5 w-5 text-burgundy-500" />
+                      <div>
+                        <p className="text-xs text-neutral-500 uppercase tracking-wide">From</p>
+                        <p className="font-semibold text-neutral-800">{castaway.hometown}</p>
+                      </div>
+                    </div>
                   </div>
                 )}
                 {castaway.occupation && (
-                  <div className="flex items-center gap-2 text-neutral-600 col-span-2">
-                    <Briefcase className="h-4 w-4 text-burgundy-500" />
-                    <span>{castaway.occupation}</span>
+                  <div className="bg-cream-50 rounded-xl p-4 col-span-2">
+                    <div className="flex items-center gap-2 text-neutral-600">
+                      <Briefcase className="h-5 w-5 text-burgundy-500" />
+                      <div>
+                        <p className="text-xs text-neutral-500 uppercase tracking-wide">
+                          Occupation
+                        </p>
+                        <p className="font-semibold text-neutral-800">{castaway.occupation}</p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Fun Fact */}
               {castaway.fun_fact && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-5 mb-6">
                   <div className="flex items-start gap-3">
-                    <Star className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <Star className="h-6 w-6 text-amber-500 flex-shrink-0" />
                     <div>
                       <p className="font-semibold text-amber-800 mb-1">Fun Fact</p>
-                      <p className="text-amber-700">{castaway.fun_fact}</p>
+                      <p className="text-amber-700 leading-relaxed">{castaway.fun_fact}</p>
                     </div>
                   </div>
                 </div>
@@ -303,14 +318,16 @@ export default function CastawayDetail() {
 
               {/* Previous Seasons */}
               {castaway.previous_seasons && castaway.previous_seasons.length > 0 && (
-                <div className="text-neutral-600">
-                  <span className="font-medium">Previous Seasons:</span>{' '}
-                  {castaway.previous_seasons.join(', ')}
-                  {castaway.best_placement && (
-                    <span className="ml-2 text-burgundy-600">
-                      (Best: #{castaway.best_placement})
-                    </span>
-                  )}
+                <div className="bg-burgundy-50 border border-burgundy-200 rounded-xl p-4 mt-auto">
+                  <p className="font-semibold text-burgundy-800 mb-2">Survivor Veteran</p>
+                  <p className="text-burgundy-700">
+                    Previous seasons: {castaway.previous_seasons.join(', ')}
+                    {castaway.best_placement && (
+                      <span className="ml-2 font-semibold">
+                        (Best finish: #{castaway.best_placement})
+                      </span>
+                    )}
+                  </p>
                 </div>
               )}
             </div>
