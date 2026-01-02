@@ -3,7 +3,6 @@ import {
   Calendar,
   Clock,
   Lock,
-  Tv,
   Trophy,
   Bell,
   RefreshCw,
@@ -18,32 +17,22 @@ import { Footer } from '@/components/Footer';
 const TIMELINE_EVENTS = [
   {
     day: 'Wednesday',
-    time: '5:00 PM PST / 8:00 PM EST',
+    time: '8:00 PM ET / 5:00 PM PT',
     icon: Lock,
     color: 'burgundy',
-    title: 'Picks Lock',
+    title: 'Picks Lock & Episode Airs',
     description:
-      'All weekly picks lock when the episode starts airing. Make sure you\'ve selected which of your castaways to "play" for this episode before showtime.',
+      'All weekly picks lock when the episode starts airing on CBS. Make sure you\'ve selected which of your castaways to "play" for this episode before showtime.',
     tip: 'Set a reminder for Wednesday afternoon! If you forget to pick, the system will randomly select from your available castaways.',
   },
   {
     day: 'Wednesday',
-    time: '8:00 PM EST / 5:00 PM PST',
-    icon: Tv,
-    color: 'orange',
-    title: 'Episode Airs',
-    description:
-      'Survivor airs on CBS. Watch live or avoid spoilers until you can catch up. Scoring events are tracked as they happen.',
-    tip: 'Enable spoiler-safe mode in your settings to delay result notifications.',
-  },
-  {
-    day: 'Wednesday Night',
-    time: 'After West Coast Airing',
+    time: '~9:00 PM PT',
     icon: Bell,
     color: 'green',
     title: 'Results Posted',
     description:
-      'Results are usually released shortly after the episode finishes airing on the west coast (~9pm PST). In some cases, it may take until the next morning.',
+      'Results are usually released shortly after the episode finishes airing on the west coast. In some cases, it may take until the next morning.',
     tip: 'Results notifications respect your spoiler delay settings.',
   },
   {

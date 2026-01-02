@@ -19,21 +19,14 @@ export function WeeklyTimelineCard() {
         <div className="flex items-start gap-3">
           <div className="w-2 h-2 rounded-full bg-burgundy-500 mt-2 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-neutral-800">Wednesday 5pm PST</p>
-            <p className="text-xs text-neutral-500">Picks lock when episode airs</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-3">
-          <div className="w-2 h-2 rounded-full bg-orange-500 mt-2 flex-shrink-0" />
-          <div>
-            <p className="text-sm font-medium text-neutral-800">Wednesday 8pm EST / 5pm PST</p>
-            <p className="text-xs text-neutral-500">Episode airs on CBS</p>
+            <p className="text-sm font-medium text-neutral-800">Wednesday 8pm ET / 5pm PT</p>
+            <p className="text-xs text-neutral-500">Picks lock & episode airs on CBS</p>
           </div>
         </div>
         <div className="flex items-start gap-3">
           <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-neutral-800">Wednesday Night</p>
+            <p className="text-sm font-medium text-neutral-800">Wednesday ~9pm PT</p>
             <p className="text-xs text-neutral-500">Results posted after West Coast airing</p>
           </div>
         </div>
