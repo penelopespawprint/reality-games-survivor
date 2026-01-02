@@ -93,6 +93,7 @@ export function Trivia() {
   const { user, loading: authLoading, session } = useAuth();
   const queryClient = useQueryClient();
   const [gameStarted, setGameStarted] = useState(false);
+  const [questionReady, setQuestionReady] = useState(false); // User clicked "Start" for current question
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(20);
   const [timerActive, setTimerActive] = useState(false);
@@ -163,7 +164,7 @@ export function Trivia() {
     staleTime: 1000 * 60 * 60, // Cache for 1 hour
   });
 
-  // Start timer when question loads and game is started
+  // Reset question state when a new question loads (but DON'T start timer yet)
   useEffect(() => {
     if (
       triviaData?.question &&
@@ -176,9 +177,16 @@ export function Trivia() {
       setShowResult(false);
       setSelectedIndex(null);
       setFunFact(null);
-      setTimerActive(true);
+      setQuestionReady(false); // Reset - user must click "Start" for this question
+      setTimerActive(false); // Don't start timer until user clicks "Start"
     }
   }, [triviaData?.question?.id, gameStarted]);
+
+  // Start timer only when user clicks "Start" for the question
+  const handleStartQuestion = () => {
+    setQuestionReady(true);
+    setTimerActive(true);
+  };
 
   // Timer countdown - only runs when timerActive is true
   useEffect(() => {
@@ -545,6 +553,8 @@ export function Trivia() {
             wrongMessage={wrongMessage}
             isPending={submitAnswer.isPending}
             onAnswer={handleAnswer}
+            questionReady={questionReady}
+            onStartQuestion={handleStartQuestion}
           />
         )}
 

@@ -2,9 +2,10 @@
  * Trivia Question Card Component
  *
  * Displays a trivia question with answer options.
+ * Shows a "Start" button before timer begins.
  */
 
-import { Clock, Check, X } from 'lucide-react';
+import { Clock, Check, X, Play } from 'lucide-react';
 
 interface TriviaQuestion {
   id: string;
@@ -32,6 +33,8 @@ interface TriviaQuestionCardProps {
   wrongMessage: string;
   isPending: boolean;
   onAnswer: (index: number) => void;
+  questionReady: boolean;
+  onStartQuestion: () => void;
 }
 
 export function TriviaQuestionCard({
@@ -49,7 +52,39 @@ export function TriviaQuestionCard({
   wrongMessage,
   isPending,
   onAnswer,
+  questionReady,
+  onStartQuestion,
 }: TriviaQuestionCardProps) {
+  // Show "Ready to Start" screen before timer begins
+  if (!questionReady && !alreadyAnswered && !showResult) {
+    return (
+      <div className="bg-white rounded-2xl shadow-card p-8 border-2 border-burgundy-200 text-center">
+        <div className="mb-6">
+          <span className="inline-block px-4 py-2 bg-burgundy-100 text-burgundy-700 rounded-full text-sm font-medium">
+            Question {question.questionNumber} of {totalQuestions}
+          </span>
+        </div>
+
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-full mb-6 shadow-lg">
+          <Play className="h-10 w-10 text-white ml-1" />
+        </div>
+
+        <h2 className="text-2xl font-display font-bold text-neutral-800 mb-3">Ready?</h2>
+        <p className="text-neutral-600 mb-6 max-w-sm mx-auto">
+          You'll have <span className="font-bold text-red-600">20 seconds</span> to answer this
+          question. The timer starts when you click the button below.
+        </p>
+
+        <button
+          onClick={onStartQuestion}
+          className="px-8 py-4 bg-gradient-to-r from-burgundy-600 to-burgundy-700 text-white font-bold text-lg rounded-xl hover:from-burgundy-500 hover:to-burgundy-600 transition-all shadow-lg transform hover:scale-105"
+        >
+          Start Question
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-2xl shadow-card p-8 border-2 border-burgundy-200">
       {/* Question Header */}
@@ -60,7 +95,13 @@ export function TriviaQuestionCard({
           </h2>
         </div>
         {!alreadyAnswered && !showResult && (
-          <div className="flex items-center gap-2 bg-red-50 border-2 border-red-300 rounded-xl px-4 py-2">
+          <div
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 ${
+              timeRemaining <= 5
+                ? 'bg-red-100 border-2 border-red-400 animate-pulse'
+                : 'bg-red-50 border-2 border-red-300'
+            }`}
+          >
             <Clock className="h-5 w-5 text-red-600" />
             <span className="font-bold text-red-700 text-lg">{timeRemaining}s</span>
           </div>
