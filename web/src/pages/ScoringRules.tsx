@@ -7,13 +7,10 @@ import {
   Trophy,
   Users,
   Flame,
-  MessageCircle,
   Target,
   Gem,
   Star,
   Award,
-  Check,
-  X,
   ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -23,123 +20,131 @@ import { Footer } from '@/components/Footer';
 // Category display order and metadata with examples
 const CATEGORIES = [
   {
-    name: 'Survival',
-    icon: Flame,
-    color: 'orange',
-    description: 'Points for staying in the game',
-    examples: [
-      { text: 'Survive the episode without being voted out', positive: true },
-      { text: 'Make it to the merge', positive: true },
-      { text: 'Reach the Final Tribal Council', positive: true },
-      { text: 'Win the title of Sole Survivor', positive: true },
-    ],
-  },
-  {
-    name: 'Tribal Council',
-    icon: Users,
-    color: 'blue',
-    description: 'Points through voting and surviving votes',
-    examples: [
-      { text: 'Vote for the person who gets eliminated', positive: true },
-      { text: 'Receive votes but survive', positive: true },
-      { text: 'Get blindsided (eliminated with an idol in pocket)', positive: false },
-      { text: 'Vote incorrectly', positive: false },
-    ],
-  },
-  {
-    name: 'Pre-Merge Challenges',
+    name: 'Pre-Merge Team Reward and Immunity Challenge Scoring',
     icon: Trophy,
     color: 'green',
-    description: 'Tribal immunity and reward challenges',
+    description: 'Points for team challenges before the merge',
     examples: [
-      { text: 'Tribe wins immunity challenge', positive: true },
-      { text: 'Tribe wins reward challenge', positive: true },
-      { text: 'Individual standout performance in tribal challenge', positive: true },
-      { text: 'Sit out of a challenge', positive: false },
+      {
+        text: "point if your player's team wins a reward challenge (if three teams, get 1st or 2nd)",
+        positive: true,
+      },
+      {
+        text: 'point if your player sits out of a reward, immunity or combined immunity/reward challenge',
+        positive: false,
+      },
+      {
+        text: 'point if your player gives up their chance for reward to someone else before the challenge; not penalized for sitting out',
+        positive: true,
+      },
     ],
   },
   {
-    name: 'Post-Merge Challenges',
+    name: 'Pre-Merge Tribal Council Scoring',
+    icon: Users,
+    color: 'blue',
+    description: 'Points at tribal council before the merge',
+    examples: [
+      { text: "points if your player doesn't go to tribal council", positive: true },
+      {
+        text: 'points if your player goes to tribal council but does not get snuffed',
+        positive: true,
+      },
+      {
+        text: 'point for each vote your player receives to vote them out and does count.',
+        positive: false,
+      },
+      {
+        text: 'point for each vote your players receives but does not count. (eg Player is now immune after votes were cast.)',
+        positive: true,
+      },
+    ],
+  },
+  {
+    name: 'Post-Merge Reward and Individual Immunity Challenge Scoring',
     icon: Award,
     color: 'purple',
-    description: 'Individual immunity and reward challenges',
+    description: 'Points for individual challenges after the merge',
     examples: [
-      { text: 'Win individual immunity', positive: true },
-      { text: 'Win individual reward', positive: true },
-      { text: 'Win the final immunity challenge', positive: true },
-      { text: 'Come in second place in individual immunity', positive: true },
+      {
+        text: 'point if your player gives up their chance for reward to someone else before the challenge; not penalized for sitting out',
+        positive: true,
+      },
+      {
+        text: 'if your player is the first individual eliminated in an individual reward or immunity challenge.',
+        positive: false,
+      },
     ],
   },
   {
-    name: 'Strategic Play',
+    name: 'Advantages Scoring',
     icon: Target,
-    color: 'red',
-    description: 'Big moves and game manipulation',
+    color: 'orange',
+    description: 'Points related to game advantages',
     examples: [
-      { text: 'Orchestrate a blindside', positive: true },
-      { text: 'Successfully flip on your alliance', positive: true },
-      { text: 'Convince someone to play (or not play) their idol', positive: true },
-      { text: 'Get caught in a lie', positive: false },
+      {
+        text: 'point if your player is on a journey, must play (no choice), and incurs a disadvantage',
+        positive: false,
+      },
+      {
+        text: "point if your player finds a hidden advantage but 'plays it safe' and puts it back",
+        positive: false,
+      },
+      {
+        text: 'points if your player uses a real or fake advantage unsuccessfully for themselves or another player',
+        positive: false,
+      },
+      {
+        text: "point if your player finds a fake advantage and believes it is real (eg 'It's a fucking stick!' incident (if the stick was an advantage rather than an idol) would yield Jason -1 because he believed it was real but yield Eliza 0 because she did not believe it was real)",
+        positive: false,
+      },
     ],
   },
   {
-    name: 'Social Game',
-    icon: MessageCircle,
-    color: 'teal',
-    description: 'Relationships and jury management',
-    examples: [
-      { text: 'Shown building a strong alliance', positive: true },
-      { text: 'Mediate conflict between other players', positive: true },
-      { text: 'Receive votes at Final Tribal Council', positive: true },
-      { text: 'Get into a public argument', positive: false },
-    ],
-  },
-  {
-    name: 'Idols & Advantages',
+    name: 'Hidden Immunity Idols Scoring',
     icon: Gem,
     color: 'yellow',
-    description: 'Finding and playing advantages',
+    description: 'Points for finding and playing idols',
     examples: [
-      { text: 'Find a hidden immunity idol', positive: true },
-      { text: 'Successfully play an idol to save yourself', positive: true },
-      { text: 'Play an idol for another player', positive: true },
-      { text: 'Find or win any advantage', positive: true },
-      { text: 'Waste an idol (play it but no votes against you)', positive: false },
+      {
+        text: 'point if your player gives their hidden immunity idol to another player',
+        positive: true,
+      },
+      { text: 'points if your player uses their Shot in the Dark successfully', positive: true },
     ],
   },
   {
-    name: 'Confessionals & Screen Time',
-    icon: MessageCircle,
-    color: 'indigo',
-    description: 'On-screen presence and memorable moments',
-    examples: [
-      { text: 'Have a confessional during the episode', positive: true },
-      { text: 'Deliver a memorable or viral moment', positive: true },
-      { text: 'Get significant screen time', positive: true },
-      { text: 'Shown crying (context matters!)', positive: true },
-    ],
-  },
-  {
-    name: 'Bonus & Special',
+    name: 'Random Scoring',
     icon: Star,
-    color: 'gold',
-    description: 'Special achievements and milestones',
+    color: 'teal',
+    description: 'Miscellaneous scoring events',
     examples: [
-      { text: 'Win fan favorite / Sprint Player of the Season', positive: true },
-      { text: 'Make a move that significantly changes the game', positive: true },
-      { text: 'Perfect game (no votes against, unanimous win)', positive: true },
+      {
+        text: "point for wardrobe malfunction (must be more than blurring of a crack or through-the-pants; we're talking boobs fully popping out or Free Willy)",
+        positive: true,
+      },
+      {
+        text: 'point for crying/brink of tears for negative reasons (upset, bullied)',
+        positive: false,
+      },
+      {
+        text: "points if your player secretly eats food and doesn't share with the entire tribe",
+        positive: true,
+      },
     ],
   },
   {
-    name: 'Penalties',
-    icon: X,
-    color: 'red',
-    description: 'Ways to lose points',
+    name: 'Final Three',
+    icon: Flame,
+    color: 'gold',
+    description: 'Points for making it to the end',
     examples: [
-      { text: 'Get voted out', positive: false },
-      { text: 'Quit the game', positive: false },
-      { text: 'Get medically evacuated', positive: false },
-      { text: 'Get removed from the game', positive: false },
+      {
+        text: 'points if you are chosen by another castaway to be in the final three',
+        positive: true,
+      },
+      { text: 'points for each vote your player receives in the final vote', positive: true },
+      { text: 'if your player wins the season', positive: true },
     ],
   },
 ];
@@ -293,19 +298,15 @@ export default function ScoringRules() {
                       {category.examples.map((example, i) => (
                         <div
                           key={i}
-                          className="px-5 py-2.5 flex items-center gap-3 hover:bg-cream-50 transition-colors"
+                          className="px-5 py-2.5 flex items-start gap-3 hover:bg-cream-50 transition-colors"
                         >
-                          <div
-                            className={`p-1 rounded-full flex-shrink-0 ${
-                              example.positive ? 'bg-green-100' : 'bg-red-100'
+                          <span
+                            className={`font-bold text-lg flex-shrink-0 w-6 text-center ${
+                              example.positive ? 'text-green-600' : 'text-red-600'
                             }`}
                           >
-                            {example.positive ? (
-                              <Check className="h-3.5 w-3.5 text-green-600" />
-                            ) : (
-                              <X className="h-3.5 w-3.5 text-red-600" />
-                            )}
-                          </div>
+                            {example.positive ? '+' : '-'}
+                          </span>
                           <p className="text-neutral-700 text-sm flex-1">{example.text}</p>
                         </div>
                       ))}
