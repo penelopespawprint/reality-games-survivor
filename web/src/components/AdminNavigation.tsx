@@ -104,7 +104,10 @@ export function AdminNavigation() {
     profile?.display_name || user?.user_metadata?.display_name || user?.email?.split('@')[0] || '';
 
   const isActive = (path: string) => {
-    if (path === '/admin') return location.pathname === '/admin';
+    // Exact match for command center and dashboard
+    if (path === '/admin/command-center' || path === '/admin/dashboard') {
+      return location.pathname === path;
+    }
     return location.pathname.startsWith(path);
   };
 
@@ -127,8 +130,8 @@ export function AdminNavigation() {
 
   // Main nav items (top level)
   const mainNavItems = [
-    { path: '/admin', label: 'Dashboard', exact: true },
     { path: '/admin/command-center', label: 'Command Center' },
+    { path: '/admin/dashboard', label: 'Dashboard' },
     { path: '/admin/leagues', label: 'Leagues' },
     { path: '/admin/scoring', label: 'Scoring' },
   ];
@@ -191,26 +194,22 @@ export function AdminNavigation() {
       <nav className="bg-neutral-900 border-b border-neutral-700 shadow-lg sticky top-[40px] z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-12">
-            {/* Logo */}
-            <Link to="/admin" className="flex items-center gap-2">
+            {/* Logo - links to Command Center */}
+            <Link to="/admin/command-center" className="flex items-center gap-2">
               <img src="/logo.png" alt="Admin" className="h-7 w-auto brightness-0 invert" />
             </Link>
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-1">
-              {/* Dashboard, Leagues, Scoring */}
+              {/* Command Center, Dashboard, Leagues, Scoring */}
               {mainNavItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
                   className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                    item.exact
-                      ? location.pathname === item.path
-                        ? 'bg-orange-500 text-white'
-                        : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
-                      : isActive(item.path)
-                        ? 'bg-orange-500 text-white'
-                        : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
+                    isActive(item.path)
+                      ? 'bg-orange-500 text-white'
+                      : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
                   }`}
                 >
                   {item.label}
@@ -371,13 +370,7 @@ export function AdminNavigation() {
                   key={item.path}
                   to={item.path}
                   className={`block px-4 py-2.5 text-sm font-medium ${
-                    item.exact
-                      ? location.pathname === item.path
-                        ? 'bg-orange-500 text-white'
-                        : 'text-neutral-300'
-                      : isActive(item.path)
-                        ? 'bg-orange-500 text-white'
-                        : 'text-neutral-300'
+                    isActive(item.path) ? 'bg-orange-500 text-white' : 'text-neutral-300'
                   }`}
                 >
                   {item.label}
