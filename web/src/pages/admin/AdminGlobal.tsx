@@ -117,10 +117,12 @@ export function AdminGlobal() {
             <h2 className="text-xl font-display font-bold text-neutral-800 mb-2">
               No Global League Found
             </h2>
-            <p className="text-neutral-500 mb-6">
-              Create a global league to enable cross-league rankings.
+            <p className="text-neutral-500 mb-4">
+              A global league enables cross-league rankings for all players.
             </p>
-            <button className="btn btn-primary">Create Global League</button>
+            <p className="text-sm text-neutral-400">
+              Contact a database administrator to create a global league for the active season.
+            </p>
           </div>
         </div>
       </>

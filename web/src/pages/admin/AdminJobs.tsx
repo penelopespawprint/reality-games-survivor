@@ -87,7 +87,6 @@ export function AdminJobs() {
   const [jobResults, setJobResults] = useState<
     Record<string, { status: 'success' | 'failed'; lastRun: string; message?: string }>
   >({});
-  const [disabledJobs, setDisabledJobs] = useState<Set<string>>(new Set());
 
   // Fetch jobs status from API
   const {
@@ -116,13 +115,12 @@ export function AdminJobs() {
   const jobs: Job[] = defaultJobs.map((job) => {
     const apiJob = apiJobs?.find((j: any) => j.name === job.name);
     const result = jobResults[job.name];
-    const isDisabled = disabledJobs.has(job.name);
     return {
       ...job,
       lastRun: result?.lastRun || apiJob?.lastRun || job.lastRun,
       nextRun: apiJob?.nextRun || job.nextRun,
       status: runningJob === job.name ? 'running' : result?.status || apiJob?.status || job.status,
-      enabled: !isDisabled && (apiJob?.enabled ?? job.enabled),
+      enabled: apiJob?.enabled ?? job.enabled,
     };
   });
 
@@ -173,18 +171,6 @@ export function AdminJobs() {
       setRunningJob(null);
     },
   });
-
-  const toggleJob = (jobName: string) => {
-    setDisabledJobs((prev) => {
-      const next = new Set(prev);
-      if (next.has(jobName)) {
-        next.delete(jobName);
-      } else {
-        next.add(jobName);
-      }
-      return next;
-    });
-  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -329,7 +315,7 @@ export function AdminJobs() {
               <div className="flex gap-2">
                 <button
                   onClick={() => runJobMutation.mutate(job.name)}
-                  disabled={runningJob === job.name || !job.enabled}
+                  disabled={runningJob === job.name}
                   className="btn btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {runningJob === job.name ? (
@@ -343,14 +329,6 @@ export function AdminJobs() {
                       Run Now
                     </>
                   )}
-                </button>
-                <button
-                  onClick={() => toggleJob(job.name)}
-                  className={`btn ${
-                    job.enabled ? 'btn-secondary' : 'bg-green-100 text-green-600 hover:bg-green-200'
-                  } px-4`}
-                >
-                  {job.enabled ? 'Disable' : 'Enable'}
                 </button>
               </div>
             </div>
