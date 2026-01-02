@@ -131,7 +131,6 @@ export function AdminNavigation() {
   // Main nav items (top level)
   const mainNavItems = [
     { path: '/admin/command-center', label: 'Command Center' },
-    { path: '/admin/dashboard', label: 'Dashboard' },
     { path: '/admin/leagues', label: 'Leagues' },
     { path: '/admin/scoring', label: 'Scoring' },
   ];

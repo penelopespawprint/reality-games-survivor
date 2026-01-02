@@ -19,19 +19,6 @@ export function Navigation() {
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const howToPlayRef = useRef<HTMLDivElement>(null);
 
-  // View mode toggle for admins - persisted in localStorage
-  const [viewMode, setViewMode] = useState<'admin' | 'player'>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('adminViewMode') as 'admin' | 'player') || 'admin';
-    }
-    return 'admin';
-  });
-
-  // Update localStorage when view mode changes
-  useEffect(() => {
-    localStorage.setItem('adminViewMode', viewMode);
-  }, [viewMode]);
-
   // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -53,10 +40,9 @@ export function Navigation() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [mobileMenuOpen, howToPlayOpen]);
 
-  // Handle sign out with localStorage cleanup
+  // Handle sign out
   const handleSignOut = async () => {
     try {
-      localStorage.removeItem('adminViewMode');
       setMobileMenuOpen(false);
       await signOut();
     } catch (error) {
@@ -100,7 +86,6 @@ export function Navigation() {
   };
 
   const isAdmin = profile?.role === 'admin';
-  const showAdminNav = isAdmin && viewMode === 'admin';
 
   // Authenticated player navigation - clean horizontal layout
   // Admin sub-nav appears underneath when in admin mode
@@ -108,7 +93,7 @@ export function Navigation() {
     return (
       <>
         <nav
-          className={`bg-white border-b ${showAdminNav ? 'border-orange-300' : 'border-neutral-200'} shadow-sm sticky top-0 z-50`}
+          className={`bg-white border-b ${isAdmin ? 'border-orange-300' : 'border-neutral-200'} shadow-sm sticky top-0 z-50`}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
@@ -238,20 +223,12 @@ export function Navigation() {
                   {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>
 
-                {/* Admin View Toggle (only for admins) */}
+                {/* Admin indicator (only for admins) */}
                 {isAdmin && (
-                  <button
-                    onClick={() => setViewMode(viewMode === 'admin' ? 'player' : 'admin')}
-                    className={`hidden sm:flex items-center gap-1 text-xs font-medium px-2 py-1 rounded transition-colors ${
-                      showAdminNav
-                        ? 'text-white bg-orange-500 hover:bg-orange-600'
-                        : 'text-orange-600 hover:text-orange-700 hover:bg-orange-50'
-                    }`}
-                    title={showAdminNav ? 'Hide Admin Panel' : 'Show Admin Panel'}
-                  >
+                  <div className="hidden sm:flex items-center gap-1 text-xs font-medium px-2 py-1 rounded text-white bg-orange-500">
                     <Shield className="h-4 w-4" />
-                    {showAdminNav ? 'Admin' : ''}
-                  </button>
+                    Admin
+                  </div>
                 )}
 
                 {/* User Menu - Desktop */}
@@ -306,23 +283,6 @@ export function Navigation() {
                           Coming Soon
                         </span>
                       </div>
-                      {isAdmin && (
-                        <>
-                          <hr className="my-2 border-neutral-100" />
-                          <button
-                            onClick={() => setViewMode(viewMode === 'admin' ? 'player' : 'admin')}
-                            className={`w-full text-left px-3 py-2 text-sm rounded-lg flex items-center gap-2 ${
-                              showAdminNav
-                                ? 'text-orange-600 bg-orange-50 hover:bg-orange-100'
-                                : 'text-orange-600 hover:bg-orange-50'
-                            }`}
-                            role="menuitem"
-                          >
-                            <Shield className="h-4 w-4" />
-                            {showAdminNav ? 'Hide Admin Panel' : 'Show Admin Panel'}
-                          </button>
-                        </>
-                      )}
                       <hr className="my-2 border-neutral-100" />
                       <button
                         onClick={handleSignOut}
@@ -439,19 +399,6 @@ export function Navigation() {
                     Coming Soon
                   </span>
                 </div>
-                {isAdmin && (
-                  <button
-                    onClick={() => {
-                      setViewMode(viewMode === 'admin' ? 'player' : 'admin');
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-3 text-sm font-semibold uppercase tracking-wide ${
-                      showAdminNav ? 'text-orange-600 bg-orange-50' : 'text-orange-600'
-                    }`}
-                  >
-                    {showAdminNav ? 'Hide Admin Panel' : 'Show Admin Panel'}
-                  </button>
-                )}
                 <hr className="my-2 border-burgundy-100" />
                 <button
                   onClick={handleSignOut}
@@ -464,11 +411,11 @@ export function Navigation() {
           </div>
         </nav>
 
-        {/* Admin Sub-Navigation - appears below player nav when admin mode is active */}
-        {showAdminNav && (
+        {/* Admin Sub-Navigation - always visible for admin users */}
+        {isAdmin && (
           <div className="bg-neutral-900 border-b border-neutral-700 shadow-lg sticky top-16 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between h-10">
+              <div className="flex items-center h-10">
                 {/* Admin nav links */}
                 <div className="flex items-center gap-1 overflow-x-auto">
                   <Link
@@ -562,15 +509,6 @@ export function Navigation() {
                     Stats
                   </Link>
                 </div>
-
-                {/* Close admin panel button */}
-                <button
-                  onClick={() => setViewMode('player')}
-                  className="flex items-center gap-1 px-2 py-1 text-xs text-neutral-400 hover:text-white transition-colors"
-                >
-                  <X className="h-3 w-3" />
-                  <span className="hidden sm:inline">Close</span>
-                </button>
               </div>
             </div>
           </div>
