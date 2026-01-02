@@ -308,8 +308,8 @@ async function runTests() {
   );
 
   await expectError(
-    'User A cannot read cron_job_logs',
-    () => userA.client.from('cron_job_logs').select('*')
+    'User A cannot read job_runs',
+    () => userA.client.from('job_runs').select('*')
   );
 
   // ============================================
