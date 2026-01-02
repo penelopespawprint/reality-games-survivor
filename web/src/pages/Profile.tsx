@@ -17,7 +17,7 @@ import {
   ProfileInfo,
   // PhoneSection, // Hidden until SMS feature launches
   NotificationsSection,
-  SecuritySection,
+  // SecuritySection, // Removed - no password auth, only Google/Magic Link
   LogoutButton,
 } from '@/components/profile';
 
@@ -34,9 +34,9 @@ export default function Profile() {
   // const [phoneSuccess, setPhoneSuccess] = useState<string | null>(null);
   // const [showVerification, setShowVerification] = useState(false);
 
-  // Password state
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  // Password state - removed, no password auth available
+  // const [passwordError, setPasswordError] = useState<string | null>(null);
+  // const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
   // Fetch user profile
   const {
@@ -209,7 +209,8 @@ export default function Profile() {
   });
   */
 
-  // Change password mutation
+  // Change password mutation - removed, no password auth available
+  /*
   const changePassword = useMutation({
     mutationFn: async (password: string) => {
       const { error } = await supabase.auth.updateUser({ password });
@@ -225,6 +226,7 @@ export default function Profile() {
       setPasswordSuccess(null);
     },
   });
+  */
 
   // Logout
   const handleLogout = async () => {
@@ -336,13 +338,7 @@ export default function Profile() {
         hideSms={true}
       />
 
-      {/* Security / Password */}
-      <SecuritySection
-        onChangePassword={(password) => changePassword.mutate(password)}
-        isChanging={changePassword.isPending}
-        error={passwordError}
-        success={passwordSuccess}
-      />
+      {/* Security / Password - Removed since we only use Google/Magic Link auth */}
 
       {/* Logout Button */}
       <LogoutButton onLogout={handleLogout} />
