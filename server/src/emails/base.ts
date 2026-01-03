@@ -16,32 +16,33 @@
 const LOGO_URL = 'https://survivor.realitygamesfantasyleague.com/logo.png';
 const BASE_URL = process.env.BASE_URL || 'https://survivor.realitygamesfantasyleague.com';
 
-// Brand Colors
+// Brand Colors - VIBRANT VERSION
 const COLORS = {
   // Backgrounds
   outerBg: '#F5F0E6',        // Cream outer background
-  logoBg: '#FEFDFB',         // White/cream for logo area
-  contentBg: '#FEFDFB',      // White content area
+  logoBg: '#FFFFFF',         // Pure white for logo area
+  contentBg: '#FFFFFF',      // White content area
   footerBg: '#F5F0E6',       // Cream footer
-  cardBg: '#F8F5EF',         // Slightly darker cream for cards
+  cardBg: '#FFF8F0',         // Warm cream for cards
   
-  // Text
-  headingText: '#5C1717',    // Dark burgundy for headings
-  bodyText: '#4A3728',       // Warm dark brown for body
-  mutedText: '#8A7654',      // Muted tan for secondary text
+  // Text - MORE CONTRAST
+  headingText: '#1F1F1F',    // Near black for headings
+  bodyText: '#333333',       // Dark gray for body (high contrast)
+  mutedText: '#666666',      // Medium gray for secondary text
   
-  // Accents
-  burgundy: '#A52A2A',       // Primary burgundy
-  darkBurgundy: '#8B2323',   // Darker burgundy for emphasis
-  gold: '#D4A574',           // Gold accent
-  darkGold: '#8B6914',       // Darker gold for text
-  green: '#166534',          // Success green
-  lightGreen: '#22C55E',     // Bright green
+  // Accents - MORE VIBRANT
+  burgundy: '#8B0000',       // Deep burgundy (more saturated)
+  darkBurgundy: '#6B0000',   // Darker burgundy for emphasis
+  gold: '#DAA520',           // Goldenrod (more vibrant)
+  darkGold: '#B8860B',       // Dark goldenrod for text
+  green: '#059669',          // Emerald green (vibrant)
+  lightGreen: '#10B981',     // Bright emerald
   red: '#DC2626',            // Alert/error red
+  orange: '#EA580C',         // Vibrant orange
   
   // Borders
-  borderLight: '#EDE5D5',    // Light tan border
-  borderMedium: '#D4C4A8',   // Medium tan border
+  borderLight: '#E5E5E5',    // Light gray border
+  borderMedium: '#CCCCCC',   // Medium gray border
 };
 
 export type EmailTheme = 'default' | 'tribal' | 'immunity' | 'tribal_council' | 'merge';
@@ -123,7 +124,7 @@ export function emailWrapper(content: string, preheader?: string, theme: EmailTh
           <!-- Logo Header - Always cream/white background -->
           <tr>
             <td style="background-color: ${COLORS.logoBg}; padding: 32px 40px; text-align: center; border-bottom: 3px solid ${config.borderColor};">
-              <img src="${LOGO_URL}" alt="Reality Games Fantasy League" width="180" height="60" style="display: block; margin: 0 auto; width: 180px; height: auto; max-height: 60px;" />
+              <img src="${LOGO_URL}" alt="Reality Games Fantasy League" width="180" style="display: block; margin: 0 auto; width: 180px; height: auto;" />
             </td>
           </tr>
           

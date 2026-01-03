@@ -597,7 +597,6 @@ function triviaWelcomeEmailTemplate({ displayName }: TriviaWelcomeEmailData): st
       </div>
     `)}
     ${paragraph(`Want to learn more? Check out our <a href="${BASE_URL}/how-to-play" style="color:#A52A2A; font-weight: 500;">How to Play</a> guide.`)}
-    ${paragraph(`<em style="color: #8A7654;">Outwit. Outplay. Outlast.</em>`)}
   `, 'Welcome to Reality Games: Survivor');
 }
 
@@ -622,7 +621,6 @@ function triviaSignupWelcomeEmailTemplate(_data: TriviaSignupWelcomeEmailData): 
         ${paragraph(`Love trivia? You'll love our fantasy leagues even more! Draft castaways, make weekly picks, and compete with other superfans throughout the season.`)}
       </div>
     `)}
-    ${paragraph(`<em style="color: #8A7654;">Outwit. Outplay. Outlast.</em>`)}
   `, 'You\'re signed up for Survivor Trivia');
 }
 
@@ -703,7 +701,6 @@ function preSeasonHypeEmailTemplate(data: PreSeasonHypeEmailData): string {
       ${paragraph('- Review the scoring rules')}
       ${paragraph('- Set up SMS for easy picks (optional)')}
     `)}
-    ${paragraph(`<em style="color: #8A7654;">Outwit. Outplay. Outlast.</em>`)}
   `, `${data.daysUntilPremiere} days until Season ${data.seasonNumber}`);
 }
 
