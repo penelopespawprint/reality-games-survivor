@@ -237,90 +237,82 @@ interface InactivityReminderEmailData {
 
 function welcomeEmailTemplate({ displayName }: WelcomeEmailData): string {
   return emailWrapper(`
-    ${heading('Welcome to the Game!')}
+    ${heading("You're In. Let's Play.")}
     ${paragraph(`Hey ${displayName},`)}
-    ${paragraph(`You're now part of the most strategic Survivor fantasy league ever created. With 100+ scoring rules that reward real gameplay strategy, every episode is an opportunity to prove your Survivor knowledge.`)}
+    ${paragraph(`Welcome to Reality Games Fantasy League — where real Survivor strategy actually matters. No random drafts. No luck-based nonsense. Just you, your knowledge, and 100+ scoring rules that reward players who actually watch the show.`)}
     ${divider()}
     ${card(`
-      ${heading('Getting Started', 2)}
-      ${paragraph(`<strong>1. Create or join a league</strong> — Play with friends or join the global rankings`)}
-      ${paragraph(`<strong>2. Rank your castaways</strong> — Rank all 24 castaways from 1-24. Players are assigned in turn order based on a random draw.`)}
-      ${paragraph(`<strong>3. Make weekly picks</strong> — Choose which castaway to play each episode`)}
-      ${paragraph(`<strong>4. Dominate!</strong> — Climb the leaderboard and prove you're the ultimate fan`)}
+      ${heading('The Game in 4 Steps', 2)}
+      ${paragraph(`<strong>1. Join or create a league</strong> — Play with friends in a private league or compete in the global rankings. Everyone's automatically in the Global League.`)}
+      ${paragraph(`<strong>2. Rank all 24 castaways</strong> — Your rankings determine who you draft. Rank smart — the snake draft means strategy matters.`)}
+      ${paragraph(`<strong>3. Make weekly picks</strong> — Each week, choose which of your 2 castaways to "start." Only your starter scores points.`)}
+      ${paragraph(`<strong>4. Dominate</strong> — Points accumulate all season. Climb the leaderboard. Earn bragging rights.`)}
     `)}
-    ${button('Go to Dashboard', `${BASE_URL}/dashboard`)}
+    ${button('Go to Your Dashboard', `${BASE_URL}/dashboard`)}
     ${divider()}
     ${card(`
-      <div style="text-align: center;">
-        ${heading('Text Your Picks', 2)}
-        ${paragraph(`Add your phone number to use SMS commands. Text <strong>PICK [Name]</strong> to make picks, <strong>STATUS</strong> to check your current pick, and <strong>TEAM</strong> to see your roster — all from your phone.`)}
-        <p style="color: #8A7654; font-size: 14px; margin: 16px 0 8px 0;">Text us at:</p>
-        <div style="font-family: -apple-system, sans-serif; font-size: 28px; font-weight: 700; color: #A52A2A; letter-spacing: 2px;">(918) 505-7435</div>
-        ${button('Set Up SMS', `${BASE_URL}/profile/notifications`, 'success')}
-      </div>
+      ${heading('Key Dates for Season 50', 2)}
+      ${paragraph(`<strong>Premiere:</strong> Wednesday, February 26, 2025 at 8:00 PM ET`)}
+      ${paragraph(`<strong>Draft deadline:</strong> Monday, March 3, 2025 at 5:00 PM PT`)}
+      ${paragraph(`<strong>First pick due:</strong> Wednesday, March 5, 2025 at 5:00 PM PT (Episode 2)`)}
     `)}
-    ${paragraph(`Questions? Reply to this email or check out our <a href="${BASE_URL}/how-to-play" style="color:#A52A2A; font-weight: 500;">How to Play</a> guide.`)}
-    ${paragraph(`<em style="color: #8A7654;">The tribe has spoken. Let's play.</em>`)}
+    ${paragraph(`Questions? Check out our <a href="${BASE_URL}/how-to-play" style="color:#8B0000; font-weight: 600;">How to Play</a> guide or reply to this email.`)}
+    ${paragraph(`<strong style="color: #8B0000;">The tribe has spoken. Time to prove you belong.</strong>`)}
   `, 'Welcome to Reality Games: Survivor');
 }
 
 function leagueCreatedEmailTemplate(data: LeagueCreatedEmailData): string {
   return emailWrapper(`
-    ${heading('Your League is Ready!')}
+    ${heading('Your League is Live!')}
     ${paragraph(`Hey ${data.displayName},`)}
-    ${paragraph(`You've successfully created ${highlight(data.leagueName)} for ${data.seasonName}. As commissioner, you're in charge of inviting players and managing the league.`)}
+    ${paragraph(`${highlight(data.leagueName)} is ready to go. As League Creator, you're in charge of getting your crew together and making this the most competitive league of Season 50.`)}
     ${card(`
-      <p style="color: #8A7654; margin: 0 0 8px 0; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; text-align: center;">League Code</p>
-      <div style="font-family: -apple-system, sans-serif; font-size: 42px; font-weight: 700; color: #A52A2A; letter-spacing: 6px; text-align: center;">${data.leagueCode}</div>
+      <p style="color: #666666; margin: 0 0 8px 0; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; text-align: center;">Your Invite Link</p>
+      <div style="font-family: -apple-system, sans-serif; font-size: 18px; font-weight: 700; color: #8B0000; text-align: center; margin: 12px 0;">rgfl.app/join/${data.leagueCode}</div>
+      <p style="color: #666666; margin: 12px 0 0 0; font-size: 13px; text-align: center;">Share this link with your friends to get them in</p>
     `, 'immunity')}
-    ${heading('Share Your League', 2)}
-    ${paragraph('Send this invite link to your friends:')}
-    <div style="background: #F5F0E6; padding: 16px; border-radius: 8px; font-family: monospace; color: #A52A2A; font-size: 14px; border: 1px solid #EDE5D5; text-align: center; margin: 16px 0;">
-      ${BASE_URL}/join/${data.leagueCode}
-    </div>
     ${button('Manage Your League', `${BASE_URL}/leagues/${data.leagueCode}`)}
     ${divider()}
     ${heading('What You Can Do', 2)}
-    ${paragraph('As commissioner, you can:')}
-    ${paragraph('- Invite 2-12 players to your league')}
-    ${paragraph('- Set an optional league donation amount')}
-    ${paragraph('- Customize your league name and settings')}
-    ${paragraph('- View all league member activity')}
+    ${paragraph('As League Creator:')}
+    ${paragraph('• Invite 2-12 players to your league')}
+    ${paragraph('• Set an optional donation amount')}
+    ${paragraph('• Customize your league name and settings')}
     ${card(`
       ${heading('Key Dates', 2)}
-      ${paragraph(`<strong>Registration closes:</strong> ${formatDate(data.registrationCloses, { includeTime: true })}`)}
-      ${paragraph(`<strong>Premiere:</strong> ${formatDate(data.premiereDate, { includeTime: true })}`)}
-      ${paragraph(`<strong>Draft deadline:</strong> ${formatDate(data.draftDeadline, { includeTime: true })}`)}
+      ${paragraph(`<strong>Premiere:</strong> Wednesday, February 26, 2025 at 8:00 PM ET`)}
+      ${paragraph(`<strong>Draft deadline:</strong> Monday, March 3, 2025 at 5:00 PM PT`)}
+      ${paragraph(`<strong>First pick due:</strong> Wednesday, March 5, 2025 at 5:00 PM PT`)}
     `)}
-    ${paragraph(`<em style="color: #8A7654;">Good luck, Commissioner.</em>`)}
+    ${paragraph(`<strong style="color: #8B0000;">Now go recruit your tribe.</strong>`)}
   `, `Your league "${data.leagueName}" is ready - start inviting players!`);
 }
 
 function leagueJoinedEmailTemplate(data: LeagueJoinedEmailData): string {
   return emailWrapper(`
-    ${heading("You're In!")}
+    ${heading("You're In. Game On.")}
     ${paragraph(`Hey ${data.displayName},`)}
-    ${paragraph(`You've joined ${highlight(data.leagueName)} for ${data.seasonName}!`)}
+    ${paragraph(`Welcome to ${highlight(data.leagueName)}. You're locked in for ${data.seasonName} — now it's time to prove you know Survivor better than everyone else.`)}
     ${card(`
       <div style="text-align: center;">
-        <div style="font-family: -apple-system, sans-serif; font-size: 48px; font-weight: 700; color: #A52A2A;">${data.memberCount}<span style="color: #8A7654; font-size: 24px;">/${data.maxMembers}</span></div>
-        <p style="color: #8A7654; margin: 4px 0 0 0; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Players Joined</p>
+        <div style="font-family: -apple-system, sans-serif; font-size: 48px; font-weight: 700; color: #8B0000;">${data.memberCount}<span style="color: #666666; font-size: 24px;">/${data.maxMembers}</span></div>
+        <p style="color: #666666; margin: 4px 0 0 0; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Players Joined</p>
       </div>
     `)}
-    ${button('View League', `${BASE_URL}/leagues/${data.leagueId}`)}
+    ${button('View Your League', `${BASE_URL}/leagues/${data.leagueId}`)}
     ${card(`
       ${heading('Key Dates', 2)}
-      ${paragraph(`<strong>Premiere:</strong> ${formatDate(data.premiereDate, { includeTime: true })}`)}
-      ${paragraph(`<strong>Draft deadline:</strong> ${formatDate(data.draftDeadline, { includeTime: true })}`)}
-      ${paragraph(`<strong>First weekly pick due:</strong> ${formatDate(data.firstPickDue, { includeTime: true })} (Episode 2)`)}
+      ${paragraph(`<strong>Premiere:</strong> Wednesday, February 26, 2025 at 8:00 PM ET`)}
+      ${paragraph(`<strong>Draft deadline:</strong> Monday, March 3, 2025 at 5:00 PM PT`)}
+      ${paragraph(`<strong>First pick due:</strong> Wednesday, March 5, 2025 at 5:00 PM PT (Episode 2)`)}
     `)}
     ${divider()}
     ${heading('How The Draft Works', 2)}
-    ${paragraph('• Rank all 24 castaways from 1-24 based on your preferences')}
+    ${paragraph('• Rank all 24 castaways from 1-24 based on who you think will score the most')}
     ${paragraph('• A random draw determines the turn order')}
-    ${paragraph('• Players are assigned in reverse order each round')}
-    ${paragraph("• You'll get 2 castaways for your team")}
-    ${paragraph(`<em style="color: #8A7654;">May the best fan win.</em>`)}
+    ${paragraph('• Snake draft: pick order reverses each round')}
+    ${paragraph("• You'll get 2 castaways — that's your team for the season")}
+    ${paragraph(`<strong style="color: #8B0000;">Rank smart. Your picks depend on it.</strong>`)}
   `, `You've joined "${data.leagueName}" - get ready to play!`);
 }
 
@@ -344,33 +336,27 @@ function draftPickConfirmedEmailTemplate(data: DraftPickConfirmedEmailData): str
 function draftCompleteEmailTemplate(data: DraftCompleteEmailData): string {
   const castawayList = data.castaways.map((c, i) => `
     <div style="display: flex; align-items: center; padding: 12px 0; ${i < data.castaways.length - 1 ? 'border-bottom: 1px solid #D4C4A8;' : ''}">
-      <span style="background: #A52A2A; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; margin-right: 12px;">${i + 1}</span>
-      <span><strong>${c.name}</strong> <span style="color:#8A7654;">• ${c.tribe}</span></span>
+      <span style="background: #8B0000; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; margin-right: 12px;">${i + 1}</span>
+      <span style="color: #333333;"><strong style="color: #1F1F1F;">${c.name}</strong> <span style="color:#666666;">• ${c.tribe}</span></span>
     </div>
   `).join('');
 
   return emailWrapper(`
-    ${heading('Your Team is Set!')}
+    ${heading('Your Team is Locked In')}
     ${paragraph(`Hey ${data.displayName},`)}
-    ${paragraph(`The draft for ${highlight(data.leagueName)} is complete. Here's your roster:`)}
+    ${paragraph(`The draft for ${highlight(data.leagueName)} is complete. These are your castaways for the entire season — choose wisely each week.`)}
     ${card(`
-      <h2 style="font-family: Georgia, serif; color: #8B6914; margin: 0 0 16px 0; font-size: 20px;">Your Castaways</h2>
+      <h2 style="font-family: Georgia, serif; color: #B8860B; margin: 0 0 16px 0; font-size: 20px;">Your Castaways</h2>
       ${castawayList}
     `, 'immunity')}
     ${button('View Your Team', `${BASE_URL}/leagues/${data.leagueId}/team`)}
     ${card(`
       ${heading("What's Next", 2)}
-      ${paragraph(`The premiere airs ${formatDate(data.premiereDate, { includeTime: true })}.`)}
-      ${paragraph(`<strong>Your first weekly pick is due ${formatDate(data.firstPickDue, { includeTime: true })}</strong> (before Episode 2). No pick is needed for the premiere episode.`)}
+      ${paragraph(`<strong>Premiere:</strong> Wednesday, February 26, 2025 at 8:00 PM ET`)}
+      ${paragraph(`<strong>First pick due:</strong> Wednesday, March 5, 2025 at 5:00 PM PT (Episode 2)`)}
+      ${paragraph(`No pick needed for the premiere — both castaways score. Starting Episode 2, you choose who to start each week.`)}
     `)}
-    ${divider()}
-    ${card(`
-      <div style="text-align: center;">
-        <div style="font-size: 24px; margin-bottom: 8px; font-weight: 600;">Pro Tip: Text Your Picks</div>
-        ${paragraph(`Make picks on the go! Text <strong>PICK ${data.castaways[0]?.name || 'Name'}</strong> to submit your weekly pick. <a href="${BASE_URL}/profile/notifications" style="color:#A52A2A; font-weight: 500;">Set up SMS now →</a>`)}
-      </div>
-    `)}
-    ${paragraph(`<em style="color: #8A7654;">Good luck this season.</em>`)}
+    ${paragraph(`<strong style="color: #8B0000;">Time to prove you drafted right.</strong>`)}
   `, 'Your draft is complete - see your team!');
 }
 
@@ -399,13 +385,7 @@ function autoPickAlertEmailTemplate(data: AutoPickAlertEmailData): string {
       <p style="color: #A16207; margin: 8px 0 0 0; font-size: 14px; text-align: center;">We selected the castaway you didn't play last week.</p>
     `, 'warning')}
     ${button('View Your Team', `${BASE_URL}/leagues/${data.leagueId}/team`)}
-    ${card(`
-      <div style="text-align: center;">
-        <div style="font-size: 24px; margin-bottom: 8px; font-weight: 600;">Never Miss a Pick Again</div>
-        ${paragraph(`Set up SMS to make picks on the go. Just text <strong>PICK [Name]</strong> from anywhere!`)}
-        ${button('Set Up SMS', `${BASE_URL}/profile/notifications`, 'success')}
-      </div>
-    `)}
+    ${paragraph(`<strong style="color: #8B0000;">Don't let it happen again — set a reminder for next Wednesday at 5pm PT.</strong>`)}
   `, `Auto-pick applied: ${data.castawayName} for Episode ${data.episodeNumber}`);
 }
 
@@ -577,26 +557,26 @@ function torchSnuffedEmailTemplate(data: TorchSnuffedEmailData): string {
 
 function triviaWelcomeEmailTemplate({ displayName }: TriviaWelcomeEmailData): string {
   return emailWrapper(`
-    ${heading('Welcome, Survivor Fan')}
+    ${heading('Nice. You Know Your Survivor.')}
     ${paragraph(`Hey ${displayName},`)}
-    ${paragraph(`Thanks for playing our Survivor trivia! You clearly know your stuff. Now it's time to put that knowledge to the test in our fantasy leagues.`)}
+    ${paragraph(`You crushed our trivia — clearly you've been watching. Now let's see if that knowledge translates to fantasy glory.`)}
     ${divider()}
     ${card(`
-      ${heading('How to Start Playing', 2)}
-      ${paragraph(`<strong>1. Join a league</strong> — Create one with friends or join a public league`)}
-      ${paragraph(`<strong>2. Rank castaways</strong> — Pick your favorites before the premiere`)}
-      ${paragraph(`<strong>3. Make weekly picks</strong> — Choose who to play each episode`)}
-      ${paragraph(`<strong>4. Score points</strong> — 100+ rules reward real Survivor strategy`)}
+      ${heading('How Fantasy Works', 2)}
+      ${paragraph(`<strong>1. Join or create a league</strong> — Play with friends or compete globally`)}
+      ${paragraph(`<strong>2. Rank all 24 castaways</strong> — Your rankings determine who you draft in the snake draft`)}
+      ${paragraph(`<strong>3. Make weekly picks</strong> — Choose which castaway to "start" each episode`)}
+      ${paragraph(`<strong>4. Score points</strong> — 100+ rules that reward actual Survivor gameplay`)}
     `)}
-    ${button('Join a League Now', `${BASE_URL}/dashboard`)}
+    ${button('Join a League', `${BASE_URL}/leagues`)}
     ${divider()}
     ${card(`
-      <div style="text-align: center;">
-        ${heading('Season 50 is Coming', 2)}
-        ${paragraph(`Join Season 50: In the Hands of the Fans and compete with other superfans. Draft your team, make strategic picks, and prove you're the ultimate Survivor expert.`)}
-      </div>
+      ${heading('Season 50: In the Hands of the Fans', 2)}
+      ${paragraph(`<strong>Premiere:</strong> Wednesday, February 26, 2025 at 8:00 PM ET`)}
+      ${paragraph(`<strong>Draft deadline:</strong> Monday, March 3, 2025 at 5:00 PM PT`)}
     `)}
-    ${paragraph(`Want to learn more? Check out our <a href="${BASE_URL}/how-to-play" style="color:#A52A2A; font-weight: 500;">How to Play</a> guide.`)}
+    ${paragraph(`Learn more: <a href="${BASE_URL}/how-to-play" style="color:#8B0000; font-weight: 600;">How to Play</a>`)}
+    ${paragraph(`<strong style="color: #8B0000;">Trivia was the warm-up. Fantasy is the real game.</strong>`)}
   `, 'Welcome to Reality Games: Survivor');
 }
 

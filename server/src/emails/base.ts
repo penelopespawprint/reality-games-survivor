@@ -142,9 +142,12 @@ export function emailWrapper(content: string, preheader?: string, theme: EmailTh
                 <tr>
                   <td style="text-align: center;">
                     <p style="margin: 0 0 8px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-weight: 600; color: ${COLORS.headingText};">Reality Games Fantasy League</p>
-                    <p style="margin: 0 0 12px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; color: ${COLORS.mutedText};">You're receiving this because you're part of the tribe.</p>
-                    <p style="margin: 0;">
+                    <p style="margin: 0 0 12px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; color: ${COLORS.mutedText};">You're receiving this because you signed up for Reality Games.</p>
+                    <p style="margin: 0 0 8px 0;">
                       <a href="${BASE_URL}/profile" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; color: ${config.accentColor}; text-decoration: underline;">Manage Preferences</a>
+                    </p>
+                    <p style="margin: 0;">
+                      <a href="${BASE_URL}/unsubscribe" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: ${COLORS.mutedText}; text-decoration: underline;">Unsubscribe from all emails</a>
                     </p>
                   </td>
                 </tr>
