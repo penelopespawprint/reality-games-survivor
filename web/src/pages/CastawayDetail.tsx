@@ -154,6 +154,35 @@ export default function CastawayDetail() {
     enabled: !!castaway?.season_id,
   });
 
+  // Fetch total confessional count for this castaway
+  const { data: confessionalCount } = useQuery({
+    queryKey: ['castaway-confessionals', id],
+    queryFn: async () => {
+      if (!id) return 0;
+      // Get the confessional rule ID
+      const { data: rule } = await supabase
+        .from('scoring_rules')
+        .select('id')
+        .eq('code', 'RAND_CONFESSIONAL')
+        .single();
+
+      if (!rule) return 0;
+
+      // Sum the quantity of confessional scores for this castaway
+      const { data: scores, error } = await supabase
+        .from('episode_scores')
+        .select('quantity')
+        .eq('castaway_id', id)
+        .eq('scoring_rule_id', rule.id);
+
+      if (error) throw error;
+
+      // Sum up all confessional quantities
+      return (scores || []).reduce((sum, s) => sum + (s.quantity || 1), 0);
+    },
+    enabled: !!id,
+  });
+
   // Calculate total points and rank for this castaway
   const totalPoints = episodeScores?.reduce((sum, score) => sum + score.points, 0) || 0;
   const castawayRank = rankings?.find((r) => r.castaway_id === id)?.rank || null;
@@ -366,12 +395,12 @@ export default function CastawayDetail() {
             </p>
             <p className="text-neutral-500 text-sm">of {totalCastaways} Castaways</p>
           </div>
-          {(episodeScores?.length || 0) >= 1 ? (
+          {(confessionalCount || 0) >= 1 ? (
             <Link
               to="/scoring"
               className="bg-white rounded-2xl shadow-card border border-cream-200 p-6 text-center hover:shadow-lg hover:border-burgundy-200 transition-all"
             >
-              <p className="text-3xl font-bold text-burgundy-600">{episodeScores?.length || 0}</p>
+              <p className="text-3xl font-bold text-burgundy-600">{confessionalCount || 0}</p>
               <p className="text-neutral-500 text-sm">Season 50 Confessionals</p>
             </Link>
           ) : (

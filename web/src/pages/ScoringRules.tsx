@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -108,6 +109,11 @@ const SCORING_RULES = [
 
 export default function ScoringRules() {
   const { user } = useAuth();
+
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="min-h-screen bg-cream-50 flex flex-col">

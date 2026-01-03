@@ -265,7 +265,24 @@ export default function DraftRankings() {
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-neutral-800">{castaway.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-neutral-800">{castaway.name}</h3>
+                      {castaway.tribe_original && (
+                        <span
+                          className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                            castaway.tribe_original === 'Vatu'
+                              ? 'bg-purple-100 text-purple-700'
+                              : castaway.tribe_original === 'Kalo'
+                                ? 'bg-teal-100 text-teal-700'
+                                : castaway.tribe_original === 'Cila'
+                                  ? 'bg-orange-100 text-orange-700'
+                                  : 'bg-neutral-100 text-neutral-700'
+                          }`}
+                        >
+                          {castaway.tribe_original}
+                        </span>
+                      )}
+                    </div>
                     {castaway.occupation && (
                       <p className="text-sm text-neutral-500">{castaway.occupation}</p>
                     )}
