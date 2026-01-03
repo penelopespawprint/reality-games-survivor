@@ -1,11 +1,12 @@
 /**
- * Stats Overview Page
+ * Stats Overview Page (Admin Only)
  *
  * Landing page for all fun stats, with links to category pages.
  */
 
 import { Link } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
+import { AdminNavBar } from '@/components/AdminNavBar';
 import { Footer } from '@/components/Footer';
 import {
   BarChart3,
@@ -23,7 +24,7 @@ const statCategories = [
     title: 'Player Stats',
     description: '15 stats about player performance, timing, and luck',
     icon: Users,
-    href: '/stats/players',
+    href: '/admin/fun-stats/players',
     color: 'bg-burgundy-500',
     highlights: ['Successful Pick Ratio', 'Luckiest Player', 'Comeback King/Queen'],
   },
@@ -31,7 +32,7 @@ const statCategories = [
     title: 'Castaway Stats',
     description: '5 stats about castaway value and performance',
     icon: Trophy,
-    href: '/stats/castaways',
+    href: '/admin/fun-stats/castaways',
     color: 'bg-amber-500',
     highlights: ['Biggest Bust', 'Biggest Steal', 'Most Consistent'],
   },
@@ -39,7 +40,7 @@ const statCategories = [
     title: 'League Stats',
     description: '7 stats about leagues and platform-wide trends',
     icon: Globe,
-    href: '/stats/leagues',
+    href: '/admin/fun-stats/leagues',
     color: 'bg-teal-500',
     highlights: ['Nail Biter League', 'Most Active Time', 'Tribe Scoring'],
   },
@@ -49,6 +50,7 @@ export function StatsOverview() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex flex-col">
       <Navigation />
+      <AdminNavBar />
 
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}

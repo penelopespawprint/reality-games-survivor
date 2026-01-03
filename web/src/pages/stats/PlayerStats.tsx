@@ -1,11 +1,12 @@
 /**
- * Player Stats Page
+ * Player Stats Page (Admin Only)
  *
  * Displays all 15 player performance stats.
  */
 
 import { Link } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
+import { AdminNavBar } from '@/components/AdminNavBar';
 import { Footer } from '@/components/Footer';
 import {
   ArrowLeft,
@@ -53,12 +54,13 @@ export function PlayerStats() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex flex-col">
       <Navigation />
+      <AdminNavBar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <Link
-            to="/stats"
+            to="/admin/fun-stats"
             className="inline-flex items-center gap-2 text-neutral-500 hover:text-burgundy-500 mb-4 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />

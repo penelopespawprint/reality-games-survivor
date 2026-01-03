@@ -229,7 +229,7 @@ export function AdminAnalytics() {
           </div>
           <div className="flex items-center gap-2">
             <Link
-              to="/stats"
+              to="/admin/fun-stats"
               className="px-4 py-2 bg-burgundy-500 text-white rounded-lg shadow-card hover:bg-burgundy-600 flex items-center gap-2 text-sm font-medium"
             >
               <BarChart3 className="h-4 w-4" />

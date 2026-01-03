@@ -104,12 +104,6 @@ export default function App() {
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/results/:weekNumber" element={<Results />} />
 
-            {/* Stats routes (public) */}
-            <Route path="/stats" element={<StatsOverview />} />
-            <Route path="/stats/players" element={<PlayerStats />} />
-            <Route path="/stats/castaways" element={<CastawayStats />} />
-            <Route path="/stats/leagues" element={<LeagueStats />} />
-
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
               {/* Profile setup - no layout wrapper */}
@@ -193,6 +187,11 @@ export default function App() {
               <Route path="/admin/email-queue" element={withAdminErrorBoundary(AdminEmailQueue)} />
               <Route path="/admin/health" element={withAdminErrorBoundary(AdminSystemHealth)} />
               <Route path="/admin/content" element={withAdminErrorBoundary(AdminContent)} />
+              {/* Fun Stats (admin only) */}
+              <Route path="/admin/fun-stats" element={<StatsOverview />} />
+              <Route path="/admin/fun-stats/players" element={<PlayerStats />} />
+              <Route path="/admin/fun-stats/castaways" element={<CastawayStats />} />
+              <Route path="/admin/fun-stats/leagues" element={<LeagueStats />} />
             </Route>
 
             {/* 404 */}

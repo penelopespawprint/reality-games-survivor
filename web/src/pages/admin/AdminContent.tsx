@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Mail,
@@ -16,10 +16,14 @@ import {
   RefreshCw,
   Plus,
   Trash2,
+  Code,
+  Type,
 } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { AdminNavBar } from '@/components/AdminNavBar';
 import { supabase } from '@/lib/supabase';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
 
@@ -577,6 +581,7 @@ function EmailTemplateEditor({
   const [htmlBody, setHtmlBody] = useState(template.html_body);
   const [isActive, setIsActive] = useState(template.is_active);
   const [testEmail, setTestEmail] = useState('');
+  const [editorMode, setEditorMode] = useState<'wysiwyg' | 'code'>('wysiwyg');
 
   // Reset state when template changes
   useState(() => {
@@ -585,6 +590,40 @@ function EmailTemplateEditor({
     setIsActive(template.is_active);
   });
 
+  // Quill modules configuration
+  const quillModules = useMemo(
+    () => ({
+      toolbar: [
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ color: [] }, { background: [] }],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ align: [] }],
+        ['link', 'image'],
+        ['blockquote', 'code-block'],
+        ['clean'],
+      ],
+    }),
+    []
+  );
+
+  const quillFormats = [
+    'header',
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'color',
+    'background',
+    'list',
+    'bullet',
+    'align',
+    'link',
+    'image',
+    'blockquote',
+    'code-block',
+  ];
+
   const previewHtml = () => {
     let html = htmlBody;
     const vars = getSampleVariables(template.available_variables);
@@ -592,6 +631,12 @@ function EmailTemplateEditor({
       html = html.replace(new RegExp(`{{${key}}}`, 'g'), value);
     }
     return html;
+  };
+
+  // Insert variable at cursor position in code mode
+  const insertVariable = (variable: string) => {
+    const varText = `{{${variable}}}`;
+    setHtmlBody((prev) => prev + varText);
   };
 
   return (
@@ -700,15 +745,60 @@ function EmailTemplateEditor({
                 className="w-full px-4 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500"
               />
             </div>
+
+            {/* Editor Mode Toggle */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">HTML Body</label>
-              <textarea
-                value={htmlBody}
-                onChange={(e) => setHtmlBody(e.target.value)}
-                rows={16}
-                className="w-full px-4 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500 font-mono text-sm"
-              />
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-neutral-700">Email Body</label>
+                <div className="flex items-center gap-1 bg-cream-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setEditorMode('wysiwyg')}
+                    className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                      editorMode === 'wysiwyg'
+                        ? 'bg-white text-burgundy-700 shadow-sm'
+                        : 'text-neutral-600 hover:text-neutral-800'
+                    }`}
+                  >
+                    <Type className="h-3.5 w-3.5" />
+                    Visual
+                  </button>
+                  <button
+                    onClick={() => setEditorMode('code')}
+                    className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                      editorMode === 'code'
+                        ? 'bg-white text-burgundy-700 shadow-sm'
+                        : 'text-neutral-600 hover:text-neutral-800'
+                    }`}
+                  >
+                    <Code className="h-3.5 w-3.5" />
+                    HTML
+                  </button>
+                </div>
+              </div>
+
+              {editorMode === 'wysiwyg' ? (
+                <div className="border border-cream-200 rounded-xl overflow-hidden">
+                  <ReactQuill
+                    theme="snow"
+                    value={htmlBody}
+                    onChange={setHtmlBody}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    className="bg-white"
+                    style={{ minHeight: '400px' }}
+                  />
+                </div>
+              ) : (
+                <textarea
+                  value={htmlBody}
+                  onChange={(e) => setHtmlBody(e.target.value)}
+                  rows={20}
+                  className="w-full px-4 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500 font-mono text-sm"
+                  placeholder="Enter HTML email content..."
+                />
+              )}
             </div>
+
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -724,15 +814,19 @@ function EmailTemplateEditor({
 
             {/* Variables Reference */}
             <div className="bg-cream-50 rounded-xl p-4">
-              <p className="text-sm font-medium text-neutral-700 mb-2">Available Variables:</p>
+              <p className="text-sm font-medium text-neutral-700 mb-2">
+                Available Variables:{' '}
+                <span className="font-normal text-neutral-500">(click to insert)</span>
+              </p>
               <div className="flex flex-wrap gap-2">
                 {template.available_variables.map((v) => (
-                  <code
+                  <button
                     key={v}
-                    className="px-2 py-1 bg-white text-xs rounded border border-cream-200"
+                    onClick={() => insertVariable(v)}
+                    className="px-2 py-1 bg-white text-xs rounded border border-cream-200 hover:bg-burgundy-50 hover:border-burgundy-300 hover:text-burgundy-700 transition-colors cursor-pointer"
                   >
                     {`{{${v}}}`}
-                  </code>
+                  </button>
                 ))}
               </div>
             </div>
