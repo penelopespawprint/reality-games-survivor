@@ -144,6 +144,16 @@ export function Navigation() {
                 >
                   Leaderboard
                 </Link>
+                <Link
+                  to="/stats"
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    isActive('/stats')
+                      ? 'text-burgundy-600 bg-burgundy-50'
+                      : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
+                  }`}
+                >
+                  Stats
+                </Link>
                 <div className="relative" ref={howToPlayRef}>
                   <button
                     onClick={() => setHowToPlayOpen(!howToPlayOpen)}
@@ -355,6 +365,14 @@ export function Navigation() {
                   }`}
                 >
                   Leaderboard
+                </Link>
+                <Link
+                  to="/stats"
+                  className={`block px-4 py-3 text-sm font-semibold uppercase tracking-wide ${
+                    isActive('/stats') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
+                  }`}
+                >
+                  Stats
                 </Link>
                 <div>
                   <div className="px-4 py-2 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
