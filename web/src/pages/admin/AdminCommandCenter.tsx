@@ -85,35 +85,58 @@ export function AdminCommandCenter() {
   }, []);
 
   // Fetch system status
-  const { data: systemStatus, isLoading: statusLoading } = useQuery<SystemStatus>({
+  const {
+    data: systemStatus,
+    isLoading: statusLoading,
+    error: statusError,
+  } = useQuery<SystemStatus>({
     queryKey: ['command-center', 'status'],
     queryFn: () => apiWithAuth('/api/admin/command-center/status'),
     refetchInterval: 10000, // Every 10 seconds
+    retry: 2,
   });
 
   // Fetch active window
-  const { data: activeWindow, isLoading: windowLoading } = useQuery<ActiveWindow>({
+  const {
+    data: activeWindow,
+    isLoading: windowLoading,
+    error: windowError,
+  } = useQuery<ActiveWindow>({
     queryKey: ['command-center', 'active-window'],
     queryFn: () => apiWithAuth('/api/admin/command-center/active-window'),
     refetchInterval: 30000, // Every 30 seconds
+    retry: 2,
   });
 
   // Fetch attention items
-  const { data: attention, isLoading: attentionLoading } = useQuery<{
+  const {
+    data: attention,
+    isLoading: attentionLoading,
+    error: attentionError,
+  } = useQuery<{
     items: AttentionItem[];
     totalCount: number;
   }>({
     queryKey: ['command-center', 'attention'],
     queryFn: () => apiWithAuth('/api/admin/command-center/attention'),
     refetchInterval: 30000,
+    retry: 2,
   });
 
   // Fetch operations
-  const { data: operations, isLoading: opsLoading } = useQuery<Operations>({
+  const {
+    data: operations,
+    isLoading: opsLoading,
+    error: opsError,
+  } = useQuery<Operations>({
     queryKey: ['command-center', 'operations'],
     queryFn: () => apiWithAuth('/api/admin/command-center/operations'),
     refetchInterval: 10000,
+    retry: 2,
   });
+
+  // Track overall error state
+  const hasErrors = statusError || windowError || attentionError || opsError;
 
   // Refresh all data
   const refreshAll = () => {
@@ -171,6 +194,21 @@ export function AdminCommandCenter() {
             </button>
           </div>
         </div>
+
+        {/* Error Banner */}
+        {hasErrors && (
+          <div className="mb-6 p-4 bg-amber-900/50 border border-amber-700 rounded-xl">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-6 w-6 text-amber-400" />
+              <div>
+                <span className="font-semibold text-amber-300">API Connection Issues</span>
+                <span className="ml-2 text-amber-400 text-sm">
+                  Some data may not be loading. Check server logs or try refreshing.
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Incident Banner */}
         {isIncidentMode &&

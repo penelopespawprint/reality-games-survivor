@@ -1,4 +1,4 @@
-import { Trophy, Flame, MapPin } from 'lucide-react';
+import { Trophy, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getAvatarUrl } from '@/lib/avatar';
 
@@ -80,27 +80,24 @@ export function CastawayGridItem({ castaway, stats }: CastawayGridItemProps) {
         {/* Gradient overlay at bottom for text readability */}
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
 
-        {/* Status Badge - Top Right */}
-        <div className="absolute top-3 right-3">
-          {castaway.status === 'active' ? (
-            <span className="flex items-center gap-1 bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
-              <Flame className="h-3 w-3" />
-              ACTIVE
-            </span>
-          ) : castaway.status === 'winner' ? (
+        {/* Winner badge - Top Right (only shown for winners) */}
+        {castaway.status === 'winner' && (
+          <div className="absolute top-3 right-3">
             <span className="flex items-center gap-1 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
               <Trophy className="h-3 w-3" />
               WINNER
             </span>
-          ) : (
+          </div>
+        )}
+
+        {/* Eliminated badge - Top Right (only for eliminated) */}
+        {castaway.status === 'eliminated' && (
+          <div className="absolute top-3 right-3">
             <span className="bg-neutral-700 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
               OUT EP {castaway.episodes?.number || '?'}
             </span>
-          )}
-        </div>
-
-        {/* Tribe indicator - Top Left */}
-        <div className={`absolute top-3 left-3 ${tribeStyles.bg} w-3 h-3 rounded-full shadow-lg`} />
+          </div>
+        )}
 
         {/* Name overlay at bottom of photo */}
         <div className="absolute bottom-0 inset-x-0 p-3">
@@ -125,13 +122,21 @@ export function CastawayGridItem({ castaway, stats }: CastawayGridItemProps) {
           )}
         </div>
 
-        {/* Points & Tribe */}
+        {/* Tribe & Status */}
         <div className="flex items-center justify-between">
-          <span
-            className={`text-xs font-medium px-2 py-1 rounded-full ${tribeStyles.light} ${tribeStyles.text}`}
-          >
-            {castaway.tribe_original || 'Unknown'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-xs font-medium px-2 py-1 rounded-full ${tribeStyles.light} ${tribeStyles.text}`}
+            >
+              {castaway.tribe_original || 'Unknown'}
+            </span>
+            {castaway.status === 'active' && (
+              <span className="flex items-center gap-1 text-xs font-bold text-green-600">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                Active
+              </span>
+            )}
+          </div>
           <span
             className={`text-lg font-bold ${
               castaway.status === 'eliminated'

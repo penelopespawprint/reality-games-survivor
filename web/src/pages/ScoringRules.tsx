@@ -123,7 +123,8 @@ export default function ScoringRules() {
             </h1>
           </div>
           <p className="text-neutral-600 max-w-2xl mx-auto">
-            Earn and lose points based on what your castaways do each episode.
+            These are examples of the 100+ rules. There are other rules for each category. New rules
+            are added each season.
           </p>
         </div>
       </div>

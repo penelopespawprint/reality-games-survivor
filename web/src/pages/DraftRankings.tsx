@@ -7,6 +7,7 @@ import { Footer } from '@/components/Footer';
 import { ArrowLeft, Loader2, Clock, Check, AlertCircle, Save, GripVertical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCastaways } from '@/lib/hooks';
+import { formatDateTimeFull } from '@/lib/date-utils';
 import type { Castaway } from '@/types';
 
 export default function DraftRankings() {
@@ -49,14 +50,25 @@ export default function DraftRankings() {
     enabled: !!activeSeason?.id && !!user?.id,
   });
 
+  // Shuffle array using Fisher-Yates algorithm (randomized per user session)
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   useEffect(() => {
     if (castaways && castaways.length > 0 && rankings.length === 0) {
       if (existingRankings?.rankings && Array.isArray(existingRankings.rankings)) {
         // Cast from Json[] to string[] - rankings are stored as castaway IDs
         setRankings(existingRankings.rankings as string[]);
       } else {
-        const defaultOrder = castaways.map((c) => c.id);
-        setRankings(defaultOrder);
+        // Randomize initial order so users don't all start with the same order
+        const randomizedOrder = shuffleArray(castaways.map((c) => c.id));
+        setRankings(randomizedOrder);
       }
     }
   }, [castaways, existingRankings, rankings.length]);
@@ -175,8 +187,7 @@ export default function DraftRankings() {
             <Clock className="h-5 w-5 text-orange-600 flex-shrink-0" />
             <div>
               <p className="text-orange-800 font-medium">
-                Draft Deadline: {deadline.toLocaleDateString()} at{' '}
-                {deadline.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                Draft Deadline: {formatDateTimeFull(deadline.toISOString())}
               </p>
               {isPastDeadline && (
                 <p className="text-orange-600 text-sm mt-1">Deadline has passed</p>

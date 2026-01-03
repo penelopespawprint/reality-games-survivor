@@ -34,7 +34,7 @@ export default function Castaways() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'eliminated'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'points' | 'status'>('name');
-  const [viewMode, setViewMode] = useState<'all' | 'by-tribe'>('all');
+  const [viewMode, setViewMode] = useState<'all' | 'by-tribe'>('by-tribe');
 
   // Fetch active season
   const {

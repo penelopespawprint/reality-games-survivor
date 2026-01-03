@@ -61,12 +61,23 @@ export function Draft() {
     enabled: !!league?.season_id && !!user?.id,
   });
 
-  // Initialize rankings from existing data or default order
+  // Shuffle array using Fisher-Yates algorithm (deterministic per user session)
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Initialize rankings from existing data or randomized default order
   useEffect(() => {
     if (existingRankings?.rankings) {
       setRankings(existingRankings.rankings);
     } else if (castaways && castaways.length > 0 && rankings.length === 0) {
-      setRankings(castaways.map((c) => c.id));
+      // Randomize initial order so users don't all start with the same order
+      setRankings(shuffleArray(castaways.map((c) => c.id)));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingRankings, castaways]);

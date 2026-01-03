@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
-import { Flame, Trophy, Users, TrendingUp, Medal, ChevronDown } from 'lucide-react';
+import { Trophy, Users, TrendingUp, Medal, ChevronDown } from 'lucide-react';
 import { GlobalChat } from '@/components/GlobalChat';
+import { TorchStaff } from '@/components/icons';
 
 interface PlayerStats {
   userId: string;
@@ -62,26 +63,10 @@ export default function GlobalLeaderboard() {
   const summary = data?.summary;
   const pagination = data?.pagination;
 
-  // Torch icon component with lit/unlit states
+  // Torch icon component with lit/unlit states - using the new TorchStaff
   const TorchIcon = ({ lit, size = 'normal' }: { lit: boolean; size?: 'normal' | 'large' }) => {
-    const baseSize = size === 'large' ? 'h-8 w-8' : 'h-5 w-5';
-
-    if (lit) {
-      return (
-        <div className="relative">
-          <Flame className={`${baseSize} text-orange-500`} />
-          <div className="absolute -top-1 left-1/2 -translate-x-1/2">
-            <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse opacity-80" />
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="relative">
-        <Flame className={`${baseSize} text-neutral-300`} />
-      </div>
-    );
+    const torchSize = size === 'large' ? 'lg' : 'md';
+    return <TorchStaff lit={lit} size={torchSize} />;
   };
 
   const getRankStyle = (rank: number) => {
@@ -144,7 +129,9 @@ export default function GlobalLeaderboard() {
           <p className="text-neutral-500 text-sm">Top Score</p>
         </div>
         <div className="bg-white rounded-2xl shadow-card p-4 border border-cream-200 text-center">
-          <Flame className="h-6 w-6 text-orange-500 mx-auto mb-2" />
+          <div className="flex justify-center mb-2">
+            <TorchStaff lit={true} size="lg" />
+          </div>
           <p className="text-2xl font-bold text-neutral-800">{summary?.activeTorches || 0}</p>
           <p className="text-neutral-500 text-sm">Torches Lit</p>
         </div>
@@ -223,9 +210,6 @@ export default function GlobalLeaderboard() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 className="font-semibold text-neutral-800">All Players</h2>
-              <p className="text-sm text-neutral-500">
-                Ranked by weighted score (more leagues = more accurate ranking)
-              </p>
             </div>
 
             {/* Legend - aligned properly */}
@@ -240,6 +224,12 @@ export default function GlobalLeaderboard() {
                 <span>Eliminated</span>
               </div>
             </div>
+          </div>
+
+          {/* Weighted Score Explanation Callout */}
+          <div className="mt-3 bg-burgundy-50 border border-burgundy-100 rounded-xl px-4 py-3 text-sm text-burgundy-700">
+            <span className="font-medium">Ranked by weighted score:</span> Players in more leagues
+            get more accurate rankings. (1 league = 50%, 2-3 = 67-75%, 4-7 = 80-88%, 7+ = 89%+)
           </div>
         </div>
 

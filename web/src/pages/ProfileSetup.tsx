@@ -75,7 +75,8 @@ export default function ProfileSetup() {
   const queryClient = useQueryClient();
   const { user, profile: authProfile, refreshProfile, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
-  const [displayName, setDisplayName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastInitial, setLastInitial] = useState('');
   const [hometown, setHometown] = useState('');
   const [favoriteCastaway, setFavoriteCastaway] = useState('');
   const [bio, setBio] = useState('');
@@ -223,14 +224,25 @@ export default function ProfileSetup() {
     },
   });
 
+  // Compute display name from first name and last initial
+  const displayName = `${firstName.trim()}${lastInitial.trim() ? ` ${lastInitial.trim().charAt(0).toUpperCase()}.` : ''}`;
+
   const handleNext = () => {
     if (step === 1) {
-      if (!displayName.trim()) {
-        setError('Please enter a display name');
+      if (!firstName.trim()) {
+        setError('Please enter your first name');
         return;
       }
-      if (displayName.trim().length < 2) {
-        setError('Display name must be at least 2 characters');
+      if (firstName.trim().length < 2) {
+        setError('First name must be at least 2 characters');
+        return;
+      }
+      if (!lastInitial.trim()) {
+        setError('Please enter your last initial');
+        return;
+      }
+      if (!/^[A-Za-z]$/.test(lastInitial.trim())) {
+        setError('Last initial must be a single letter');
         return;
       }
       setError('');
@@ -367,32 +379,52 @@ export default function ProfileSetup() {
                 <User className="h-8 w-8 text-burgundy-600" />
               </div>
               <h1 className="font-display text-3xl text-neutral-800 mb-2">Welcome!</h1>
-              <p className="text-neutral-500">
-                What is your name? (First Name, Last Initial i.e. Jeff P.)
-              </p>
+              <p className="text-neutral-500">What's your name?</p>
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="displayName"
-                  className="block text-sm font-medium text-neutral-700 mb-2"
-                >
-                  Display Name
-                </label>
-                <input
-                  id="displayName"
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Jeff P."
-                  className="w-full px-4 py-3 rounded-xl border border-cream-300 focus:border-burgundy-500 focus:ring-2 focus:ring-burgundy-500/20 outline-none transition-all"
-                  autoFocus
-                />
-                <p className="text-xs text-neutral-500 mt-1">
-                  This is how other players will see you
-                </p>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label
+                    htmlFor="firstName"
+                    className="block text-sm font-medium text-neutral-700 mb-2"
+                  >
+                    First Name
+                  </label>
+                  <input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Jeff"
+                    className="w-full px-4 py-3 rounded-xl border border-cream-300 focus:border-burgundy-500 focus:ring-2 focus:ring-burgundy-500/20 outline-none transition-all"
+                    autoFocus
+                  />
+                </div>
+                <div className="w-24">
+                  <label
+                    htmlFor="lastInitial"
+                    className="block text-sm font-medium text-neutral-700 mb-2"
+                  >
+                    Last Initial
+                  </label>
+                  <input
+                    id="lastInitial"
+                    type="text"
+                    value={lastInitial}
+                    onChange={(e) => setLastInitial(e.target.value.slice(0, 1))}
+                    placeholder="P"
+                    maxLength={1}
+                    className="w-full px-4 py-3 rounded-xl border border-cream-300 focus:border-burgundy-500 focus:ring-2 focus:ring-burgundy-500/20 outline-none transition-all text-center uppercase"
+                  />
+                </div>
               </div>
+              {displayName && (
+                <p className="text-sm text-neutral-500">
+                  You'll appear as:{' '}
+                  <span className="font-semibold text-neutral-800">{displayName}</span>
+                </p>
+              )}
 
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
@@ -403,7 +435,7 @@ export default function ProfileSetup() {
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={!displayName.trim()}
+                disabled={!firstName.trim() || !lastInitial.trim()}
                 className="w-full bg-burgundy-500 hover:bg-burgundy-600 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next

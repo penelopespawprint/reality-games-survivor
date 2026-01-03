@@ -8,6 +8,22 @@ import { GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 import { getAvatarUrl } from '@/lib/avatar';
 import type { Castaway } from '@/types';
 
+// Tribe tag styling map
+const tribeStyles: Record<string, { bg: string; text: string }> = {
+  Vatu: { bg: 'bg-purple-100', text: 'text-purple-700' },
+  Kalo: { bg: 'bg-teal-100', text: 'text-teal-700' },
+  Cila: { bg: 'bg-orange-100', text: 'text-orange-700' },
+};
+
+function TribeTag({ tribe }: { tribe: string }) {
+  const style = tribeStyles[tribe] || { bg: 'bg-neutral-100', text: 'text-neutral-600' };
+  return (
+    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${style.bg} ${style.text}`}>
+      {tribe}
+    </span>
+  );
+}
+
 interface DraftRankingRowProps {
   castaway: Castaway;
   index: number;
@@ -68,7 +84,10 @@ export function DraftRankingRow({
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-neutral-800 truncate">{castaway.name}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-neutral-800 truncate">{castaway.name}</p>
+          {castaway.tribe_original && <TribeTag tribe={castaway.tribe_original} />}
+        </div>
         <div className="flex items-center gap-2 text-xs text-neutral-500">
           {castaway.age && <span>{castaway.age} yrs</span>}
           {castaway.hometown && (

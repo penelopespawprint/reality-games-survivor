@@ -16,7 +16,6 @@ import {
   MapPin,
   Briefcase,
   Calendar,
-  Flame,
   Skull,
   Trophy,
   TrendingUp,
@@ -140,10 +139,25 @@ export default function CastawayDetail() {
     enabled: !!castaway?.season_id,
   });
 
+  // Fetch total castaway count for the season
+  const { data: castawayCount } = useQuery({
+    queryKey: ['castaway-count', castaway?.season_id],
+    queryFn: async () => {
+      if (!castaway?.season_id) return 24; // Default to 24
+      const { count, error } = await supabase
+        .from('castaways')
+        .select('*', { count: 'exact', head: true })
+        .eq('season_id', castaway.season_id);
+      if (error) throw error;
+      return count || 24;
+    },
+    enabled: !!castaway?.season_id,
+  });
+
   // Calculate total points and rank for this castaway
   const totalPoints = episodeScores?.reduce((sum, score) => sum + score.points, 0) || 0;
   const castawayRank = rankings?.find((r) => r.castaway_id === id)?.rank || null;
-  const totalCastaways = rankings?.length || 0;
+  const totalCastaways = castawayCount || 24;
 
   // Get tribe color
   const getTribeColor = (tribe: string | null) => {
@@ -230,34 +244,40 @@ export default function CastawayDetail() {
                   </span>
                 </div>
               )}
-              {/* Status Badge */}
-              <div className="absolute top-4 left-4">
-                {castaway.status === 'eliminated' ? (
+              {/* Status Badge (only show for eliminated/winner on photo) */}
+              {castaway.status === 'eliminated' && (
+                <div className="absolute top-4 left-4">
                   <div className="flex items-center gap-1.5 bg-neutral-800/90 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                     <Skull className="h-4 w-4" />
                     Eliminated
                   </div>
-                ) : castaway.status === 'winner' ? (
+                </div>
+              )}
+              {castaway.status === 'winner' && (
+                <div className="absolute top-4 left-4">
                   <div className="flex items-center gap-1.5 bg-amber-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                     <Trophy className="h-4 w-4" />
                     Winner
                   </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
-                    <Flame className="h-4 w-4" />
-                    Active
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Info */}
             <div className="lg:w-3/5 p-6 lg:p-8 flex flex-col">
               <div className="mb-6">
-                <div
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${tribeColors.bg} ${tribeColors.text} ${tribeColors.border} border mb-3`}
-                >
-                  {castaway.tribe_original || 'Unknown Tribe'}
+                <div className="flex items-center gap-2 mb-3">
+                  <div
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${tribeColors.bg} ${tribeColors.text} ${tribeColors.border} border`}
+                  >
+                    {castaway.tribe_original || 'Unknown Tribe'}
+                  </div>
+                  {castaway.status === 'active' && (
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-green-600">
+                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      Active
+                    </span>
+                  )}
                 </div>
                 <h1 className="text-4xl font-display font-bold text-neutral-800">
                   {castaway.name}
@@ -346,10 +366,20 @@ export default function CastawayDetail() {
             </p>
             <p className="text-neutral-500 text-sm">of {totalCastaways} Castaways</p>
           </div>
-          <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-6 text-center">
-            <p className="text-3xl font-bold text-neutral-800">{episodeScores?.length || 0}</p>
-            <p className="text-neutral-500 text-sm">Episodes Played</p>
-          </div>
+          {(episodeScores?.length || 0) >= 1 ? (
+            <Link
+              to="/scoring"
+              className="bg-white rounded-2xl shadow-card border border-cream-200 p-6 text-center hover:shadow-lg hover:border-burgundy-200 transition-all"
+            >
+              <p className="text-3xl font-bold text-burgundy-600">{episodeScores?.length || 0}</p>
+              <p className="text-neutral-500 text-sm">Season 50 Confessionals</p>
+            </Link>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-6 text-center">
+              <p className="text-3xl font-bold text-neutral-800">0</p>
+              <p className="text-neutral-500 text-sm">Season 50 Confessionals</p>
+            </div>
+          )}
         </div>
 
         {/* Week-over-Week Performance */}

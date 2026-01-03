@@ -149,6 +149,34 @@ export function formatAirDate(dateString: string): string {
 }
 
 /**
+ * Format a date with full detail including timezone
+ * e.g., "Monday, March 2, 2026 at 12:00 PM PST"
+ */
+export function formatDateTimeFull(dateString: string, timeZone = 'America/Los_Angeles'): string {
+  const date = new Date(dateString);
+
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  };
+
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone,
+    timeZoneName: 'short',
+  };
+
+  const formattedDate = date.toLocaleDateString('en-US', { ...dateOptions, timeZone });
+  const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
+
+  return `${formattedDate} at ${formattedTime}`;
+}
+
+/**
  * Get time until deadline in human-readable format
  * Returns object with { days, hours, minutes, text }
  */
