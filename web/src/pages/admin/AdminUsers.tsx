@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -12,7 +12,6 @@ import {
   Search,
   Eye,
   Mail,
-  Key,
   ExternalLink,
   Activity,
   TrendingUp,
@@ -78,6 +77,19 @@ export function AdminUsers() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showImpersonateModal, setShowImpersonateModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [roleDropdownUserId, setRoleDropdownUserId] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setRoleDropdownUserId(null);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Fetch all users with enhanced data
   const {
@@ -122,20 +134,7 @@ export function AdminUsers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users-enhanced'] });
-    },
-    onError: (err: Error) => {
-      setError(err.message);
-    },
-  });
-
-  // Reset password mutation
-  const resetPassword = useMutation({
-    mutationFn: async (userId: string) => {
-      return apiWithAuth(`/api/admin/users/${userId}/reset-password`, { method: 'POST' });
-    },
-    onSuccess: () => {
-      setError(null);
-      alert('Password reset email sent');
+      setRoleDropdownUserId(null);
     },
     onError: (err: Error) => {
       setError(err.message);
@@ -483,15 +482,7 @@ export function AdminUsers() {
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => resetPassword.mutate(user.id)}
-                            className="p-1.5 text-neutral-400 hover:text-blue-500 hover:bg-cream-100 rounded"
-                            title="Send Password Reset"
-                          >
-                            <Key className="h-4 w-4" />
-                          </button>
-                          <button
                             onClick={() => {
-                              // Open email client
                               window.location.href = `mailto:${user.email}`;
                             }}
                             className="p-1.5 text-neutral-400 hover:text-green-500 hover:bg-cream-100 rounded"
@@ -499,36 +490,49 @@ export function AdminUsers() {
                           >
                             <Mail className="h-4 w-4" />
                           </button>
-                          <div className="relative group">
-                            <button className="p-1.5 text-neutral-400 hover:text-neutral-600 hover:bg-cream-100 rounded">
+                          <div
+                            className="relative"
+                            ref={roleDropdownUserId === user.id ? dropdownRef : null}
+                          >
+                            <button
+                              onClick={() =>
+                                setRoleDropdownUserId(
+                                  roleDropdownUserId === user.id ? null : user.id
+                                )
+                              }
+                              className={`p-1.5 hover:bg-cream-100 rounded ${roleDropdownUserId === user.id ? 'text-burgundy-500 bg-cream-100' : 'text-neutral-400 hover:text-neutral-600'}`}
+                              title="Change Role"
+                            >
                               <Shield className="h-4 w-4" />
                             </button>
-                            <div className="absolute right-0 top-full mt-1 bg-white border border-cream-200 rounded-lg shadow-lg z-10 hidden group-hover:block min-w-[140px]">
-                              <button
-                                onClick={() =>
-                                  updateRole.mutate({ userId: user.id, role: 'player' })
-                                }
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-cream-50 flex items-center gap-2"
-                              >
-                                <Shield className="h-4 w-4" /> Player
-                              </button>
-                              <button
-                                onClick={() =>
-                                  updateRole.mutate({ userId: user.id, role: 'commissioner' })
-                                }
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-cream-50 flex items-center gap-2"
-                              >
-                                <ShieldCheck className="h-4 w-4" /> Commissioner
-                              </button>
-                              <button
-                                onClick={() =>
-                                  updateRole.mutate({ userId: user.id, role: 'admin' })
-                                }
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-cream-50 flex items-center gap-2"
-                              >
-                                <ShieldAlert className="h-4 w-4" /> Admin
-                              </button>
-                            </div>
+                            {roleDropdownUserId === user.id && (
+                              <div className="absolute right-0 top-full mt-1 bg-white border border-cream-200 rounded-lg shadow-lg z-20 min-w-[140px]">
+                                <button
+                                  onClick={() =>
+                                    updateRole.mutate({ userId: user.id, role: 'player' })
+                                  }
+                                  className={`w-full px-3 py-2 text-left text-sm hover:bg-cream-50 flex items-center gap-2 ${user.role === 'player' ? 'bg-cream-100 font-medium' : ''}`}
+                                >
+                                  <Shield className="h-4 w-4" /> Player
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    updateRole.mutate({ userId: user.id, role: 'commissioner' })
+                                  }
+                                  className={`w-full px-3 py-2 text-left text-sm hover:bg-cream-50 flex items-center gap-2 ${user.role === 'commissioner' ? 'bg-cream-100 font-medium' : ''}`}
+                                >
+                                  <ShieldCheck className="h-4 w-4" /> Commissioner
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    updateRole.mutate({ userId: user.id, role: 'admin' })
+                                  }
+                                  className={`w-full px-3 py-2 text-left text-sm hover:bg-cream-50 flex items-center gap-2 ${user.role === 'admin' ? 'bg-cream-100 font-medium' : ''}`}
+                                >
+                                  <ShieldAlert className="h-4 w-4" /> Admin
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
