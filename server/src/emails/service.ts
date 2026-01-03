@@ -582,26 +582,26 @@ function triviaWelcomeEmailTemplate({ displayName }: TriviaWelcomeEmailData): st
 
 function triviaSignupWelcomeEmailTemplate(_data: TriviaSignupWelcomeEmailData): string {
   return emailWrapper(`
-    ${heading('You\'re Signed Up for Survivor Trivia!')}
+    ${heading("You're In for Trivia")}
     ${paragraph(`Hey Survivor Fan,`)}
-    ${paragraph(`You're now on the list for our 24-question Survivor trivia challenge! Here's what to expect:`)}
+    ${paragraph(`You're signed up for our 24-question Survivor trivia challenge. Create an account to play and see how you stack up against other superfans.`)}
     ${divider()}
     ${card(`
       ${heading('How Trivia Works', 2)}
-      ${paragraph(`<strong>24 Questions</strong> — Test your Survivor knowledge with trivia spanning all 50 seasons`)}
-      ${paragraph(`<strong>20 Seconds Each</strong> — Think fast! You have 20 seconds per question`)}
-      ${paragraph(`<strong>24-Hour Lockout</strong> — Get one wrong? Come back tomorrow to try again`)}
-      ${paragraph(`<strong>Leaderboard Glory</strong> — Complete all 24 to earn your spot among the Survivor elite`)}
+      ${paragraph(`<strong>24 Questions</strong> — Spanning all 50 seasons of Survivor`)}
+      ${paragraph(`<strong>20 Seconds Each</strong> — Think fast`)}
+      ${paragraph(`<strong>24-Hour Lockout</strong> — Miss one? Come back tomorrow`)}
+      ${paragraph(`<strong>Leaderboard</strong> — Complete all 24 to claim your spot`)}
     `)}
-    ${button('Create Account to Play', `${BASE_URL}/signup`)}
+    ${button('Create Account & Play', `${BASE_URL}/signup`)}
     ${divider()}
     ${card(`
-      <div style="text-align: center;">
-        ${heading('Ready for More?', 2)}
-        ${paragraph(`Love trivia? You'll love our fantasy leagues even more! Draft castaways, make weekly picks, and compete with other superfans throughout the season.`)}
-      </div>
+      ${heading('Want More Than Trivia?', 2)}
+      ${paragraph(`Our fantasy leagues let you draft castaways, make weekly picks, and compete for real bragging rights all season long.`)}
+      ${paragraph(`<strong>Season 50 draft deadline:</strong> Monday, March 3, 2025 at 5:00 PM PT`)}
     `)}
-  `, 'You\'re signed up for Survivor Trivia');
+    ${paragraph(`<strong style="color: #8B0000;">Prove you know your Survivor.</strong>`)}
+  `, 'You\\'re signed up for Survivor Trivia');
 }
 
 // ============================================
@@ -634,53 +634,54 @@ function triviaProgressEmailTemplate(data: TriviaProgressEmailData): string {
 
 function joinLeagueNudgeEmailTemplate(data: JoinLeagueNudgeEmailData): string {
   return emailWrapper(`
-    ${heading('Ready to Play?')}
+    ${heading("You're Missing Out")}
     ${paragraph(`Hey ${data.displayName},`)}
-    ${paragraph(`You signed up ${data.daysSinceSignup} days ago but haven't joined a league yet. The fun is just getting started!`)}
+    ${paragraph(`You signed up ${data.daysSinceSignup} days ago but you're not in a league yet. Season 50 is about to start — don't sit this one out.`)}
     ${card(`
       <div style="text-align: center;">
-        ${heading(`${data.seasonName} Awaits`, 2)}
-        ${paragraph(`The premiere is ${formatDate(data.premiereDate)}. Join a league now to draft your team and compete with other Survivor superfans.`)}
+        ${heading(`Season 50: In the Hands of the Fans`, 2)}
+        ${paragraph(`<strong>Premiere:</strong> Wednesday, February 26, 2025 at 8:00 PM ET`)}
+        ${paragraph(`<strong>Draft deadline:</strong> Monday, March 3, 2025 at 5:00 PM PT`)}
       </div>
     `)}
     ${divider()}
     ${heading('Three Ways to Play', 2)}
-    ${paragraph(`<strong>1. Create a Private League</strong> — Invite friends and family to compete together`)}
-    ${paragraph(`<strong>2. Join a Public League</strong> — Match up with other fans looking for a league`)}
-    ${paragraph(`<strong>3. Global Rankings</strong> — Already enrolled! Compete against all players worldwide`)}
-    ${button('Find a League', `${BASE_URL}/leagues/browse`)}
-    ${paragraph(`<em style="color: #8A7654;">Don't miss out on the season!</em>`)}
+    ${paragraph(`<strong>1. Create a Private League</strong> — Get your friends involved and talk trash all season`)}
+    ${paragraph(`<strong>2. Join a Public League</strong> — Find other fans looking for competition`)}
+    ${paragraph(`<strong>3. Global Rankings</strong> — You're already in! Compete against everyone`)}
+    ${button('Join a League Now', `${BASE_URL}/leagues`)}
+    ${paragraph(`<strong style="color: #8B0000;">The draft deadline is coming. Don't get left behind.</strong>`)}
   `, 'Join a league before the season starts');
 }
 
 function preSeasonHypeEmailTemplate(data: PreSeasonHypeEmailData): string {
   const hasLeagueContent = data.hasLeague
-    ? `You're all set in ${highlight(data.leagueName || 'your league')}. Make sure your draft rankings are ready!`
-    : `You haven't joined a league yet. There's still time to find one and get in on the action.`;
+    ? `You're locked in with ${highlight(data.leagueName || 'your league')}. Make sure your rankings are set before the draft deadline.`
+    : `You're not in a league yet. There's still time — but not much.`;
 
   return emailWrapper(`
-    ${heading(`${data.daysUntilPremiere} Days Until the Premiere`)}
+    ${heading(`${data.daysUntilPremiere} Days Until Season 50`)}
     ${paragraph(`Hey ${data.displayName},`)}
-    ${paragraph(`${data.seasonName} kicks off in just ${data.daysUntilPremiere} days! Are you ready?`)}
+    ${paragraph(`${data.seasonName} premieres in ${data.daysUntilPremiere} days. The draft deadline is coming fast.`)}
     ${card(`
       <div style="text-align: center;">
-        <div style="font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #A52A2A;">${data.daysUntilPremiere}</div>
-        <p style="color: #8A7654; margin: 4px 0 0 0; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Days to Go</p>
+        <div style="font-family: Georgia, serif; font-size: 48px; font-weight: 700; color: #8B0000;">${data.daysUntilPremiere}</div>
+        <p style="color: #666666; margin: 4px 0 0 0; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Days to Go</p>
       </div>
     `, 'immunity')}
     ${paragraph(hasLeagueContent)}
     ${data.hasLeague
-      ? button('Check Your Rankings', `${BASE_URL}/dashboard`)
-      : button('Join a League Now', `${BASE_URL}/leagues/browse`)
+      ? button('Finalize Your Rankings', `${BASE_URL}/dashboard`)
+      : button('Join a League', `${BASE_URL}/leagues`)
     }
     ${divider()}
     ${card(`
-      ${heading('Pre-Season Checklist', 2)}
-      ${paragraph(`- ${data.hasLeague ? 'League joined' : 'Join a league'}`)}
-      ${paragraph('- Rank all 24 castaways before the draft deadline')}
-      ${paragraph('- Review the scoring rules')}
-      ${paragraph('- Set up SMS for easy picks (optional)')}
+      ${heading('Key Dates', 2)}
+      ${paragraph(`<strong>Premiere:</strong> Wednesday, February 26, 2025 at 8:00 PM ET`)}
+      ${paragraph(`<strong>Draft deadline:</strong> Monday, March 3, 2025 at 5:00 PM PT`)}
+      ${paragraph(`<strong>First pick due:</strong> Wednesday, March 5, 2025 at 5:00 PM PT`)}
     `)}
+    ${paragraph(`<strong style="color: #8B0000;">Rank your castaways. The draft won't wait.</strong>`)}
   `, `${data.daysUntilPremiere} days until Season ${data.seasonNumber}`);
 }
 
@@ -713,48 +714,49 @@ function privateLeagueWelcomeEmailTemplate(data: PrivateLeagueWelcomeEmailData):
   return emailWrapper(`
     ${heading('Welcome to ' + data.leagueName)}
     ${paragraph(`Hey ${data.displayName},`)}
-    ${paragraph(`You've joined a private league created by ${highlight(data.commissionerName)} for ${data.seasonName}. This is going to be fun!`)}
+    ${paragraph(`You're in. ${highlight(data.commissionerName)} set up this league for ${data.seasonName} — now it's time to compete.`)}
     ${card(`
       <div style="text-align: center;">
-        <div style="font-family: -apple-system, sans-serif; font-size: 48px; font-weight: 700; color: #A52A2A;">${data.memberCount}<span style="color: #8A7654; font-size: 24px;">/${data.maxMembers}</span></div>
-        <p style="color: #8A7654; margin: 4px 0 0 0; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Players Joined</p>
+        <div style="font-family: -apple-system, sans-serif; font-size: 48px; font-weight: 700; color: #8B0000;">${data.memberCount}<span style="color: #666666; font-size: 24px;">/${data.maxMembers}</span></div>
+        <p style="color: #666666; margin: 4px 0 0 0; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Players Joined</p>
       </div>
     `)}
     ${button('View League', `${BASE_URL}/leagues/${data.leagueId}`)}
     ${divider()}
     ${heading('What to Do Now', 2)}
-    ${paragraph(`<strong>1. Complete your draft rankings</strong> — Rank all 24 castaways from best to worst. This determines who you draft.`)}
-    ${paragraph(`<strong>2. Invite others</strong> — Share the league with friends who might want to join.`)}
-    ${paragraph(`<strong>3. Trash talk</strong> — Head to the league chat and let your competitors know you mean business.`)}
+    ${paragraph(`<strong>1. Rank all 24 castaways</strong> — Your rankings determine who you draft. Think strategically.`)}
+    ${paragraph(`<strong>2. Get more people in</strong> — More players = more competition. Share the league.`)}
+    ${paragraph(`<strong>3. Start the trash talk</strong> — Private leagues are where rivalries are born.`)}
     ${card(`
-      ${heading('About Private Leagues', 2)}
-      ${paragraph(`Unlike the global rankings, private leagues let you compete directly with people you know. Same scoring, same rules — just a more personal competition.`)}
+      ${heading('Key Dates', 2)}
+      ${paragraph(`<strong>Draft deadline:</strong> Monday, March 3, 2025 at 5:00 PM PT`)}
+      ${paragraph(`<strong>Premiere:</strong> Wednesday, February 26, 2025 at 8:00 PM ET`)}
     `)}
-    ${paragraph(`<em style="color: #8A7654;">May the best fan win!</em>`)}
+    ${paragraph(`<strong style="color: #8B0000;">Rank smart. Beat your friends. Earn the bragging rights.</strong>`)}
   `, `You've joined ${data.leagueName}`);
 }
 
 function inactivityReminderEmailTemplate(data: InactivityReminderEmailData): string {
   return emailWrapper(`
-    ${heading('We Miss You')}
+    ${heading("You're Falling Behind")}
     ${paragraph(`Hey ${data.displayName},`)}
-    ${paragraph(`It's been ${data.daysSinceLastActivity} days since we last saw you. The game is still going and your team needs you!`)}
+    ${paragraph(`It's been ${data.daysSinceLastActivity} days. The season is still going and your team needs you making picks.`)}
     ${data.missedEpisodes > 0 ? card(`
       <div style="text-align: center;">
         <div style="font-family: -apple-system, sans-serif; font-size: 36px; font-weight: 700; color: #DC2626;">${data.missedEpisodes}</div>
         <p style="color: #991B1B; margin: 4px 0 0 0; text-transform: uppercase; font-size: 11px; letter-spacing: 1px;">Episodes Missed</p>
       </div>
-      ${paragraph(`You've missed ${data.missedEpisodes} episode${data.missedEpisodes > 1 ? 's' : ''} worth of picks. Auto-picks were applied, but you'd probably do better choosing yourself!`)}
+      ${paragraph(`Auto-picks were applied for ${data.missedEpisodes} episode${data.missedEpisodes > 1 ? 's' : ''}. You'd probably do better choosing yourself.`)}
     `, 'warning') : ''}
-    ${button('Get Back in the Game', `${BASE_URL}/dashboard`)}
+    ${button('Get Back In', `${BASE_URL}/dashboard`)}
     ${divider()}
     ${card(`
       ${heading('Quick Catch-Up', 2)}
-      ${paragraph('- Check your current standings in each league')}
-      ${paragraph('- Review your roster and see who\'s still in the game')}
-      ${paragraph('- Make your pick for the next episode')}
+      ${paragraph('• Check your standings')}
+      ${paragraph("• See who's still in the game")}
+      ${paragraph('• Lock in your pick for the next episode')}
     `)}
-    ${paragraph(`<em style="color: #8A7654;">Your tribe awaits!</em>`)}
+    ${paragraph(`<strong style="color: #8B0000;">Picks lock every Wednesday at 5pm PT. Don't miss another one.</strong>`)}
   `, 'Your fantasy team needs you');
 }
 
