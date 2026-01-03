@@ -66,7 +66,6 @@ import { AdminGlobal } from './pages/admin/AdminGlobal';
 import { AdminAnnouncements } from './pages/admin/AdminAnnouncements';
 import { AdminScoringRules } from './pages/admin/AdminScoringRules';
 import { AdminScoringGrid } from './pages/admin/AdminScoringGrid';
-import { AdminStats } from './pages/admin/AdminStats';
 import { AdminEmailQueue } from './pages/admin/AdminEmailQueue';
 import { AdminAnalytics } from './pages/admin/AdminAnalytics';
 import { AdminSystemHealth } from './pages/admin/AdminSystemHealth';
@@ -189,8 +188,8 @@ export default function App() {
                 path="/admin/scoring/grid"
                 element={withAdminErrorBoundary(AdminScoringGrid)}
               />
-              <Route path="/admin/stats" element={withAdminErrorBoundary(AdminStats)} />
-              <Route path="/admin/analytics" element={withAdminErrorBoundary(AdminAnalytics)} />
+              <Route path="/admin/stats" element={withAdminErrorBoundary(AdminAnalytics)} />
+              <Route path="/admin/analytics" element={<Navigate to="/admin/stats" replace />} />
               <Route path="/admin/email-queue" element={withAdminErrorBoundary(AdminEmailQueue)} />
               <Route path="/admin/health" element={withAdminErrorBoundary(AdminSystemHealth)} />
               <Route path="/admin/content" element={withAdminErrorBoundary(AdminContent)} />
