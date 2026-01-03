@@ -113,6 +113,7 @@ export function AdminNavBar() {
   const systemItems = [
     { path: '/admin/jobs', label: 'Job Monitor', badgeKey: 'failedJobs' as const },
     { path: '/admin/stats', label: 'Analytics' },
+    { path: '/stats', label: 'Fun Stats', external: true },
   ];
 
   const renderBadge = (count: number | undefined) => {

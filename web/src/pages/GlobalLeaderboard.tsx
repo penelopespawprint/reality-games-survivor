@@ -108,12 +108,18 @@ export default function GlobalLeaderboard() {
   return (
     <div className="max-w-4xl mx-auto pb-24">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <Trophy className="h-8 w-8 text-burgundy-500" />
           <h1 className="text-3xl font-display font-bold text-neutral-800">{seasonTitle}</h1>
         </div>
         <p className="text-neutral-500">Rankings weighted by performance and number of leagues</p>
+      </div>
+
+      {/* Weighted Score Explanation Callout */}
+      <div className="mb-6 bg-burgundy-50 border border-burgundy-100 rounded-xl px-4 py-3 text-sm text-burgundy-700">
+        <span className="font-medium">Ranked by weighted score:</span> Players in more leagues get
+        more accurate rankings. (1 league = 50%, 2-3 = 67-75%, 4-7 = 80-88%, 7+ = 89%+)
       </div>
 
       {/* Stats Summary */}
@@ -224,12 +230,6 @@ export default function GlobalLeaderboard() {
                 <span>Eliminated</span>
               </div>
             </div>
-          </div>
-
-          {/* Weighted Score Explanation Callout */}
-          <div className="mt-3 bg-burgundy-50 border border-burgundy-100 rounded-xl px-4 py-3 text-sm text-burgundy-700">
-            <span className="font-medium">Ranked by weighted score:</span> Players in more leagues
-            get more accurate rankings. (1 league = 50%, 2-3 = 67-75%, 4-7 = 80-88%, 7+ = 89%+)
           </div>
         </div>
 
