@@ -89,7 +89,6 @@ import {
   useScoringStatus,
   getMostCommonRules,
 } from '@/lib/hooks';
-import { ScoringRulesReference } from '@/components/admin/scoring/ScoringRulesReference';
 
 // Grid scores map: { [castawayId]: { [ruleId]: quantity } }
 type GridScores = Record<string, Record<string, number>>;
@@ -108,6 +107,7 @@ export function AdminScoringGrid() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [skipNextScoreReset, setSkipNextScoreReset] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Queries using shared hooks
@@ -144,6 +144,12 @@ export function AdminScoringGrid() {
   useEffect(() => {
     if (isSaving) return;
 
+    // Skip reset after successful save to preserve local state
+    if (skipNextScoreReset) {
+      setSkipNextScoreReset(false);
+      return;
+    }
+
     if (existingScores && activeCastaways.length > 0) {
       const newGridScores: GridScores = {};
       activeCastaways.forEach((c) => {
@@ -157,7 +163,7 @@ export function AdminScoringGrid() {
       setGridScores(newGridScores);
       setIsDirty(false);
     }
-  }, [existingScores, activeCastaways, isSaving]);
+  }, [existingScores, activeCastaways, isSaving, skipNextScoreReset]);
 
   // Save all scores
   const saveAllScores = useCallback(async () => {
@@ -183,6 +189,9 @@ export function AdminScoringGrid() {
 
       setLastSavedAt(new Date());
       setIsDirty(false);
+      setSkipNextScoreReset(true); // Prevent the useEffect from resetting gridScores
+
+      // Invalidate queries to sync with server state (for other views)
       queryClient.invalidateQueries({ queryKey: ['episodeScores', selectedEpisodeId] });
       queryClient.invalidateQueries({ queryKey: ['scoringStatus', selectedEpisodeId] });
     } catch (err) {
@@ -333,9 +342,6 @@ export function AdminScoringGrid() {
             </button>
           </div>
         )}
-
-        {/* Most Scored Rules Reference - Always visible at top */}
-        <ScoringRulesReference />
 
         {/* Controls */}
         <div className="bg-white rounded-2xl shadow-elevated p-5 mb-6">

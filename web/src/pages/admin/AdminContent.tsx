@@ -75,11 +75,11 @@ interface SiteCopy {
   key: string;
   page: string;
   section: string | null;
-  content_type: string;
+  content_type: string | null;
   content: string;
   description: string | null;
-  is_active: boolean;
-  updated_at: string;
+  is_active: boolean | null;
+  updated_at: string | null;
 }
 
 interface Castaway {
@@ -90,7 +90,7 @@ interface Castaway {
   status: string;
 }
 
-type TabType = 'emails' | 'site-copy' | 'page-headings' | 'castaways';
+type TabType = 'emails' | 'how-to-play' | 'page-headings' | 'site-copy' | 'castaways';
 
 export function AdminContent() {
   const [activeTab, setActiveTab] = useState<TabType>('emails');
@@ -164,8 +164,24 @@ export function AdminContent() {
     enabled: activeTab === 'page-headings',
   });
 
+  // Fetch How to Play content
+  const { data: howToPlayData, isLoading: howToPlayLoading } = useQuery({
+    queryKey: ['admin', 'how-to-play-content'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_copy')
+        .select('*')
+        .eq('page', 'how-to-play')
+        .order('key');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: activeTab === 'how-to-play',
+  });
+
   // State for selected page heading
   const [selectedHeading, setSelectedHeading] = useState<SiteCopy | null>(null);
+  const [selectedHowToPlay, setSelectedHowToPlay] = useState<SiteCopy | null>(null);
 
   // Update castaway fun fact mutation
   const updateCastawayFunFact = useMutation({
@@ -382,6 +398,7 @@ export function AdminContent() {
                 setSelectedCopy(null);
                 setSelectedCastaway(null);
                 setSelectedHeading(null);
+                setSelectedHowToPlay(null);
                 setEditMode(false);
                 setCreateMode(false);
               }}
@@ -396,22 +413,23 @@ export function AdminContent() {
             </button>
             <button
               onClick={() => {
-                setActiveTab('site-copy');
+                setActiveTab('how-to-play');
                 setSelectedTemplate(null);
                 setSelectedCopy(null);
                 setSelectedCastaway(null);
                 setSelectedHeading(null);
+                setSelectedHowToPlay(null);
                 setEditMode(false);
                 setCreateMode(false);
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                activeTab === 'site-copy'
+                activeTab === 'how-to-play'
                   ? 'bg-burgundy-500 text-white'
                   : 'bg-white text-neutral-700 hover:bg-cream-100'
               }`}
             >
               <FileText className="h-4 w-4" />
-              Site Copy
+              How to Play
             </button>
             <button
               onClick={() => {
@@ -420,6 +438,7 @@ export function AdminContent() {
                 setSelectedCopy(null);
                 setSelectedCastaway(null);
                 setSelectedHeading(null);
+                setSelectedHowToPlay(null);
                 setEditMode(false);
                 setCreateMode(false);
               }}
@@ -434,11 +453,32 @@ export function AdminContent() {
             </button>
             <button
               onClick={() => {
+                setActiveTab('site-copy');
+                setSelectedTemplate(null);
+                setSelectedCopy(null);
+                setSelectedCastaway(null);
+                setSelectedHeading(null);
+                setSelectedHowToPlay(null);
+                setEditMode(false);
+                setCreateMode(false);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                activeTab === 'site-copy'
+                  ? 'bg-burgundy-500 text-white'
+                  : 'bg-white text-neutral-700 hover:bg-cream-100'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              All Site Copy
+            </button>
+            <button
+              onClick={() => {
                 setActiveTab('castaways');
                 setSelectedTemplate(null);
                 setSelectedCopy(null);
                 setSelectedCastaway(null);
                 setSelectedHeading(null);
+                setSelectedHowToPlay(null);
                 setEditMode(false);
                 setCreateMode(false);
               }}
@@ -449,7 +489,7 @@ export function AdminContent() {
               }`}
             >
               <Users className="h-4 w-4" />
-              Castaway Fun Facts
+              Castaways
             </button>
           </div>
           {activeTab === 'emails' && (
@@ -612,6 +652,44 @@ export function AdminContent() {
                       ))}
                     </div>
                   )
+                ) : activeTab === 'how-to-play' ? (
+                  howToPlayLoading ? (
+                    <div className="p-8 text-center text-neutral-500">Loading...</div>
+                  ) : !howToPlayData || howToPlayData.length === 0 ? (
+                    <div className="p-8 text-center text-neutral-500">
+                      No How to Play content found
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-cream-100">
+                      {howToPlayData.map((item: SiteCopy) => (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            setSelectedHowToPlay(item);
+                            setSelectedCopy(null);
+                            setSelectedTemplate(null);
+                            setSelectedCastaway(null);
+                            setSelectedHeading(null);
+                            setEditMode(false);
+                          }}
+                          className={`w-full text-left p-4 hover:bg-cream-50 transition-all ${
+                            selectedHowToPlay?.id === item.id ? 'bg-cream-100' : ''
+                          }`}
+                        >
+                          <p className="text-sm font-medium text-neutral-700">
+                            {item.key
+                              .replace('howtoplay.', '')
+                              .replace('how-to-play.', '')
+                              .replace(/\./g, ' › ')}
+                          </p>
+                          <p className="text-xs text-neutral-500 mt-1 line-clamp-2">
+                            {item.content?.replace(/<[^>]*>/g, '').substring(0, 100) ||
+                              'No content'}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  )
                 ) : activeTab === 'page-headings' ? (
                   pageHeadingsLoading ? (
                     <div className="p-8 text-center text-neutral-500">Loading...</div>
@@ -767,6 +845,18 @@ export function AdminContent() {
                 onCancel={() => {
                   setEditMode(false);
                   queryClient.invalidateQueries({ queryKey: ['admin', 'page-headings'] });
+                }}
+              />
+            ) : selectedHowToPlay ? (
+              <HowToPlayEditor
+                content={selectedHowToPlay}
+                editMode={editMode}
+                setEditMode={setEditMode}
+                onSave={(data) => updateCopy.mutate({ ...data, key: selectedHowToPlay.key })}
+                saving={updateCopy.isPending}
+                onCancel={() => {
+                  setEditMode(false);
+                  queryClient.invalidateQueries({ queryKey: ['admin', 'how-to-play-content'] });
                 }}
               />
             ) : selectedCastaway ? (
@@ -1247,7 +1337,7 @@ function SiteCopyEditor({
                 Cancel
               </button>
               <button
-                onClick={() => onSave({ content, is_active: isActive })}
+                onClick={() => onSave({ content, is_active: isActive ?? true })}
                 disabled={saving}
                 className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all disabled:opacity-50"
               >
@@ -1916,6 +2006,152 @@ function PageHeadingEditor({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// How to Play Content Editor Component
+function HowToPlayEditor({
+  content: contentItem,
+  editMode,
+  setEditMode,
+  onSave,
+  saving,
+  onCancel,
+}: {
+  content: SiteCopy;
+  editMode: boolean;
+  setEditMode: (v: boolean) => void;
+  onSave: (data: { content: string; is_active: boolean }) => void;
+  saving: boolean;
+  onCancel: () => void;
+}) {
+  const [content, setContent] = useState(contentItem.content);
+
+  // Reset state when content item changes
+  useState(() => {
+    setContent(contentItem.content);
+  });
+
+  const displayKey = contentItem.key
+    .replace('howtoplay.', '')
+    .replace('how-to-play.', '')
+    .replace(/\./g, ' › ');
+
+  // Determine if this should use rich text or plain text
+  const isRichText = contentItem.content_type === 'html' || contentItem.content?.includes('<');
+
+  // Quill configuration
+  const quillModules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link'],
+      ['clean'],
+    ],
+  };
+
+  const quillFormats = ['header', 'bold', 'italic', 'underline', 'list', 'bullet', 'link'];
+
+  return (
+    <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
+      {/* Header */}
+      <div className="p-4 border-b border-cream-200 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-neutral-800 capitalize">{displayKey}</h2>
+          <p className="text-sm text-neutral-500">
+            {contentItem.description || 'How to Play content'}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {!editMode ? (
+            <button
+              onClick={() => {
+                setEditMode(true);
+                setContent(contentItem.content);
+              }}
+              className="flex items-center gap-2 px-3 py-2 bg-burgundy-500 text-white rounded-xl hover:bg-burgundy-600 transition-all"
+            >
+              <Edit className="h-4 w-4" />
+              Edit
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  setEditMode(false);
+                  onCancel();
+                }}
+                className="flex items-center gap-2 px-3 py-2 bg-cream-100 text-neutral-700 rounded-xl hover:bg-cream-200 transition-all"
+              >
+                <X className="h-4 w-4" />
+                Cancel
+              </button>
+              <button
+                onClick={() => onSave({ content, is_active: true })}
+                disabled={saving}
+                className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        {editMode ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Content</label>
+              {isRichText ? (
+                <div className="border border-cream-200 rounded-xl overflow-hidden">
+                  <ReactQuill
+                    theme="snow"
+                    value={content}
+                    onChange={(value: string) => setContent(value)}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="Enter content..."
+                    className="quill-how-to-play"
+                  />
+                </div>
+              ) : (
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  rows={4}
+                  className="w-full px-4 py-3 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500 resize-none font-mono text-sm"
+                  placeholder="Enter content..."
+                />
+              )}
+            </div>
+            <p className="text-xs text-neutral-500">Key: {contentItem.key}</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-cream-50 rounded-xl p-6">
+              {isRichText ? (
+                <div
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: content }}
+                />
+              ) : (
+                <p className="text-neutral-700">{content}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-neutral-500">
+              <FileText className="h-4 w-4" />
+              <span>Key: {contentItem.key}</span>
+              <span className="mx-2">•</span>
+              <span>Type: {contentItem.content_type || 'text'}</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

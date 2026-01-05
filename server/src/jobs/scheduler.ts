@@ -7,6 +7,7 @@ import { sendPickReminders, sendDraftReminders } from './sendReminders.js';
 import { sendEpisodeResults } from './sendResults.js';
 import { sendWeeklySummary } from './weeklySummary.js';
 import { releaseWeeklyResults } from './releaseResults.js';
+import { sendWeeklySystemReport } from './weeklySystemReport.js';
 import { nurtureTriviaCompleters } from './nurtureTriviaCompleters.js';
 import { processEmailQueue } from '../lib/email-queue.js';
 import {
