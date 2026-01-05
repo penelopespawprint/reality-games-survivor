@@ -20,6 +20,7 @@ import {
   type EditFormData,
 } from '@/components/admin/castaways';
 import type { Castaway, UserProfile, Episode } from '@/types';
+import type { Tribe } from '@/components/admin/castaways/types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
 
@@ -121,18 +122,18 @@ export function AdminCastaways() {
   });
 
   // Fetch tribes for the season
-  const { data: tribes } = useQuery({
+  const { data: tribes } = useQuery<Tribe[]>({
     queryKey: ['tribes', activeSeason?.id],
     queryFn: async () => {
       if (!activeSeason?.id) return [];
       const { data, error } = await supabase
-        .from('tribes')
+        .from('tribes' as 'castaways') // Type workaround until types are regenerated
         .select('*')
         .eq('season_id', activeSeason.id)
         .eq('is_active', true)
         .order('display_order');
       if (error) throw error;
-      return data;
+      return data as unknown as Tribe[];
     },
     enabled: !!activeSeason?.id,
   });

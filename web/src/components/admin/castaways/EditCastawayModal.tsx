@@ -5,8 +5,8 @@
  */
 
 import { History, Trophy, Users } from 'lucide-react';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import type { EditCastawayModalProps } from './types';
 
 // Quill modules configuration for rich text editing
@@ -198,7 +198,7 @@ export function EditCastawayModal({
               <ReactQuill
                 theme="snow"
                 value={formData.fun_fact}
-                onChange={(value) => onFormChange({ ...formData, fun_fact: value })}
+                onChange={(value: string) => onFormChange({ ...formData, fun_fact: value })}
                 modules={quillModules}
                 formats={quillFormats}
                 placeholder="Interesting trivia about this castaway..."

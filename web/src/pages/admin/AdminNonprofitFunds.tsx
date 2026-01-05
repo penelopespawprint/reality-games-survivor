@@ -13,7 +13,8 @@ import {
   FileText,
   Download,
 } from 'lucide-react';
-import { apiWithAuth } from '../../lib/api';
+import { apiGet } from '../../lib/api';
+import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
 import { AdminNavBar } from '@/components/AdminNavBar';
 
@@ -50,23 +51,32 @@ interface GlobalFundSummary {
 
 export function AdminNonprofitFunds() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const { session } = useAuth();
 
   // Fetch global fund summary
   const { data: globalSummary, isLoading: summaryLoading } = useQuery({
     queryKey: ['nonprofit-global-summary'],
     queryFn: async () => {
-      const response = await apiWithAuth.get('/api/admin/nonprofit/summary');
-      return response.data as GlobalFundSummary;
+      const response = await apiGet<GlobalFundSummary>(
+        '/api/admin/nonprofit/summary',
+        session?.access_token
+      );
+      return response.data;
     },
+    enabled: !!session?.access_token,
   });
 
   // Fetch per-league fund balances
   const { data: leagueFunds, isLoading: fundsLoading } = useQuery({
     queryKey: ['nonprofit-league-funds'],
     queryFn: async () => {
-      const response = await apiWithAuth.get('/api/admin/nonprofit/league-funds');
-      return response.data as LeagueFundBalance[];
+      const response = await apiGet<LeagueFundBalance[]>(
+        '/api/admin/nonprofit/league-funds',
+        session?.access_token
+      );
+      return response.data;
     },
+    enabled: !!session?.access_token,
   });
 
   const filteredLeagues = leagueFunds?.filter((league) => {
