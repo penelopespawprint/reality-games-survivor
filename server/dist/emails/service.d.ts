@@ -143,6 +143,9 @@ interface TriviaProgressEmailData {
     questionsCorrect: number;
     totalQuestions: number;
 }
+interface TriviaSignupWelcomeEmailData {
+    email: string;
+}
 interface JoinLeagueNudgeEmailData {
     displayName: string;
     email: string;
@@ -188,6 +191,7 @@ interface InactivityReminderEmailData {
 export declare class EmailService {
     static sendWelcome(data: WelcomeEmailData): Promise<boolean>;
     static sendTriviaWelcome(data: TriviaWelcomeEmailData): Promise<boolean>;
+    static sendTriviaSignupWelcome(data: TriviaSignupWelcomeEmailData): Promise<boolean>;
     static sendLeagueCreated(data: LeagueCreatedEmailData): Promise<boolean>;
     static sendLeagueJoined(data: LeagueJoinedEmailData): Promise<boolean>;
     static sendDraftPickConfirmed(data: DraftPickConfirmedEmailData): Promise<boolean>;
@@ -195,6 +199,14 @@ export declare class EmailService {
     static sendPickConfirmed(data: PickConfirmedEmailData): Promise<boolean>;
     static sendAutoPickAlert(data: AutoPickAlertEmailData): Promise<boolean>;
     static sendPaymentConfirmed(data: PaymentConfirmedEmailData): Promise<boolean>;
+    static sendTaxReceipt(data: {
+        displayName: string;
+        email: string;
+        donationAmount: number;
+        donationDate: Date;
+        transactionId: string;
+        leagueName: string;
+    }): Promise<boolean>;
     static sendDraftReminder(data: DraftReminderEmailData): Promise<boolean>;
     static sendDraftFinalWarning(data: DraftFinalWarningEmailData): Promise<boolean>;
     static sendPickReminder(data: PickReminderEmailData): Promise<boolean>;
@@ -209,6 +221,28 @@ export declare class EmailService {
     static sendPostSeasonWrapUp(data: PostSeasonWrapUpEmailData): Promise<boolean>;
     static sendPrivateLeagueWelcome(data: PrivateLeagueWelcomeEmailData): Promise<boolean>;
     static sendInactivityReminder(data: InactivityReminderEmailData): Promise<boolean>;
+    /**
+     * Send email using CMS template (database) with fallback to hardcoded template
+     *
+     * This method integrates the database-driven CMS with the email sending system.
+     * It tries to load the template from the database first, then falls back to
+     * a provided hardcoded template if the database template doesn't exist or is inactive.
+     *
+     * @param slug - Template slug in database (e.g., 'welcome', 'pick-reminder')
+     * @param variables - Variables to replace in template (e.g., {displayName: 'John'})
+     * @param fallback - Hardcoded template to use if database template doesn't exist
+     * @param options - Email sending options (critical, queue, etc.)
+     * @returns Promise<boolean> indicating success
+     */
+    static sendFromCMS(slug: string, variables: Record<string, string | number | boolean>, fallback: {
+        subject: string;
+        html: string;
+        text?: string;
+    }, options: {
+        to: string;
+        critical?: boolean;
+        queue?: boolean;
+    }): Promise<boolean>;
     static logNotification(userId: string, type: 'email' | 'sms' | 'push', subject: string, body: string): Promise<void>;
 }
 export default EmailService;

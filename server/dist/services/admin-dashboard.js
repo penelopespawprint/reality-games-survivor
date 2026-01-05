@@ -562,20 +562,22 @@ export async function getPaymentStats() {
  */
 export async function getTriviaStats() {
     try {
-        // Get users who have attempted trivia
-        const { data: triviaProgress } = await supabaseAdmin
-            .from('trivia_progress')
-            .select('user_id, questions_answered, questions_correct');
-        const totalAttempts = triviaProgress?.length || 0;
-        const completedTrivia = triviaProgress?.filter((p) => p.questions_correct >= 24).length || 0;
-        const inProgress = triviaProgress?.filter((p) => p.questions_answered > 0 && p.questions_correct < 24).length || 0;
+        // Get users who have attempted trivia - trivia fields are on the users table
+        const { data: users } = await supabaseAdmin
+            .from('users')
+            .select('id, trivia_questions_answered, trivia_questions_correct, trivia_completed')
+            .gt('trivia_questions_answered', 0);
+        const triviaUsers = users || [];
+        const totalAttempts = triviaUsers.length;
+        const completedTrivia = triviaUsers.filter((u) => u.trivia_completed === true).length;
+        const inProgress = triviaUsers.filter((u) => (u.trivia_questions_answered || 0) > 0 && !u.trivia_completed).length;
         // Calculate average questions answered
         const avgQuestionsAnswered = totalAttempts > 0
-            ? triviaProgress.reduce((sum, p) => sum + p.questions_answered, 0) / totalAttempts
+            ? triviaUsers.reduce((sum, u) => sum + (u.trivia_questions_answered || 0), 0) / totalAttempts
             : 0;
         // Calculate average questions correct
         const avgQuestionsCorrect = totalAttempts > 0
-            ? triviaProgress.reduce((sum, p) => sum + p.questions_correct, 0) / totalAttempts
+            ? triviaUsers.reduce((sum, u) => sum + (u.trivia_questions_correct || 0), 0) / totalAttempts
             : 0;
         // Get total users for completion rate
         const { count: totalUsers } = await supabaseAdmin

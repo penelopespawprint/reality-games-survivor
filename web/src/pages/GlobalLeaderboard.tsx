@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { Trophy, Users, TrendingUp, Medal, ChevronDown } from 'lucide-react';
 import { GlobalChat } from '@/components/GlobalChat';
 import { TorchStaff } from '@/components/icons';
@@ -41,6 +42,7 @@ const PAGE_SIZE = 50;
 
 export default function GlobalLeaderboard() {
   const { user } = useAuth();
+  const { getCopy } = useSiteCopy();
   const [offset, setOffset] = useState(0);
 
   // Fetch leaderboard from API with pagination
@@ -103,7 +105,7 @@ export default function GlobalLeaderboard() {
     ? activeSeason.number === 50
       ? 'Survivor Season 50: In the Hands of the Fans'
       : `Season ${activeSeason.number}: ${activeSeason.name}`
-    : 'Global Leaderboard';
+    : getCopy('leaderboard.header.title', 'Global Leaderboard');
 
   return (
     <div className="max-w-4xl mx-auto pb-24">
@@ -113,7 +115,9 @@ export default function GlobalLeaderboard() {
           <Trophy className="h-8 w-8 text-burgundy-500" />
           <h1 className="text-3xl font-display font-bold text-neutral-800">{seasonTitle}</h1>
         </div>
-        <p className="text-neutral-500">Rankings weighted by performance and number of leagues</p>
+        <p className="text-neutral-500">
+          {getCopy('leaderboard.header.subtitle', 'See where you rank among all players')}
+        </p>
       </div>
 
       {/* Weighted Score Explanation Callout */}

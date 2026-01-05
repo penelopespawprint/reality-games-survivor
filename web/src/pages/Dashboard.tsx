@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { Users, ChevronRight } from 'lucide-react';
 // Footer is provided by Layout component
 
@@ -45,6 +46,7 @@ interface RosterEntry {
 
 export function Dashboard() {
   const { user } = useAuth();
+  const { getCopy } = useSiteCopy();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -335,10 +337,11 @@ export function Dashboard() {
       {/* Welcome Header - Reduced spacing */}
       <div className="mb-4">
         <h1 className="text-2xl font-display font-bold text-neutral-800">
-          Welcome back{profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''}.
+          {getCopy('dashboard.header.title', 'Welcome back')}
+          {profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''}.
         </h1>
         <p className="text-neutral-500 mt-1 text-base">
-          Check standings, track scores, and see how your strategy is playing out.
+          {getCopy('dashboard.header.subtitle', 'Your fantasy headquarters')}
         </p>
       </div>
 

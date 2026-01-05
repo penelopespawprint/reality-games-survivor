@@ -70,7 +70,7 @@ export function PlayersTab({
                     {isYou && <span className="ml-2 text-xs text-burgundy-500">(You)</span>}
                     {member.user_id === commissionerId && (
                       <span className="ml-2 text-xs bg-burgundy-100 text-burgundy-600 px-2 py-0.5 rounded-full">
-                        Commissioner
+                        League Creator
                       </span>
                     )}
                   </p>

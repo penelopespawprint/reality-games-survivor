@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Navigation } from '@/components/Navigation';
@@ -21,6 +22,7 @@ type ContactReason = 'general' | 'partner' | 'issue' | 'scorekeeper' | 'other';
 
 export default function Contact() {
   const { user } = useAuth();
+  const { getCopy } = useSiteCopy();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [reason, setReason] = useState<ContactReason>('general');
@@ -153,9 +155,11 @@ export default function Contact() {
           <div className="w-16 h-16 bg-burgundy-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Mail className="h-8 w-8 text-burgundy-600" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-neutral-800 mb-2">Contact Us</h1>
+          <h1 className="text-3xl font-display font-bold text-neutral-800 mb-2">
+            {getCopy('contact.header.title', 'Contact Us')}
+          </h1>
           <p className="text-neutral-500">
-            Have questions, feedback, or just want to say hi? We'd love to hear from you!
+            {getCopy('contact.header.subtitle', "Questions? Feedback? We'd love to hear from you")}
           </p>
         </div>
 

@@ -150,24 +150,17 @@ router.get('/:id', async (req, res) => {
       `)
             .eq('league_id', id)
             .order('joined_at', { ascending: true });
-        // Get member pick counts and points
+        // Get member pick counts - total_points and rank are already on league_members
         const membersWithStats = await Promise.all((members || []).map(async (member) => {
             const { count: pickCount } = await supabaseAdmin
                 .from('weekly_picks')
                 .select('*', { count: 'exact', head: true })
                 .eq('league_id', id)
                 .eq('user_id', member.user_id);
-            const { data: leaderboardEntry } = await supabaseAdmin
-                .from('leaderboard_entries')
-                .select('total_points, rank')
-                .eq('league_id', id)
-                .eq('user_id', member.user_id)
-                .single();
             return {
                 ...member,
                 pick_count: pickCount || 0,
-                total_points: leaderboardEntry?.total_points || 0,
-                rank: leaderboardEntry?.rank || null,
+                // total_points and rank already exist on member from league_members table
             };
         }));
         // Get donations

@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 // import { apiWithAuth } from '../lib/api'; // Commented out until SMS feature launches
 import { useNavigate } from 'react-router-dom';
 import {
@@ -24,6 +25,7 @@ import {
 export default function Profile() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { getCopy } = useSiteCopy();
 
   // Profile state
   const [nameError, setNameError] = useState<string | null>(null);
@@ -278,8 +280,12 @@ export default function Profile() {
     <div className="max-w-2xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-display font-bold text-neutral-800">Profile</h1>
-        <p className="text-neutral-500">Manage your account settings</p>
+        <h1 className="text-2xl font-display font-bold text-neutral-800">
+          {getCopy('profile.header.title', 'My Profile')}
+        </h1>
+        <p className="text-neutral-500">
+          {getCopy('profile.header.subtitle', 'Manage your account and preferences')}
+        </p>
       </div>
 
       {/* Phone Verification Prompt - hidden until SMS feature launches

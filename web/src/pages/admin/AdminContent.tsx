@@ -18,6 +18,8 @@ import {
   Trash2,
   Code,
   Type,
+  Users,
+  Star,
 } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { AdminNavBar } from '@/components/AdminNavBar';
@@ -77,12 +79,21 @@ interface SiteCopy {
   updated_at: string;
 }
 
-type TabType = 'emails' | 'site-copy';
+interface Castaway {
+  id: string;
+  name: string;
+  photo_url: string | null;
+  fun_fact: string | null;
+  status: string;
+}
+
+type TabType = 'emails' | 'site-copy' | 'page-headings' | 'castaways';
 
 export function AdminContent() {
   const [activeTab, setActiveTab] = useState<TabType>('emails');
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [selectedCopy, setSelectedCopy] = useState<SiteCopy | null>(null);
+  const [selectedCastaway, setSelectedCastaway] = useState<Castaway | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [createMode, setCreateMode] = useState(false);
@@ -90,6 +101,7 @@ export function AdminContent() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [_pageFilter, _setPageFilter] = useState<string>('all');
   const [expandedPages, setExpandedPages] = useState<Set<string>>(new Set(['home', 'dashboard']));
+  const [castawayFunFact, setCastawayFunFact] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -110,6 +122,57 @@ export function AdminContent() {
     queryFn: async () => {
       const response = await apiWithAuth(`/api/admin/content/site-copy?page=${_pageFilter}`);
       return response || { data: [], grouped: {} };
+    },
+  });
+
+  // Fetch castaways for Season 50
+  const { data: castawaysData, isLoading: castawaysLoading } = useQuery({
+    queryKey: ['admin', 'castaways-content'],
+    queryFn: async () => {
+      const { data: season } = await supabase
+        .from('seasons')
+        .select('id')
+        .eq('number', 50)
+        .single();
+      if (!season) return [];
+      const { data, error } = await supabase
+        .from('castaways')
+        .select('id, name, photo_url, fun_fact, status')
+        .eq('season_id', season.id)
+        .order('name');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: activeTab === 'castaways',
+  });
+
+  // Fetch page headings (section = 'header')
+  const { data: pageHeadingsData, isLoading: pageHeadingsLoading } = useQuery({
+    queryKey: ['admin', 'page-headings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_copy')
+        .select('*')
+        .eq('section', 'header')
+        .order('key');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: activeTab === 'page-headings',
+  });
+
+  // State for selected page heading
+  const [selectedHeading, setSelectedHeading] = useState<SiteCopy | null>(null);
+
+  // Update castaway fun fact mutation
+  const updateCastawayFunFact = useMutation({
+    mutationFn: async ({ id, fun_fact }: { id: string; fun_fact: string }) => {
+      const { error } = await supabase.from('castaways').update({ fun_fact }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'castaways-content'] });
+      setEditMode(false);
     },
   });
 
@@ -232,7 +295,7 @@ export function AdminContent() {
       maxMembers: '12',
       totalPoints: '156',
       bestRank: '3',
-      winnerName: 'Player One',
+      winnerName: 'Mark the Chicken',
       percentComplete: '75',
       accuracy: '85',
       dashboardUrl: 'https://survivor.realitygamesfantasyleague.com/dashboard',
@@ -254,6 +317,22 @@ export function AdminContent() {
       c.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.content.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const filteredCastaways = ((castawaysData as Castaway[]) || []).filter((c: Castaway) =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Group page headings by page name (first part of key, e.g., "leagues" from "leagues.header.title")
+  const groupedHeadings = ((pageHeadingsData as SiteCopy[]) || []).reduce(
+    (acc: Record<string, SiteCopy[]>, item) => {
+      const pageName = item.key.split('.')[0];
+      if (!acc[pageName]) acc[pageName] = [];
+      acc[pageName].push(item);
+      return acc;
+    },
+    {}
+  );
+  const headingPages = Object.keys(groupedHeadings).sort();
 
   const togglePage = (page: string) => {
     const newExpanded = new Set(expandedPages);
@@ -298,6 +377,8 @@ export function AdminContent() {
                 setActiveTab('emails');
                 setSelectedTemplate(null);
                 setSelectedCopy(null);
+                setSelectedCastaway(null);
+                setSelectedHeading(null);
                 setEditMode(false);
                 setCreateMode(false);
               }}
@@ -315,6 +396,8 @@ export function AdminContent() {
                 setActiveTab('site-copy');
                 setSelectedTemplate(null);
                 setSelectedCopy(null);
+                setSelectedCastaway(null);
+                setSelectedHeading(null);
                 setEditMode(false);
                 setCreateMode(false);
               }}
@@ -326,6 +409,44 @@ export function AdminContent() {
             >
               <FileText className="h-4 w-4" />
               Site Copy
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('page-headings');
+                setSelectedTemplate(null);
+                setSelectedCopy(null);
+                setSelectedCastaway(null);
+                setSelectedHeading(null);
+                setEditMode(false);
+                setCreateMode(false);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                activeTab === 'page-headings'
+                  ? 'bg-burgundy-500 text-white'
+                  : 'bg-white text-neutral-700 hover:bg-cream-100'
+              }`}
+            >
+              <Type className="h-4 w-4" />
+              Page Headings
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('castaways');
+                setSelectedTemplate(null);
+                setSelectedCopy(null);
+                setSelectedCastaway(null);
+                setSelectedHeading(null);
+                setEditMode(false);
+                setCreateMode(false);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                activeTab === 'castaways'
+                  ? 'bg-burgundy-500 text-white'
+                  : 'bg-white text-neutral-700 hover:bg-cream-100'
+              }`}
+            >
+              <Users className="h-4 w-4" />
+              Castaway Fun Facts
             </button>
           </div>
           {activeTab === 'emails' && (
@@ -395,6 +516,8 @@ export function AdminContent() {
                           onClick={() => {
                             setSelectedTemplate(template);
                             setSelectedCopy(null);
+                            setSelectedCastaway(null);
+                            setSelectedHeading(null);
                             setEditMode(false);
                             setPreviewMode(false);
                           }}
@@ -431,55 +554,163 @@ export function AdminContent() {
                       ))}
                     </div>
                   )
-                ) : copyLoading ? (
+                ) : activeTab === 'site-copy' ? (
+                  copyLoading ? (
+                    <div className="p-8 text-center text-neutral-500">Loading...</div>
+                  ) : pages.length === 0 ? (
+                    <div className="p-8 text-center text-neutral-500">No content found</div>
+                  ) : (
+                    <div className="divide-y divide-cream-100">
+                      {pages.map((page) => (
+                        <div key={page}>
+                          <button
+                            onClick={() => togglePage(page)}
+                            className="w-full flex items-center justify-between p-4 hover:bg-cream-50 transition-all"
+                          >
+                            <span className="font-medium text-neutral-800 capitalize">{page}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-neutral-500">
+                                {groupedCopy[page]?.length || 0} items
+                              </span>
+                              {expandedPages.has(page) ? (
+                                <ChevronDown className="h-4 w-4 text-neutral-400" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-neutral-400" />
+                              )}
+                            </div>
+                          </button>
+                          {expandedPages.has(page) && (
+                            <div className="bg-cream-50">
+                              {groupedCopy[page]?.map((item: SiteCopy) => (
+                                <button
+                                  key={item.id}
+                                  onClick={() => {
+                                    setSelectedCopy(item);
+                                    setSelectedTemplate(null);
+                                    setSelectedCastaway(null);
+                                    setSelectedHeading(null);
+                                    setEditMode(false);
+                                  }}
+                                  className={`w-full text-left p-4 pl-8 hover:bg-cream-100 transition-all ${
+                                    selectedCopy?.id === item.id ? 'bg-cream-200' : ''
+                                  }`}
+                                >
+                                  <p className="text-sm font-medium text-neutral-700">
+                                    {item.key.split('.').pop()}
+                                  </p>
+                                  <p className="text-xs text-neutral-500 mt-1 line-clamp-1">
+                                    {item.content}
+                                  </p>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )
+                ) : activeTab === 'page-headings' ? (
+                  pageHeadingsLoading ? (
+                    <div className="p-8 text-center text-neutral-500">Loading...</div>
+                  ) : headingPages.length === 0 ? (
+                    <div className="p-8 text-center text-neutral-500">No page headings found</div>
+                  ) : (
+                    <div className="divide-y divide-cream-100">
+                      {headingPages.map((page) => (
+                        <div key={page}>
+                          <button
+                            onClick={() => togglePage(page)}
+                            className="w-full flex items-center justify-between p-4 hover:bg-cream-50 transition-all"
+                          >
+                            <span className="font-medium text-neutral-800 capitalize">
+                              {page.replace(/-/g, ' ')}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-neutral-500">
+                                {groupedHeadings[page]?.length || 0} items
+                              </span>
+                              {expandedPages.has(page) ? (
+                                <ChevronDown className="h-4 w-4 text-neutral-400" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-neutral-400" />
+                              )}
+                            </div>
+                          </button>
+                          {expandedPages.has(page) && (
+                            <div className="bg-cream-50">
+                              {groupedHeadings[page]?.map((item: SiteCopy) => (
+                                <button
+                                  key={item.id}
+                                  onClick={() => {
+                                    setSelectedHeading(item);
+                                    setSelectedCopy(null);
+                                    setSelectedTemplate(null);
+                                    setSelectedCastaway(null);
+                                    setEditMode(false);
+                                  }}
+                                  className={`w-full text-left p-4 pl-8 hover:bg-cream-100 transition-all ${
+                                    selectedHeading?.id === item.id ? 'bg-cream-200' : ''
+                                  }`}
+                                >
+                                  <p className="text-sm font-medium text-neutral-700">
+                                    {item.key.endsWith('.title') ? '📄 Title' : '💬 Subtitle'}
+                                  </p>
+                                  <p className="text-xs text-neutral-500 mt-1 line-clamp-1">
+                                    {item.content}
+                                  </p>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )
+                ) : castawaysLoading ? (
                   <div className="p-8 text-center text-neutral-500">Loading...</div>
-                ) : pages.length === 0 ? (
-                  <div className="p-8 text-center text-neutral-500">No content found</div>
+                ) : filteredCastaways.length === 0 ? (
+                  <div className="p-8 text-center text-neutral-500">No castaways found</div>
                 ) : (
                   <div className="divide-y divide-cream-100">
-                    {pages.map((page) => (
-                      <div key={page}>
-                        <button
-                          onClick={() => togglePage(page)}
-                          className="w-full flex items-center justify-between p-4 hover:bg-cream-50 transition-all"
-                        >
-                          <span className="font-medium text-neutral-800 capitalize">{page}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-neutral-500">
-                              {groupedCopy[page]?.length || 0} items
-                            </span>
-                            {expandedPages.has(page) ? (
-                              <ChevronDown className="h-4 w-4 text-neutral-400" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4 text-neutral-400" />
-                            )}
+                    {filteredCastaways.map((castaway: Castaway) => (
+                      <button
+                        key={castaway.id}
+                        onClick={() => {
+                          setSelectedCastaway(castaway);
+                          setSelectedTemplate(null);
+                          setSelectedCopy(null);
+                          setCastawayFunFact(castaway.fun_fact || '');
+                          setEditMode(false);
+                        }}
+                        className={`w-full text-left p-4 hover:bg-cream-50 transition-all ${
+                          selectedCastaway?.id === castaway.id ? 'bg-cream-100' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          {castaway.photo_url && (
+                            <img
+                              src={castaway.photo_url}
+                              alt={castaway.name}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-neutral-800">{castaway.name}</p>
+                            <p className="text-xs text-neutral-500 mt-0.5 truncate">
+                              {castaway.fun_fact ? '✓ Has fun fact' : '○ No fun fact'}
+                            </p>
                           </div>
-                        </button>
-                        {expandedPages.has(page) && (
-                          <div className="bg-cream-50">
-                            {groupedCopy[page]?.map((item: SiteCopy) => (
-                              <button
-                                key={item.id}
-                                onClick={() => {
-                                  setSelectedCopy(item);
-                                  setSelectedTemplate(null);
-                                  setEditMode(false);
-                                }}
-                                className={`w-full text-left p-4 pl-8 hover:bg-cream-100 transition-all ${
-                                  selectedCopy?.id === item.id ? 'bg-cream-200' : ''
-                                }`}
-                              >
-                                <p className="text-sm font-medium text-neutral-700">
-                                  {item.key.split('.').pop()}
-                                </p>
-                                <p className="text-xs text-neutral-500 mt-1 line-clamp-1">
-                                  {item.content}
-                                </p>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                          <span
+                            className={`px-2 py-0.5 text-xs rounded-full flex-shrink-0 ${
+                              castaway.status === 'active'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-neutral-100 text-neutral-500'
+                            }`}
+                          >
+                            {castaway.status}
+                          </span>
+                        </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -523,17 +754,52 @@ export function AdminContent() {
                 onSave={(data) => updateCopy.mutate({ ...data, key: selectedCopy.key })}
                 saving={updateCopy.isPending}
               />
+            ) : selectedHeading ? (
+              <PageHeadingEditor
+                heading={selectedHeading}
+                editMode={editMode}
+                setEditMode={setEditMode}
+                onSave={(data) => updateCopy.mutate({ ...data, key: selectedHeading.key })}
+                saving={updateCopy.isPending}
+                onCancel={() => {
+                  setEditMode(false);
+                  queryClient.invalidateQueries({ queryKey: ['admin', 'page-headings'] });
+                }}
+              />
+            ) : selectedCastaway ? (
+              <CastawayFunFactEditor
+                castaway={selectedCastaway}
+                funFact={castawayFunFact}
+                setFunFact={setCastawayFunFact}
+                editMode={editMode}
+                setEditMode={setEditMode}
+                onSave={() =>
+                  updateCastawayFunFact.mutate({
+                    id: selectedCastaway.id,
+                    fun_fact: castawayFunFact,
+                  })
+                }
+                saving={updateCastawayFunFact.isPending}
+              />
             ) : (
               <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-12 text-center">
                 <div className="text-neutral-400 mb-4">
                   {activeTab === 'emails' ? (
                     <Mail className="h-16 w-16 mx-auto" />
-                  ) : (
+                  ) : activeTab === 'site-copy' ? (
                     <FileText className="h-16 w-16 mx-auto" />
+                  ) : (
+                    <Users className="h-16 w-16 mx-auto" />
                   )}
                 </div>
                 <h3 className="text-lg font-medium text-neutral-700 mb-2">
-                  Select {activeTab === 'emails' ? 'a template' : 'content'} to edit
+                  Select{' '}
+                  {activeTab === 'emails'
+                    ? 'a template'
+                    : activeTab === 'site-copy'
+                      ? 'content'
+                      : 'a castaway'}{' '}
+                  to edit
                 </h3>
                 <p className="text-neutral-500">
                   {activeTab === 'emails'
@@ -1320,5 +1586,308 @@ const defaultEmailTemplate = `<!DOCTYPE html>
   </table>
 </body>
 </html>`;
+
+// Castaway Fun Fact Editor Component
+function CastawayFunFactEditor({
+  castaway,
+  funFact,
+  setFunFact,
+  editMode,
+  setEditMode,
+  onSave,
+  saving,
+}: {
+  castaway: Castaway;
+  funFact: string;
+  setFunFact: (v: string) => void;
+  editMode: boolean;
+  setEditMode: (v: boolean) => void;
+  onSave: () => void;
+  saving: boolean;
+}) {
+  const quillModules = useMemo(
+    () => ({
+      toolbar: [
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+        ['clean'],
+      ],
+    }),
+    []
+  );
+
+  const quillFormats = ['bold', 'italic', 'underline', 'list', 'bullet', 'link'];
+
+  return (
+    <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
+      {/* Header */}
+      <div className="p-4 border-b border-cream-200 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          {castaway.photo_url && (
+            <img
+              src={castaway.photo_url}
+              alt={castaway.name}
+              className="w-16 h-16 rounded-xl object-cover border border-cream-200"
+            />
+          )}
+          <div>
+            <h2 className="text-lg font-bold text-neutral-800">{castaway.name}</h2>
+            <p className="text-sm text-neutral-500">Edit fun fact with rich formatting</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {!editMode ? (
+            <button
+              onClick={() => setEditMode(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-burgundy-500 text-white rounded-xl hover:bg-burgundy-600 transition-all"
+            >
+              <Edit className="h-4 w-4" />
+              Edit
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  setEditMode(false);
+                  setFunFact(castaway.fun_fact || '');
+                }}
+                className="flex items-center gap-2 px-3 py-2 bg-cream-100 text-neutral-700 rounded-xl hover:bg-cream-200 transition-all"
+              >
+                <X className="h-4 w-4" />
+                Cancel
+              </button>
+              <button
+                onClick={onSave}
+                disabled={saving}
+                className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Status */}
+      <div className="p-4 bg-cream-50 border-b border-cream-200 flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <Star className="h-4 w-4 text-amber-500" />
+          <span className="text-neutral-700 font-medium">Fun Fact</span>
+        </div>
+        <span
+          className={`px-2 py-0.5 text-xs rounded-full ${
+            castaway.status === 'active'
+              ? 'bg-green-100 text-green-700'
+              : 'bg-neutral-100 text-neutral-500'
+          }`}
+        >
+          {castaway.status}
+        </span>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        {editMode ? (
+          <div className="space-y-4">
+            <div className="border border-cream-200 rounded-xl overflow-hidden">
+              <ReactQuill
+                theme="snow"
+                value={funFact}
+                onChange={setFunFact}
+                modules={quillModules}
+                formats={quillFormats}
+                className="bg-white"
+                style={{ minHeight: '200px' }}
+                placeholder="Enter interesting trivia about this castaway..."
+              />
+            </div>
+            <p className="text-xs text-neutral-500">
+              Use the toolbar to add bold, italic, lists, and links. The content will be displayed
+              on the castaway's profile page.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {funFact ? (
+              <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-5">
+                <div className="flex items-start gap-3">
+                  <Star className="h-6 w-6 text-amber-500 flex-shrink-0" />
+                  <div
+                    className="text-amber-700 leading-relaxed prose prose-sm max-w-none prose-amber"
+                    dangerouslySetInnerHTML={{ __html: funFact }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="bg-cream-50 rounded-xl p-8 text-center">
+                <Star className="h-12 w-12 text-neutral-300 mx-auto mb-3" />
+                <p className="text-neutral-500">No fun fact yet</p>
+                <p className="text-sm text-neutral-400 mt-1">
+                  Click "Edit" to add interesting trivia about this castaway
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Preview note */}
+      {editMode && funFact && (
+        <div className="p-4 border-t border-cream-200 bg-cream-50">
+          <p className="text-sm text-neutral-600 mb-2 font-medium">Preview:</p>
+          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <Star className="h-5 w-5 text-amber-500 flex-shrink-0" />
+              <div
+                className="text-amber-700 leading-relaxed prose prose-sm max-w-none prose-amber"
+                dangerouslySetInnerHTML={{ __html: funFact }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Page Heading Editor Component
+function PageHeadingEditor({
+  heading,
+  editMode,
+  setEditMode,
+  onSave,
+  saving,
+  onCancel,
+}: {
+  heading: SiteCopy;
+  editMode: boolean;
+  setEditMode: (v: boolean) => void;
+  onSave: (data: { content: string; is_active: boolean }) => void;
+  saving: boolean;
+  onCancel: () => void;
+}) {
+  const [content, setContent] = useState(heading.content);
+
+  // Reset state when heading changes
+  useState(() => {
+    setContent(heading.content);
+  });
+
+  const isTitle = heading.key.endsWith('.title');
+  const pageName = heading.key.split('.')[0].replace(/-/g, ' ');
+
+  return (
+    <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
+      {/* Header */}
+      <div className="p-4 border-b border-cream-200 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-neutral-800 capitalize">
+            {pageName} {isTitle ? 'Title' : 'Subtitle'}
+          </h2>
+          <p className="text-sm text-neutral-500">{heading.description}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {!editMode ? (
+            <button
+              onClick={() => {
+                setEditMode(true);
+                setContent(heading.content);
+              }}
+              className="flex items-center gap-2 px-3 py-2 bg-burgundy-500 text-white rounded-xl hover:bg-burgundy-600 transition-all"
+            >
+              <Edit className="h-4 w-4" />
+              Edit
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  setEditMode(false);
+                  onCancel();
+                }}
+                className="flex items-center gap-2 px-3 py-2 bg-cream-100 text-neutral-700 rounded-xl hover:bg-cream-200 transition-all"
+              >
+                <X className="h-4 w-4" />
+                Cancel
+              </button>
+              <button
+                onClick={() => onSave({ content, is_active: true })}
+                disabled={saving}
+                className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all disabled:opacity-50"
+              >
+                <Save className="h-4 w-4" />
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        {editMode ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                {isTitle ? 'Page Title' : 'Page Subtitle'}
+              </label>
+              {isTitle ? (
+                <input
+                  type="text"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="w-full px-4 py-3 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500 text-lg font-semibold"
+                  placeholder="Enter page title..."
+                />
+              ) : (
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500 resize-none"
+                  placeholder="Enter page subtitle..."
+                />
+              )}
+            </div>
+            <p className="text-xs text-neutral-500">
+              This text will appear as the {isTitle ? 'main heading' : 'subtext'} on the {pageName}{' '}
+              page.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-cream-50 rounded-xl p-6">
+              {isTitle ? (
+                <h3 className="text-2xl font-display font-bold text-neutral-800">{content}</h3>
+              ) : (
+                <p className="text-neutral-600">{content}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-neutral-500">
+              <Type className="h-4 w-4" />
+              <span>Key: {heading.key}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Preview */}
+      {editMode && (
+        <div className="p-4 border-t border-cream-200 bg-cream-50">
+          <p className="text-sm text-neutral-600 mb-2 font-medium">Preview:</p>
+          <div className="bg-white rounded-xl p-4 border border-cream-200">
+            {isTitle ? (
+              <h3 className="text-2xl font-display font-bold text-neutral-800">{content}</h3>
+            ) : (
+              <p className="text-neutral-600">{content}</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default AdminContent;

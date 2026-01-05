@@ -46,12 +46,23 @@ router.post('/stripe', async (req, res) => {
                         console.error(`Payment amount mismatch: paid ${paidAmount}, expected ${expectedAmount}`);
                         throw new Error('Payment amount mismatch');
                     }
+                    // NONPROFIT FUND SPLIT CALCULATION (501c3 Compliance)
+                    // Assumes Stripe nonprofit rate: 2.2% + $0.30
+                    const processingFee = Math.round((paidAmount * 0.022 + 0.30) * 100) / 100;
+                    const netDonation = paidAmount - processingFee;
+                    // 7% operational fund (unrestricted), 93% restricted fund (for charity)
+                    const operationalFund = Math.round(netDonation * 0.07 * 100) / 100;
+                    const restrictedFund = Math.round(netDonation * 0.93 * 100) / 100;
+                    console.log(`Payment split: $${paidAmount} = $${processingFee} (fee) + $${operationalFund} (ops) + $${restrictedFund} (charity)`);
                     // Use atomic database function to ensure both membership and payment are recorded together
                     // This prevents race conditions where payment succeeds but membership fails
-                    const { data: result, error } = await supabaseAdmin.rpc('process_league_payment', {
+                    const { data: result, error } = await supabaseAdmin.rpc('process_league_payment_with_fund_split', {
                         p_user_id: user_id,
                         p_league_id: league_id,
-                        p_amount: paidAmount,
+                        p_total_amount: paidAmount,
+                        p_processing_fee: processingFee,
+                        p_operational_fund: operationalFund,
+                        p_restricted_fund: restrictedFund,
                         p_currency: session.currency || 'usd',
                         p_session_id: session.id,
                         p_payment_intent_id: session.payment_intent,
@@ -77,6 +88,23 @@ router.post('/stripe', async (req, res) => {
                             amount: paidAmount,
                             date: new Date(),
                         });
+                        // Send tax receipt for nonprofit donation (IRS compliance)
+                        await EmailService.sendTaxReceipt({
+                            displayName: user.display_name,
+                            email: user.email,
+                            donationAmount: paidAmount,
+                            donationDate: new Date(),
+                            transactionId: session.id,
+                            leagueName: league.name,
+                        });
+                        // Mark tax receipt as sent
+                        await supabaseAdmin
+                            .from('payments')
+                            .update({
+                            tax_receipt_sent: true,
+                            tax_receipt_sent_at: new Date().toISOString(),
+                        })
+                            .eq('stripe_session_id', session.id);
                         // Also send league joined email
                         const { data: leagueWithSeason } = await supabaseAdmin
                             .from('leagues')

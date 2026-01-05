@@ -100,12 +100,13 @@ router.get('/:id', async (req, res) => {
             .from('weekly_picks')
             .select('id, episode_id, status')
             .eq('user_id', userId);
-        // Get total points
+        // Get total points from league_members
         const { data: pointsData } = await supabaseAdmin
-            .from('leaderboard_entries')
+            .from('league_members')
             .select('total_points')
-            .eq('user_id', userId)
-            .single();
+            .eq('user_id', userId);
+        // Sum up total_points across all leagues
+        const totalPoints = (pointsData || []).reduce((sum, m) => sum + (m.total_points || 0), 0);
         // Get donations
         const { data: donations } = await supabaseAdmin
             .from('donations')
@@ -129,7 +130,7 @@ router.get('/:id', async (req, res) => {
                 leagueCount: leagues?.length || 0,
                 picks: picks || [],
                 pickCount: picks?.length || 0,
-                totalPoints: pointsData?.total_points || 0,
+                totalPoints: totalPoints,
             },
             notifications: notificationPrefs || {},
             donations: donations || [],

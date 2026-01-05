@@ -398,7 +398,7 @@ export function AdminLeagues() {
                                   }}
                                   className="w-full px-3 py-2 text-left text-sm hover:bg-cream-50 flex items-center gap-2"
                                 >
-                                  <Mail className="h-4 w-4" /> Message Commissioner
+                                  <Mail className="h-4 w-4" /> Message League Creator
                                 </button>
                                 <button
                                   onClick={(e) => {
@@ -424,7 +424,7 @@ export function AdminLeagues() {
                         <td colSpan={6} className="px-4 py-4 bg-cream-50">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
-                              <p className="text-xs text-neutral-500 uppercase">Commissioner</p>
+                              <p className="text-xs text-neutral-500 uppercase">League Creator</p>
                               <p className="font-medium text-neutral-800">
                                 {league.users?.display_name}
                               </p>

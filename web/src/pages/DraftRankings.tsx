@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { ArrowLeft, Loader2, Clock, Check, AlertCircle, Save, GripVertical } from 'lucide-react';
@@ -12,6 +13,7 @@ import type { Castaway } from '@/types';
 
 export default function DraftRankings() {
   const { user } = useAuth();
+  const { getCopy } = useSiteCopy();
   const queryClient = useQueryClient();
   const [rankings, setRankings] = useState<string[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
@@ -174,11 +176,13 @@ export default function DraftRankings() {
             Back to Dashboard
           </Link>
           <h1 className="text-3xl font-display font-bold text-neutral-800 mb-2">
-            Global Draft Rankings
+            {getCopy('draft-rankings.header.title', 'Draft Rankings')}
           </h1>
           <p className="text-neutral-500">
-            Rank all castaways for Season {activeSeason.number}. This ranking will be used for all
-            your leagues this season.
+            {getCopy(
+              'draft-rankings.header.subtitle',
+              'Rank castaways to set your draft preferences'
+            )}
           </p>
         </div>
 

@@ -342,32 +342,52 @@ router.get('/leaderboard', authenticate, async (req, res) => {
         return sendInternalError(res, 'Failed to fetch leaderboard');
     }
 });
-// GET /api/trivia/questions - Get all trivia questions with answers (public study guide)
-router.get('/questions', async (_req, res) => {
+// POST /api/trivia/signup - Sign up for trivia with email (public, no auth required)
+router.post('/signup', async (req, res) => {
     try {
-        const { data: questions, error } = await supabaseAdmin
-            .from('daily_trivia_questions')
-            .select('id, question_number, question, options, correct_index, fun_fact')
-            .order('question_number', { ascending: true });
-        if (error) {
-            console.error('Questions fetch error:', error);
-            return sendInternalError(res, 'Failed to fetch questions');
+        const { email } = req.body;
+        if (!email || typeof email !== 'string') {
+            return sendValidationError(res, 'Email is required');
         }
-        // Format questions with the correct answer highlighted
-        const formattedQuestions = (questions || []).map((q) => ({
-            id: q.id,
-            questionNumber: q.question_number,
-            question: q.question,
-            options: q.options,
-            correctIndex: q.correct_index,
-            correctAnswer: q.options[q.correct_index],
-            funFact: q.fun_fact,
-        }));
-        return sendSuccess(res, { questions: formattedQuestions });
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return sendValidationError(res, 'Please enter a valid email address');
+        }
+        // Check if email already exists in trivia signups
+        const { data: existing } = await supabaseAdmin
+            .from('trivia_signups')
+            .select('id')
+            .eq('email', email.toLowerCase())
+            .single();
+        if (existing) {
+            // Already signed up - still return success to avoid leaking info
+            return sendSuccess(res, { success: true, message: 'Signed up for trivia' });
+        }
+        // Insert new signup
+        const { error: insertError } = await supabaseAdmin.from('trivia_signups').insert({
+            email: email.toLowerCase(),
+            signed_up_at: new Date().toISOString(),
+        });
+        if (insertError) {
+            console.error('Trivia signup insert error:', insertError);
+            return sendInternalError(res, 'Failed to sign up');
+        }
+        // Send welcome email
+        try {
+            await EmailService.sendTriviaSignupWelcome({
+                email: email.toLowerCase(),
+            });
+        }
+        catch (emailErr) {
+            console.error('Failed to send trivia signup email:', emailErr);
+            // Don't fail the request if email fails
+        }
+        return sendSuccess(res, { success: true, message: 'Signed up for trivia' });
     }
     catch (error) {
-        console.error('Trivia questions error:', error);
-        return sendInternalError(res, 'Failed to fetch trivia questions');
+        console.error('Trivia signup error:', error);
+        return sendInternalError(res, 'Failed to sign up for trivia');
     }
 });
 export default router;

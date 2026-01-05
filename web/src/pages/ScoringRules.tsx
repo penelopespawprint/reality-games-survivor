@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 
@@ -109,6 +110,7 @@ const SCORING_RULES = [
 
 export default function ScoringRules() {
   const { user } = useAuth();
+  const { getCopy } = useSiteCopy();
 
   // Scroll to top on page load
   useEffect(() => {
@@ -125,11 +127,14 @@ export default function ScoringRules() {
           <div className="flex items-center justify-center gap-3 mb-3">
             <BookOpen className="h-9 w-9 text-burgundy-500" />
             <h1 className="text-3xl md:text-4xl font-display font-bold text-neutral-800">
-              Scoring Rules
+              {getCopy('scoring.header.title', 'Scoring Rules')}
             </h1>
           </div>
           <p className="text-neutral-600 max-w-2xl mx-auto">
-            These are examples of the 100+ rules. There are other rules for each category. New rules
+            {getCopy(
+              'scoring.header.subtitle',
+              'See how castaways earn and lose points each episode'
+            )}
             are added each season.
           </p>
         </div>

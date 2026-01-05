@@ -10,6 +10,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { apiPost } from '@/lib/api';
 import { Navigation } from '@/components/Navigation';
 import { Loader2, ArrowLeft } from 'lucide-react';
@@ -35,6 +36,7 @@ interface CastawayStats {
 export function WeeklyPick() {
   const { leagueId } = useParams<{ leagueId: string }>();
   const { user } = useAuth();
+  const { getCopy } = useSiteCopy();
   const queryClient = useQueryClient();
   const [selectedCastaway, setSelectedCastaway] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -275,11 +277,12 @@ export function WeeklyPick() {
               >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
-              <h1 className="text-2xl font-display text-neutral-800">Weekly Pick</h1>
+              <h1 className="text-2xl font-display text-neutral-800">
+                {getCopy('weekly-pick.header.title', 'Weekly Pick')}
+              </h1>
             </div>
             <p className="text-neutral-500">
-              {currentEpisode ? `Episode ${currentEpisode.number}` : 'Loading...'} •{' '}
-              {league?.name || 'Select your castaway'}
+              {getCopy('weekly-pick.header.subtitle', 'Choose your castaway for this episode')}
             </p>
           </div>
         </div>

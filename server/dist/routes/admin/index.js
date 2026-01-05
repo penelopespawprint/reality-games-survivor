@@ -19,6 +19,7 @@ import { authenticate, requireAdmin } from '../../middleware/authenticate.js';
 import dashboardRouter from './dashboard.js';
 import seasonsRouter from './seasons.js';
 import statsRouter from './stats.js';
+import nonprofitRouter from './nonprofit.js';
 const router = Router();
 // All admin routes require authentication and admin role
 router.use(authenticate);
@@ -27,10 +28,11 @@ router.use(requireAdmin);
 router.use('/dashboard', dashboardRouter);
 router.use('/seasons', seasonsRouter);
 router.use('/stats', statsRouter);
+router.use('/nonprofit', nonprofitRouter);
 // Export for use in main router
 // NOTE: The remaining routes (castaways, episodes, jobs, payments, users, leagues, email-queue, alerting)
 // are still in the legacy admin.ts file. They should be extracted to their own modules in future refactoring.
 export default router;
 // Re-export the sub-routers for direct access if needed
-export { dashboardRouter, seasonsRouter, statsRouter };
+export { dashboardRouter, seasonsRouter, statsRouter, nonprofitRouter };
 //# sourceMappingURL=index.js.map

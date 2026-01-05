@@ -17,7 +17,8 @@
 import dashboardRouter from './dashboard.js';
 import seasonsRouter from './seasons.js';
 import statsRouter from './stats.js';
+import nonprofitRouter from './nonprofit.js';
 declare const router: import("express-serve-static-core").Router;
 export default router;
-export { dashboardRouter, seasonsRouter, statsRouter };
+export { dashboardRouter, seasonsRouter, statsRouter, nonprofitRouter };
 //# sourceMappingURL=index.d.ts.map

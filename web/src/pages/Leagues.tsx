@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { Users, Search, Lock, Globe, Plus, Loader2, Crown, ArrowRight } from 'lucide-react';
 
 interface _League {
@@ -42,6 +43,7 @@ function getLeagueColor(leagueId: string): string {
 export default function Leagues() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { getCopy } = useSiteCopy();
   const [search, setSearch] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [filter, setFilter] = useState<'all' | 'commissioner' | 'member'>('all');
@@ -138,9 +140,11 @@ export default function Leagues() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-display font-bold text-neutral-800 flex items-center gap-3">
-            <span className="text-3xl">🏆</span> My Leagues
+            <span className="text-3xl">🏆</span> {getCopy('leagues.header.title', 'All Leagues')}
           </h1>
-          <p className="text-neutral-500 mt-1">Manage your fantasy leagues and track standings</p>
+          <p className="text-neutral-500 mt-1">
+            {getCopy('leagues.header.subtitle', 'Browse active leagues and join the action')}
+          </p>
         </div>
         <div className="flex gap-3">
           <button
@@ -229,7 +233,7 @@ export default function Leagues() {
             }`}
           >
             <Crown className="h-4 w-4" />
-            Commissioner {commissionerCount > 0 && `(${commissionerCount})`}
+            Creator {commissionerCount > 0 && `(${commissionerCount})`}
           </button>
           <button
             onClick={() => setFilter('member')}
@@ -292,7 +296,7 @@ export default function Leagues() {
                         </h3>
                         <p className="text-xs text-neutral-400 font-mono">{league.code}</p>
                         <p className="text-xs text-neutral-500">
-                          {league.commissioner?.display_name || 'Commissioner'}
+                          {league.commissioner?.display_name || 'League Creator'}
                         </p>
                       </div>
                     </div>
@@ -307,7 +311,7 @@ export default function Leagues() {
                       {isCommissioner ? (
                         <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-100 px-2 py-1 rounded-full text-xs font-semibold">
                           <Crown className="h-3 w-3" />
-                          Commissioner
+                          Creator
                         </span>
                       ) : isMember ? (
                         <span className="inline-flex items-center gap-1 text-blue-700 bg-blue-100 px-2 py-1 rounded-full text-xs font-semibold">

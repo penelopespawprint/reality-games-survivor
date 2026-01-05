@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Users, Lock, DollarSign, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { api, apiWithAuth } from '../lib/api';
 import { Navigation } from '@/components/Navigation';
 import { Sentry } from '../lib/sentry';
@@ -25,6 +26,7 @@ interface League {
 export default function JoinLeague() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
+  const { getCopy: _getCopy } = useSiteCopy();
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 

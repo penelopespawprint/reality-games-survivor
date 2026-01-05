@@ -2,11 +2,13 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Users, Trophy, Calendar, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { Navigation } from '@/components/Navigation';
 import { getAvatarUrl } from '@/lib/avatar';
 
 export default function MyTeam() {
   const { leagueId } = useParams<{ leagueId: string }>();
+  const { getCopy } = useSiteCopy();
 
   // Fetch current user
   const { data: currentUser } = useQuery({
@@ -20,7 +22,7 @@ export default function MyTeam() {
   });
 
   // Fetch league details
-  const { data: league } = useQuery({
+  const { data: _league } = useQuery({
     queryKey: ['league', leagueId],
     queryFn: async () => {
       if (!leagueId) throw new Error('No league ID');
@@ -102,8 +104,12 @@ export default function MyTeam() {
             <ArrowLeft className="h-5 w-5 text-neutral-600" />
           </Link>
           <div>
-            <h1 className="text-2xl font-display font-bold text-neutral-800">My Team</h1>
-            <p className="text-neutral-500">{league?.name}</p>
+            <h1 className="text-2xl font-display font-bold text-neutral-800">
+              {getCopy('my-team.header.title', 'My Team')}
+            </h1>
+            <p className="text-neutral-500">
+              {getCopy('my-team.header.subtitle', 'Your drafted castaways and their scores')}
+            </p>
           </div>
         </div>
 

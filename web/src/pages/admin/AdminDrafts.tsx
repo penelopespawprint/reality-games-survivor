@@ -255,7 +255,7 @@ export function AdminDrafts() {
                         )}
                       </div>
                       <div className="text-sm text-neutral-400 mt-1">
-                        Commissioner: {draft.commissioner?.display_name || 'Unknown'} •
+                        League Creator: {draft.commissioner?.display_name || 'Unknown'} •
                         {draft.memberCount} members •
                         {draft.draftType === 'snake' ? 'Snake' : 'Linear'} draft
                       </div>
@@ -349,7 +349,7 @@ export function AdminDrafts() {
                   <thead>
                     <tr className="text-left text-xs text-neutral-500 uppercase tracking-wider border-b border-neutral-700">
                       <th className="px-4 py-3">League</th>
-                      <th className="px-4 py-3">Commissioner</th>
+                      <th className="px-4 py-3">League Creator</th>
                       <th className="px-4 py-3">Members</th>
                       <th className="px-4 py-3">Created</th>
                       <th className="px-4 py-3">Status</th>

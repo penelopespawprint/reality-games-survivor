@@ -359,7 +359,10 @@ export default function CastawayDetail() {
                     <Star className="h-6 w-6 text-amber-500 flex-shrink-0" />
                     <div>
                       <p className="font-semibold text-amber-800 mb-1">Fun Fact</p>
-                      <p className="text-amber-700 leading-relaxed">{castaway.fun_fact}</p>
+                      <div
+                        className="text-amber-700 leading-relaxed prose prose-sm max-w-none prose-amber"
+                        dangerouslySetInnerHTML={{ __html: castaway.fun_fact }}
+                      />
                     </div>
                   </div>
                 </div>

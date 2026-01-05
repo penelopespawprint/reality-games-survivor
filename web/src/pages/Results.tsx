@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Navigation } from '@/components/Navigation';
 import { SpoilerWarning } from '@/components/SpoilerWarning';
 import { supabase } from '@/lib/supabase';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { getAvatarUrl } from '@/lib/avatar';
 import {
   ArrowLeft,
@@ -49,6 +50,7 @@ export default function Results() {
   const { weekNumber } = useParams<{ weekNumber?: string }>();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const { getCopy } = useSiteCopy();
 
   const [revealed, setRevealed] = useState(false);
   const [tokenVerified, setTokenVerified] = useState(false);
@@ -193,9 +195,11 @@ export default function Results() {
           </Link>
           <div>
             <h1 className="text-2xl font-display font-bold text-neutral-800">
-              Week {weekNumber?.replace('week-', '')} Results
+              {getCopy('results.header.title', `Week ${weekNumber?.replace('week-', '')} Results`)}
             </h1>
-            <p className="text-neutral-500">{episode?.title || 'Episode Results'}</p>
+            <p className="text-neutral-500">
+              {getCopy('results.header.subtitle', episode?.title || 'Episode Results')}
+            </p>
           </div>
         </div>
 

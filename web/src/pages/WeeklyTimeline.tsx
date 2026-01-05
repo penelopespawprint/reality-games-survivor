@@ -10,6 +10,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 
@@ -48,6 +49,7 @@ const TIMELINE_EVENTS = [
 
 export default function WeeklyTimeline() {
   const { user } = useAuth();
+  const { getCopy } = useSiteCopy();
 
   return (
     <div className="min-h-screen bg-cream-50 flex flex-col">
@@ -59,11 +61,14 @@ export default function WeeklyTimeline() {
           <div className="flex items-center justify-center gap-3 mb-3">
             <Calendar className="h-9 w-9 text-amber-600" />
             <h1 className="text-3xl md:text-4xl font-display font-bold text-neutral-800">
-              Weekly Timeline
+              {getCopy('timeline.header.title', 'Weekly Timeline')}
             </h1>
           </div>
           <p className="text-neutral-600 max-w-2xl mx-auto">
-            Every week follows the same rhythm. Know the schedule, never miss a deadline, and
+            {getCopy(
+              'timeline.header.subtitle',
+              'Every week follows the same rhythm. Know the schedule, never miss a deadline, and'
+            )}
             maximize your scoring potential.
           </p>
         </div>

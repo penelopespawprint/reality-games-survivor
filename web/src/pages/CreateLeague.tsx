@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, Heart, Users, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { apiWithAuth } from '../lib/api';
 import { Navigation } from '@/components/Navigation';
 import { Sentry } from '../lib/sentry';
@@ -39,6 +40,7 @@ interface CreateLeagueResponse {
 
 export default function CreateLeague() {
   const navigate = useNavigate();
+  const { getCopy } = useSiteCopy();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
@@ -212,9 +214,14 @@ export default function CreateLeague() {
             <ArrowLeft className="h-5 w-5 text-neutral-600" />
           </button>
           <div>
-            <h1 className="text-2xl font-display font-bold text-neutral-800">Create League</h1>
+            <h1 className="text-2xl font-display font-bold text-neutral-800">
+              {getCopy('create-league.header.title', 'Create a League')}
+            </h1>
             <p className="text-neutral-500">
-              Season {activeSeason?.number}: {activeSeason?.name}
+              {getCopy(
+                'create-league.header.subtitle',
+                'Start your own fantasy league and invite friends'
+              )}
             </p>
           </div>
         </div>

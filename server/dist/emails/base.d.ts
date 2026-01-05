@@ -16,6 +16,7 @@ declare const COLORS: {
     green: string;
     lightGreen: string;
     red: string;
+    orange: string;
     borderLight: string;
     borderMedium: string;
 };

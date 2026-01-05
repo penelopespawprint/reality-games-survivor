@@ -48,9 +48,9 @@ const jobs = [
     },
     {
         name: 'results-notification',
-        // Thu 10am PST (morning after episode) - auto-adjusts for DST
-        schedule: pstToCron(10, 0, 4),
-        description: 'Send episode results notification',
+        // Fri 8am PST (when picks open for next episode) - auto-adjusts for DST
+        schedule: pstToCron(8, 0, 5),
+        description: 'Send episode results notification when picks open',
         handler: sendEpisodeResults,
         enabled: true,
     },

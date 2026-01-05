@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { Users, Loader2 } from 'lucide-react';
 import { CastawayFilterBar, CastawayGridItem } from '@/components/castaways';
 import { Navigation } from '@/components/Navigation';
@@ -31,6 +32,7 @@ interface CastawayWithEpisode {
 }
 
 export default function Castaways() {
+  const { getCopy } = useSiteCopy();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'eliminated'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'points' | 'status'>('name');
@@ -292,11 +294,17 @@ export default function Castaways() {
             <div className="inline-flex items-center gap-3 mb-4">
               <span className="text-4xl">🔥</span>
               <h1 className="text-4xl font-display font-bold text-neutral-800">
-                {season?.name || `Season ${season?.number || ''}`} Castaways
+                {getCopy(
+                  'castaways.header.title',
+                  `${season?.name || `Season ${season?.number || ''}`} Castaways`
+                )}
               </h1>
             </div>
             <p className="text-neutral-500 text-lg">
-              {castaways?.length || 0} castaways competing for the title of Sole Survivor
+              {getCopy(
+                'castaways.header.subtitle',
+                'Meet the contestants competing for the title of Sole Survivor'
+              )}
             </p>
           </div>
 
