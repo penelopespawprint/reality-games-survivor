@@ -65,6 +65,9 @@ interface EmailTemplate {
   is_system: boolean;
   version: number;
   updated_at: string;
+  send_frequency: string | null;
+  send_time: string | null;
+  send_day: string | null;
 }
 
 interface SiteCopy {
@@ -995,6 +998,33 @@ function EmailTemplateEditor({
           </span>
         </div>
       </div>
+
+      {/* Schedule Info */}
+      {(template.send_frequency || template.send_time || template.send_day) && (
+        <div className="p-4 bg-blue-50 border-b border-blue-200 flex flex-wrap gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-blue-600 font-semibold">📅 Schedule:</span>
+          </div>
+          {template.send_frequency && (
+            <div>
+              <span className="text-blue-500">Frequency:</span>{' '}
+              <span className="font-medium text-blue-700">{template.send_frequency}</span>
+            </div>
+          )}
+          {template.send_day && (
+            <div>
+              <span className="text-blue-500">Day:</span>{' '}
+              <span className="font-medium text-blue-700">{template.send_day}</span>
+            </div>
+          )}
+          {template.send_time && (
+            <div>
+              <span className="text-blue-500">Time:</span>{' '}
+              <span className="font-medium text-blue-700">{template.send_time}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="p-4">

@@ -46,7 +46,7 @@ async function apiWithAuth(endpoint: string) {
   return response.json();
 }
 
-type Tab = 'executive' | 'engagement' | 'operations';
+type Tab = 'executive' | 'engagement' | 'operations' | 'history';
 
 interface ExecutiveData {
   healthScore: number;
@@ -155,6 +155,18 @@ interface OperationsData {
   }>;
 }
 
+interface HistoryData {
+  history: Record<string, Array<{ date: string; value: number }>>;
+  stats: Array<{
+    id: string;
+    stat_name: string;
+    stat_category: string;
+    stat_value: number;
+    recorded_at: string;
+  }>;
+  period: { days: number };
+}
+
 export function AdminAnalytics() {
   const [activeTab, setActiveTab] = useState<Tab>('executive');
 
@@ -194,16 +206,32 @@ export function AdminAnalytics() {
     staleTime: 30 * 1000,
   });
 
+  // History data
+  const [historyDays, setHistoryDays] = useState(30);
+  const {
+    data: historyData,
+    isLoading: historyLoading,
+    refetch: refetchHistory,
+  } = useQuery<HistoryData>({
+    queryKey: ['admin-analytics-history', historyDays],
+    queryFn: () =>
+      apiWithAuth(`/api/admin/analytics/history?days=${historyDays}`) as Promise<HistoryData>,
+    enabled: activeTab === 'history',
+    staleTime: 5 * 60 * 1000,
+  });
+
   const handleRefresh = () => {
     if (activeTab === 'executive') refetchExecutive();
     else if (activeTab === 'engagement') refetchEngagement();
-    else refetchOperations();
+    else if (activeTab === 'operations') refetchOperations();
+    else refetchHistory();
   };
 
   const isLoading =
     (activeTab === 'executive' && executiveLoading) ||
     (activeTab === 'engagement' && engagementLoading) ||
-    (activeTab === 'operations' && operationsLoading);
+    (activeTab === 'operations' && operationsLoading) ||
+    (activeTab === 'history' && historyLoading);
 
   return (
     <>
@@ -277,6 +305,16 @@ export function AdminAnalytics() {
             }`}
           >
             Operations
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'history'
+                ? 'bg-burgundy-500 text-white'
+                : 'text-neutral-600 hover:bg-cream-100'
+            }`}
+          >
+            History
           </button>
         </div>
 
@@ -745,6 +783,240 @@ export function AdminAnalytics() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* History Tab */}
+        {activeTab === 'history' && historyData && !isLoading && (
+          <div className="space-y-6">
+            {/* Time Period Selector */}
+            <div className="bg-white rounded-xl shadow-card p-4 border border-cream-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-neutral-800 flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-burgundy-500" />
+                  Historical Trends
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-neutral-500">Period:</span>
+                  <select
+                    value={historyDays}
+                    onChange={(e) => setHistoryDays(Number(e.target.value))}
+                    className="px-3 py-1.5 border border-cream-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-burgundy-500"
+                  >
+                    <option value={7}>Last 7 days</option>
+                    <option value={14}>Last 14 days</option>
+                    <option value={30}>Last 30 days</option>
+                    <option value={60}>Last 60 days</option>
+                    <option value={90}>Last 90 days</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Executive Stats History */}
+            <div className="bg-white rounded-xl shadow-card p-6 border border-cream-200">
+              <h3 className="text-lg font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-500" />
+                User Metrics Over Time
+              </h3>
+              <div className="space-y-6">
+                {['total_users', 'active_users_7d', 'new_users_today'].map((statName) => {
+                  const data = historyData.history[statName] || [];
+                  if (data.length === 0) return null;
+                  const maxValue = Math.max(...data.map((d) => d.value), 1);
+                  const latestValue = data[data.length - 1]?.value || 0;
+                  const oldestValue = data[0]?.value || 0;
+                  const change =
+                    oldestValue > 0 ? ((latestValue - oldestValue) / oldestValue) * 100 : 0;
+
+                  return (
+                    <div
+                      key={statName}
+                      className="border-b border-cream-100 pb-4 last:border-0 last:pb-0"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-neutral-700 capitalize">
+                          {statName.replace(/_/g, ' ')}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold text-neutral-800">{latestValue}</span>
+                          {change !== 0 && (
+                            <span
+                              className={`flex items-center text-xs ${change > 0 ? 'text-green-600' : 'text-red-600'}`}
+                            >
+                              {change > 0 ? (
+                                <TrendingUp className="h-3 w-3 mr-0.5" />
+                              ) : (
+                                <TrendingDown className="h-3 w-3 mr-0.5" />
+                              )}
+                              {Math.abs(change).toFixed(1)}%
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {/* Mini Chart */}
+                      <div className="flex items-end gap-1 h-16">
+                        {data.map((point, i) => (
+                          <div
+                            key={i}
+                            className="flex-1 bg-blue-500 rounded-t transition-all hover:bg-blue-600"
+                            style={{
+                              height: `${(point.value / maxValue) * 100}%`,
+                              minHeight: point.value > 0 ? '2px' : '0',
+                            }}
+                            title={`${new Date(point.date).toLocaleDateString()}: ${point.value}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Engagement Stats History */}
+            <div className="bg-white rounded-xl shadow-card p-6 border border-cream-200">
+              <h3 className="text-lg font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+                <Activity className="h-5 w-5 text-green-500" />
+                Engagement Metrics Over Time
+              </h3>
+              <div className="space-y-6">
+                {['total_picks', 'picks_today', 'total_trivia_answers'].map((statName) => {
+                  const data = historyData.history[statName] || [];
+                  if (data.length === 0) return null;
+                  const maxValue = Math.max(...data.map((d) => d.value), 1);
+                  const latestValue = data[data.length - 1]?.value || 0;
+
+                  return (
+                    <div
+                      key={statName}
+                      className="border-b border-cream-100 pb-4 last:border-0 last:pb-0"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-neutral-700 capitalize">
+                          {statName.replace(/_/g, ' ')}
+                        </span>
+                        <span className="text-lg font-bold text-neutral-800">{latestValue}</span>
+                      </div>
+                      {/* Mini Chart */}
+                      <div className="flex items-end gap-1 h-16">
+                        {data.map((point, i) => (
+                          <div
+                            key={i}
+                            className="flex-1 bg-green-500 rounded-t transition-all hover:bg-green-600"
+                            style={{
+                              height: `${(point.value / maxValue) * 100}%`,
+                              minHeight: point.value > 0 ? '2px' : '0',
+                            }}
+                            title={`${new Date(point.date).toLocaleDateString()}: ${point.value}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Operations Stats History */}
+            <div className="bg-white rounded-xl shadow-card p-6 border border-cream-200">
+              <h3 className="text-lg font-semibold text-neutral-800 mb-4 flex items-center gap-2">
+                <Zap className="h-5 w-5 text-purple-500" />
+                Operations Metrics Over Time
+              </h3>
+              <div className="space-y-6">
+                {[
+                  'emails_sent_today',
+                  'emails_failed_today',
+                  'jobs_run_today',
+                  'jobs_failed_today',
+                ].map((statName) => {
+                  const data = historyData.history[statName] || [];
+                  if (data.length === 0) return null;
+                  const maxValue = Math.max(...data.map((d) => d.value), 1);
+                  const latestValue = data[data.length - 1]?.value || 0;
+                  const isError = statName.includes('failed');
+
+                  return (
+                    <div
+                      key={statName}
+                      className="border-b border-cream-100 pb-4 last:border-0 last:pb-0"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-neutral-700 capitalize">
+                          {statName.replace(/_/g, ' ')}
+                        </span>
+                        <span
+                          className={`text-lg font-bold ${isError && latestValue > 0 ? 'text-red-600' : 'text-neutral-800'}`}
+                        >
+                          {latestValue}
+                        </span>
+                      </div>
+                      {/* Mini Chart */}
+                      <div className="flex items-end gap-1 h-16">
+                        {data.map((point, i) => (
+                          <div
+                            key={i}
+                            className={`flex-1 rounded-t transition-all ${isError ? 'bg-red-500 hover:bg-red-600' : 'bg-purple-500 hover:bg-purple-600'}`}
+                            style={{
+                              height: `${(point.value / maxValue) * 100}%`,
+                              minHeight: point.value > 0 ? '2px' : '0',
+                            }}
+                            title={`${new Date(point.date).toLocaleDateString()}: ${point.value}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Raw Data Table */}
+            <div className="bg-white rounded-xl shadow-card p-6 border border-cream-200">
+              <h3 className="text-lg font-semibold text-neutral-800 mb-4">Recent Snapshots</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-neutral-500 border-b border-cream-100">
+                      <th className="text-left py-2 pr-4">Date</th>
+                      <th className="text-left py-2 pr-4">Metric</th>
+                      <th className="text-left py-2 pr-4">Category</th>
+                      <th className="text-right py-2">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historyData.stats
+                      .slice(-20)
+                      .reverse()
+                      .map((stat) => (
+                        <tr key={stat.id} className="border-b border-cream-50 hover:bg-cream-50">
+                          <td className="py-2 pr-4 font-mono text-xs">
+                            {new Date(stat.recorded_at).toLocaleString()}
+                          </td>
+                          <td className="py-2 pr-4 capitalize">
+                            {stat.stat_name.replace(/_/g, ' ')}
+                          </td>
+                          <td className="py-2 pr-4">
+                            <span
+                              className={`px-2 py-0.5 text-xs rounded-full ${
+                                stat.stat_category === 'executive'
+                                  ? 'bg-blue-100 text-blue-700'
+                                  : stat.stat_category === 'engagement'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-purple-100 text-purple-700'
+                              }`}
+                            >
+                              {stat.stat_category}
+                            </span>
+                          </td>
+                          <td className="py-2 text-right font-bold">{stat.stat_value}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
       </div>

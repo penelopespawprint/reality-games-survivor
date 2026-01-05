@@ -15,6 +15,7 @@ import {
   sendInactivityReminders,
   sendTriviaProgressEmails,
 } from './lifecycleEmails.js';
+import { captureStats } from './captureStats.js';
 import { pstToCron, formatCronWithTimezone } from '../lib/timezone-utils.js';
 import { monitoredJobExecution } from './jobMonitor.js';
 import { seasonConfig } from '../lib/season-config.js';
@@ -149,6 +150,14 @@ const jobs: ScheduledJob[] = [
       console.log('[Cleanup] Lifecycle email logs cleaned up successfully');
       return { success: true };
     },
+    enabled: true,
+  },
+  {
+    name: 'daily-stats-capture',
+    // Daily at midnight PST - Capture daily stats for historical tracking
+    schedule: pstToCron(0, 0),
+    description: 'Capture daily stats snapshot for trend analysis',
+    handler: captureStats,
     enabled: true,
   },
 ];
