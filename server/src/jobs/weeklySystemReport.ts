@@ -66,10 +66,15 @@ export async function sendWeeklySystemReport(): Promise<{ sent: boolean; stats: 
     picksThisWeekResult,
     triviaResult,
     triviaThisWeekResult,
-    paymentsResult,
+    totalPaymentsResult,
     paymentsThisWeekResult,
-    emailsResult,
-    jobsResult,
+    revenueThisWeekResult,
+    emailsTotalResult,
+    emailsDeliveredResult,
+    emailsOpenResult,
+    emailsClickResult,
+    jobsTotalResult,
+    jobsFailedResult,
   ] = await Promise.all([
     // Total users
     supabaseAdmin.from('users').select('id', { count: 'exact', head: true }),
@@ -95,14 +100,20 @@ export async function sendWeeklySystemReport(): Promise<{ sent: boolean; stats: 
     supabaseAdmin.from('users').select('trivia_score', { count: 'exact' }).eq('trivia_completed', true),
     // Trivia completers this week
     supabaseAdmin.from('users').select('id', { count: 'exact', head: true }).eq('trivia_completed', true).gte('trivia_completed_at', weekAgoISO),
-    // Total payments
-    supabaseAdmin.from('payments').select('amount, created_at'),
-    // Payments this week
-    supabaseAdmin.from('payments').select('amount', { count: 'exact' }).gte('created_at', weekAgoISO),
-    // Emails this week
-    supabaseAdmin.from('email_events').select('event_type', { count: 'exact' }).gte('created_at', weekAgoISO),
-    // Jobs this week
-    supabaseAdmin.from('job_runs').select('status', { count: 'exact' }).gte('started_at', weekAgoISO),
+    // Total payments (count only, avoid 1000 row limit)
+    supabaseAdmin.from('payments').select('id', { count: 'exact', head: true }),
+    // Payments this week (count only)
+    supabaseAdmin.from('payments').select('id', { count: 'exact', head: true }).gte('created_at', weekAgoISO),
+    // Revenue this week (sum amounts - need actual data, but payments per week unlikely to exceed 1000)
+    supabaseAdmin.from('payments').select('amount').gte('created_at', weekAgoISO),
+    // Email counts by event type (separate queries to avoid 1000 row limit)
+    supabaseAdmin.from('email_events').select('id', { count: 'exact', head: true }).gte('created_at', weekAgoISO),
+    supabaseAdmin.from('email_events').select('id', { count: 'exact', head: true }).eq('event_type', 'delivered').gte('created_at', weekAgoISO),
+    supabaseAdmin.from('email_events').select('id', { count: 'exact', head: true }).eq('event_type', 'open').gte('created_at', weekAgoISO),
+    supabaseAdmin.from('email_events').select('id', { count: 'exact', head: true }).eq('event_type', 'click').gte('created_at', weekAgoISO),
+    // Job counts (separate queries to avoid 1000 row limit)
+    supabaseAdmin.from('job_runs').select('id', { count: 'exact', head: true }).gte('started_at', weekAgoISO),
+    supabaseAdmin.from('job_runs').select('id', { count: 'exact', head: true }).eq('status', 'failed').gte('started_at', weekAgoISO),
   ]);
 
   // Calculate stats
@@ -126,26 +137,23 @@ export async function sendWeeklySystemReport(): Promise<{ sent: boolean; stats: 
     ? Math.round(triviaData.reduce((sum: number, u: any) => sum + (u.trivia_score || 0), 0) / triviaData.length * 10) / 10
     : 0;
 
-  // Payment stats
-  const allPayments = paymentsResult.data || [];
-  const totalPayments = allPayments.length;
+  // Payment stats (using accurate counts from separate queries)
+  const totalPayments = totalPaymentsResult.count || 0;
   const paymentsThisWeek = paymentsThisWeekResult.count || 0;
-  const weekPayments = (paymentsThisWeekResult.data || []) as Array<{ amount: number }>;
+  const weekPayments = (revenueThisWeekResult.data || []) as Array<{ amount: number }>;
   const revenueThisWeek = weekPayments.reduce((sum, p) => sum + (parseFloat(String(p.amount)) || 0), 0);
 
-  // Email stats
-  const emailsThisWeek = emailsResult.data || [];
-  const emailsSentThisWeek = emailsResult.count || 0;
-  const openEvents = emailsThisWeek.filter((e: any) => e.event_type === 'open').length;
-  const clickEvents = emailsThisWeek.filter((e: any) => e.event_type === 'click').length;
-  const deliveredEvents = emailsThisWeek.filter((e: any) => e.event_type === 'delivered').length;
+  // Email stats (using accurate counts from separate queries)
+  const emailsSentThisWeek = emailsTotalResult.count || 0;
+  const deliveredEvents = emailsDeliveredResult.count || 0;
+  const openEvents = emailsOpenResult.count || 0;
+  const clickEvents = emailsClickResult.count || 0;
   const emailOpenRate = deliveredEvents > 0 ? Math.round((openEvents / deliveredEvents) * 100) : 0;
   const emailClickRate = deliveredEvents > 0 ? Math.round((clickEvents / deliveredEvents) * 100) : 0;
 
-  // Job stats
-  const jobsData = jobsResult.data || [];
-  const jobsRun = jobsResult.count || 0;
-  const jobFailures = jobsData.filter((j: any) => j.status === 'failed').length;
+  // Job stats (using accurate counts from separate queries)
+  const jobsRun = jobsTotalResult.count || 0;
+  const jobFailures = jobsFailedResult.count || 0;
 
   // Calculate pick completion rate (users who made picks / total active league members)
   const pickCompletionRate = totalLeagueMembers > 0 ? Math.round((picksThisWeek / totalLeagueMembers) * 100) : 0;

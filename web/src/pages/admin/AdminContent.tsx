@@ -593,6 +593,13 @@ export function AdminContent() {
                           <p className="text-sm text-neutral-600 mt-2 line-clamp-1">
                             {template.subject}
                           </p>
+                          {template.send_frequency && (
+                            <p className="text-xs text-blue-600 mt-1">
+                              📅 {template.send_frequency}
+                              {template.send_time && ` • ${template.send_time}`}
+                              {template.send_day && ` • ${template.send_day}`}
+                            </p>
+                          )}
                         </button>
                       ))}
                     </div>

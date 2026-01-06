@@ -161,6 +161,14 @@ const jobs: ScheduledJob[] = [
     handler: captureStats,
     enabled: true,
   },
+  {
+    name: 'weekly-system-report',
+    // Sunday at noon PST - Send comprehensive stats report to admin
+    schedule: pstToCron(12, 0, 0),
+    description: 'Send weekly system report email to Blake with comprehensive stats',
+    handler: sendWeeklySystemReport,
+    enabled: true,
+  },
 ];
 
 // Store for one-time jobs
