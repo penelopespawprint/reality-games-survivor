@@ -5,9 +5,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { Navigation } from '@/components/Navigation';
 import { AdminNavBar } from '@/components/AdminNavBar';
-import { Footer } from '@/components/Footer';
 import {
   ArrowLeft,
   Globe,
@@ -18,6 +16,7 @@ import {
   Timer,
   Zap,
   Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import {
   StatCard,
@@ -27,8 +26,10 @@ import {
   TwoColumnLeaderboard,
 } from '@/components/stats';
 import { useLeagueStats } from '@/lib/hooks/stats';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function LeagueStats() {
+  const queryClient = useQueryClient();
   const {
     leagueScoring,
     activityByDay,
@@ -43,32 +44,39 @@ export function LeagueStats() {
   // Day name mapping
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['stats', 'leagues'] });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex flex-col">
-      <Navigation />
+    <div className="min-h-screen bg-cream-50">
       <AdminNavBar />
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <Link
-            to="/admin/fun-stats"
-            className="inline-flex items-center gap-2 text-neutral-500 hover:text-burgundy-500 mb-4 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Stats
-          </Link>
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
-              <Globe className="h-7 w-7 text-white" />
+            <Link
+              to="/admin/fun-stats"
+              className="p-2 bg-white border border-cream-200 rounded-xl hover:bg-cream-50 transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5 text-neutral-600" />
+            </Link>
+            <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
+              <Globe className="h-6 w-6 text-teal-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-display font-bold text-neutral-800">
-                League & Platform Stats
-              </h1>
-              <p className="text-neutral-600">7 stats about leagues and platform-wide trends</p>
+              <h1 className="text-2xl font-display font-bold text-neutral-800">League Stats</h1>
+              <p className="text-sm text-neutral-500">7 stats about platform-wide trends</p>
             </div>
           </div>
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-cream-200 rounded-xl hover:bg-cream-50 transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </button>
         </div>
 
         {isLoading ? (
@@ -243,9 +251,7 @@ export function LeagueStats() {
             )}
           </div>
         )}
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 }

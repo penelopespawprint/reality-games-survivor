@@ -18,7 +18,6 @@ import {
   Users,
   Star,
 } from 'lucide-react';
-import { Navigation } from '@/components/Navigation';
 import { AdminNavBar } from '@/components/AdminNavBar';
 import { supabase } from '@/lib/supabase';
 import ReactQuill from 'react-quill';
@@ -186,7 +185,12 @@ export function AdminContent() {
       best_placement?: number | null;
       fun_fact?: string | null;
     }) => {
-      const { id, ...updates } = data;
+      const { id, previous_seasons, ...rest } = data;
+      // Convert null to undefined for Supabase compatibility
+      const updates = {
+        ...rest,
+        previous_seasons: previous_seasons ?? undefined,
+      };
       const { error } = await supabase.from('castaways').update(updates).eq('id', id);
       if (error) throw error;
     },
@@ -265,7 +269,12 @@ export function AdminContent() {
       });
     },
     onSuccess: () => {
+      // Invalidate all related caches to ensure fresh content
       queryClient.invalidateQueries({ queryKey: ['admin', 'site-copy'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'page-content'] });
+      queryClient.invalidateQueries({ queryKey: ['site-copy'] }); // Frontend cache
+      // Also clear server cache
+      apiWithAuth('/api/site-copy/clear-cache', { method: 'POST' }).catch(() => {});
       setEditMode(false);
     },
   });
@@ -283,16 +292,21 @@ export function AdminContent() {
     },
   });
 
-  // Clear template cache mutation
+  // Clear ALL caches mutation - clears both server and client caches
   const clearCache = useMutation({
     mutationFn: async () => {
-      return apiWithAuth('/api/admin/content/clear-cache', {
-        method: 'POST',
-      });
+      // Clear server-side caches
+      await Promise.all([
+        apiWithAuth('/api/admin/content/clear-cache', { method: 'POST' }),
+        apiWithAuth('/api/site-copy/clear-cache', { method: 'POST' }).catch(() => {}),
+      ]);
     },
     onSuccess: () => {
+      // Clear all client-side caches
       queryClient.invalidateQueries({ queryKey: ['admin', 'email-templates'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'site-copy'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'page-content'] });
+      queryClient.invalidateQueries({ queryKey: ['site-copy'] }); // Public site copy cache
     },
   });
 
@@ -338,7 +352,6 @@ export function AdminContent() {
 
   return (
     <div className="min-h-screen bg-cream-50">
-      <Navigation />
       <AdminNavBar />
 
       <div className="max-w-7xl mx-auto px-4 py-8">

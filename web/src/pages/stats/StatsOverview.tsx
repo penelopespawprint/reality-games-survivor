@@ -5,9 +5,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { Navigation } from '@/components/Navigation';
 import { AdminNavBar } from '@/components/AdminNavBar';
-import { Footer } from '@/components/Footer';
 import {
   BarChart3,
   Users,
@@ -17,7 +15,9 @@ import {
   Target,
   Sparkles,
   ArrowRight,
+  RefreshCw,
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 const statCategories = [
   {
@@ -47,52 +47,66 @@ const statCategories = [
 ];
 
 export function StatsOverview() {
+  const queryClient = useQueryClient();
+
+  const handleRefreshAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['stats'] });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex flex-col">
-      <Navigation />
+    <div className="min-h-screen bg-cream-50">
       <AdminNavBar />
 
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-burgundy-500 to-amber-500 rounded-2xl mb-4 shadow-lg">
-            <BarChart3 className="h-8 w-8 text-white" />
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Header with Actions */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-burgundy-100 rounded-xl flex items-center justify-center">
+              <BarChart3 className="h-6 w-6 text-burgundy-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-display font-bold text-neutral-800">Fun Stats</h1>
+              <p className="text-sm text-neutral-500">27 unique stats about your fantasy league</p>
+            </div>
           </div>
-          <h1 className="text-4xl font-display font-bold text-neutral-800 mb-3">
-            Fun Stats & Leaderboards
-          </h1>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-            Discover who's the luckiest player, which castaways were the biggest steals, and explore
-            27 unique stats about your fantasy league.
-          </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleRefreshAll}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-cream-200 rounded-xl hover:bg-cream-50 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh All
+            </button>
+          </div>
         </div>
 
-        {/* Featured Stats Preview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-4 text-center">
-            <Target className="h-8 w-8 text-burgundy-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-neutral-800">27</p>
-            <p className="text-sm text-neutral-500">Unique Stats</p>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-xl border border-cream-200 p-4 text-center">
+            <Target className="h-6 w-6 text-burgundy-500 mx-auto mb-2" />
+            <p className="text-xl font-bold text-neutral-800">27</p>
+            <p className="text-xs text-neutral-500">Total Stats</p>
           </div>
-          <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-4 text-center">
-            <TrendingUp className="h-8 w-8 text-green-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-neutral-800">15</p>
-            <p className="text-sm text-neutral-500">Player Stats</p>
+          <div className="bg-white rounded-xl border border-cream-200 p-4 text-center">
+            <TrendingUp className="h-6 w-6 text-green-500 mx-auto mb-2" />
+            <p className="text-xl font-bold text-neutral-800">15</p>
+            <p className="text-xs text-neutral-500">Player Stats</p>
           </div>
-          <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-4 text-center">
-            <Trophy className="h-8 w-8 text-amber-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-neutral-800">5</p>
-            <p className="text-sm text-neutral-500">Castaway Stats</p>
+          <div className="bg-white rounded-xl border border-cream-200 p-4 text-center">
+            <Trophy className="h-6 w-6 text-amber-500 mx-auto mb-2" />
+            <p className="text-xl font-bold text-neutral-800">5</p>
+            <p className="text-xs text-neutral-500">Castaway Stats</p>
           </div>
-          <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-4 text-center">
-            <Globe className="h-8 w-8 text-teal-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-neutral-800">7</p>
-            <p className="text-sm text-neutral-500">League Stats</p>
+          <div className="bg-white rounded-xl border border-cream-200 p-4 text-center">
+            <Globe className="h-6 w-6 text-teal-500 mx-auto mb-2" />
+            <p className="text-xl font-bold text-neutral-800">7</p>
+            <p className="text-xs text-neutral-500">League Stats</p>
           </div>
         </div>
 
         {/* Category Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-10">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           {statCategories.map((category) => {
             const Icon = category.icon;
             return (
@@ -126,18 +140,16 @@ export function StatsOverview() {
         </div>
 
         {/* Info Box */}
-        <div className="bg-gradient-to-r from-burgundy-50 to-amber-50 rounded-2xl border border-burgundy-200 p-6 text-center">
-          <h3 className="font-display font-bold text-burgundy-800 mb-2">
+        <div className="bg-burgundy-50 rounded-2xl border border-burgundy-200 p-6">
+          <h3 className="font-semibold text-burgundy-800 mb-2">
             Stats Update After Each Episode
           </h3>
-          <p className="text-burgundy-700 max-w-xl mx-auto">
+          <p className="text-sm text-burgundy-700">
             All leaderboards and stats are calculated from real game data and update automatically
-            after each episode is scored. Check back often to see how the rankings change!
+            after each episode is scored.
           </p>
         </div>
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 }

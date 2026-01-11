@@ -40,11 +40,14 @@ export function useSiteCopy() {
     data: copyData,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['site-copy'],
     queryFn: fetchSiteCopy,
-    staleTime: 30 * 1000, // 30 seconds - refresh more often for CMS changes
+    staleTime: 0, // Always refetch when component mounts
     gcTime: 5 * 60 * 1000, // 5 minutes cache
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchOnMount: 'always', // Always refetch on mount
   });
 
   /**
@@ -62,6 +65,7 @@ export function useSiteCopy() {
     isLoading,
     error,
     data: copyData,
+    refetch, // Expose refetch for manual refresh
   };
 }
 
@@ -74,11 +78,14 @@ export function usePageCopy(page: string) {
     data: copyData,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['site-copy', 'page', page],
     queryFn: () => fetchPageCopy(page),
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 0, // Always refetch
     gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 
   const getCopy = (key: string, fallback: string): string => {
@@ -92,6 +99,7 @@ export function usePageCopy(page: string) {
     isLoading,
     error,
     data: copyData,
+    refetch,
   };
 }
 

@@ -8,16 +8,21 @@ import { supabaseAdmin } from '../config/supabase.js';
 
 const router = Router();
 
-// Cache for site copy (refresh every 30 seconds for faster CMS updates)
+// Cache for site copy (refresh every 10 seconds for instant CMS updates)
 let copyCache: Record<string, string> | null = null;
 let cacheTime = 0;
-const CACHE_TTL = 30 * 1000; // 30 seconds - short for dev, can increase in prod
+const CACHE_TTL = 10 * 1000; // 10 seconds - very short for instant updates
 
 // Get all site copy (cached)
 router.get('/', async (req, res) => {
   try {
+    // Prevent browser caching
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
     const now = Date.now();
-    
+
     // Return cached if available
     if (copyCache && now - cacheTime < CACHE_TTL) {
       return res.json({ data: copyCache, cached: true });
