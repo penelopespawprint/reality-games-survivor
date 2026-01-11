@@ -7,9 +7,11 @@ import { sendPickReminders, sendDraftReminders } from './sendReminders.js';
 import { sendEpisodeResults } from './sendResults.js';
 import { sendWeeklySummary } from './weeklySummary.js';
 import { releaseWeeklyResults } from './releaseResults.js';
+import { sendWeeklySystemReport } from './weeklySystemReport.js';
 import { nurtureTriviaCompleters } from './nurtureTriviaCompleters.js';
 import { processEmailQueue } from '../lib/email-queue.js';
 import { sendJoinLeagueNudges, sendPreSeasonHype, sendInactivityReminders, sendTriviaProgressEmails, } from './lifecycleEmails.js';
+import { captureStats } from './captureStats.js';
 import { pstToCron } from '../lib/timezone-utils.js';
 import { monitoredJobExecution } from './jobMonitor.js';
 import { seasonConfig } from '../lib/season-config.js';
@@ -133,6 +135,22 @@ const jobs = [
             console.log('[Cleanup] Lifecycle email logs cleaned up successfully');
             return { success: true };
         },
+        enabled: true,
+    },
+    {
+        name: 'daily-stats-capture',
+        // Daily at midnight PST - Capture daily stats for historical tracking
+        schedule: pstToCron(0, 0),
+        description: 'Capture daily stats snapshot for trend analysis',
+        handler: captureStats,
+        enabled: true,
+    },
+    {
+        name: 'weekly-system-report',
+        // Sunday at noon PST - Send comprehensive stats report to admin
+        schedule: pstToCron(12, 0, 0),
+        description: 'Send weekly system report email to Blake with comprehensive stats',
+        handler: sendWeeklySystemReport,
         enabled: true,
     },
 ];

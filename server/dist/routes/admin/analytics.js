@@ -215,5 +215,96 @@ router.get('/operations', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch operations analytics' });
     }
 });
+// GET /api/admin/analytics/history - Historical stat trends
+router.get('/history', async (req, res) => {
+    try {
+        const { stat_name, category, days = 30 } = req.query;
+        let query = supabaseAdmin
+            .from('stats_history')
+            .select('*')
+            .gte('recorded_at', new Date(Date.now() - Number(days) * 24 * 60 * 60 * 1000).toISOString())
+            .order('recorded_at', { ascending: true });
+        if (stat_name) {
+            query = query.eq('stat_name', stat_name);
+        }
+        if (category) {
+            query = query.eq('stat_category', category);
+        }
+        const { data, error } = await query;
+        if (error)
+            throw error;
+        // Group by stat_name for easier charting
+        const groupedData = (data || []).reduce((acc, item) => {
+            if (!acc[item.stat_name]) {
+                acc[item.stat_name] = [];
+            }
+            acc[item.stat_name].push({
+                date: item.recorded_at,
+                value: Number(item.stat_value),
+            });
+            return acc;
+        }, {});
+        res.json({
+            history: groupedData,
+            stats: data || [],
+            period: { days: Number(days) },
+        });
+    }
+    catch (err) {
+        console.error('GET /api/admin/analytics/history error:', err);
+        res.status(500).json({ error: 'Failed to fetch analytics history' });
+    }
+});
+// POST /api/admin/analytics/snapshot - Manually trigger a stats snapshot
+router.post('/snapshot', async (req, res) => {
+    try {
+        const now = new Date().toISOString();
+        // Collect current stats
+        const { count: totalUsers } = await supabaseAdmin
+            .from('users')
+            .select('*', { count: 'exact', head: true });
+        const { count: activeUsers } = await supabaseAdmin
+            .from('users')
+            .select('*', { count: 'exact', head: true })
+            .gte('last_active_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+        const { count: totalLeagues } = await supabaseAdmin
+            .from('leagues')
+            .select('*', { count: 'exact', head: true });
+        const { count: totalPicks } = await supabaseAdmin
+            .from('weekly_picks')
+            .select('*', { count: 'exact', head: true });
+        const { count: totalPayments } = await supabaseAdmin
+            .from('payments')
+            .select('*', { count: 'exact', head: true });
+        const { count: newUsersToday } = await supabaseAdmin
+            .from('users')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+        // Insert all stats
+        const stats = [
+            { stat_name: 'total_users', stat_category: 'executive', stat_value: totalUsers || 0 },
+            { stat_name: 'active_users_7d', stat_category: 'executive', stat_value: activeUsers || 0 },
+            { stat_name: 'total_leagues', stat_category: 'executive', stat_value: totalLeagues || 0 },
+            { stat_name: 'total_picks', stat_category: 'engagement', stat_value: totalPicks || 0 },
+            { stat_name: 'total_payments', stat_category: 'executive', stat_value: totalPayments || 0 },
+            { stat_name: 'new_users_today', stat_category: 'executive', stat_value: newUsersToday || 0 },
+        ];
+        const { error } = await supabaseAdmin
+            .from('stats_history')
+            .insert(stats.map(s => ({ ...s, recorded_at: now })));
+        if (error)
+            throw error;
+        res.json({
+            success: true,
+            message: 'Stats snapshot captured',
+            stats,
+            timestamp: now,
+        });
+    }
+    catch (err) {
+        console.error('POST /api/admin/analytics/snapshot error:', err);
+        res.status(500).json({ error: 'Failed to capture stats snapshot' });
+    }
+});
 export default router;
 //# sourceMappingURL=analytics.js.map

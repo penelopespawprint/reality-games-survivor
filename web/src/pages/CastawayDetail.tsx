@@ -302,8 +302,7 @@ export default function CastawayDetail() {
                     {castaway.tribe_original || 'Unknown Tribe'}
                   </div>
                   {castaway.status === 'active' && (
-                    <span className="flex items-center gap-1.5 text-sm font-semibold text-green-600">
-                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-sm font-semibold text-green-600">
                       Active
                     </span>
                   )}

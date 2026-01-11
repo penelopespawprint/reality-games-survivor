@@ -417,16 +417,30 @@ export default function DraftRankings() {
                           className="w-8 h-8 rounded-full object-cover"
                         />
                         <div className="flex-1 min-w-0">
-                          <p
-                            className={`font-medium truncate ${
-                              isTopPick ? 'text-amber-800' : 'text-neutral-800'
-                            }`}
-                          >
-                            {castaway.name}
-                          </p>
-                          {castaway.tribe_original && (
-                            <p className="text-xs text-neutral-500">{castaway.tribe_original}</p>
-                          )}
+                          <div className="flex items-center gap-2">
+                            <p
+                              className={`font-medium truncate ${
+                                isTopPick ? 'text-amber-800' : 'text-neutral-800'
+                              }`}
+                            >
+                              {castaway.name}
+                            </p>
+                            {castaway.tribe_original && (
+                              <span
+                                className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                                  castaway.tribe_original === 'Vatu'
+                                    ? 'bg-purple-100 text-purple-700'
+                                    : castaway.tribe_original === 'Kalo'
+                                      ? 'bg-teal-100 text-teal-700'
+                                      : castaway.tribe_original === 'Cila'
+                                        ? 'bg-orange-100 text-orange-700'
+                                        : 'bg-neutral-100 text-neutral-700'
+                                }`}
+                              >
+                                {castaway.tribe_original}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         {isTopPick && (
                           <span className="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-medium">

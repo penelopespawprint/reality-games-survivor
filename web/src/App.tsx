@@ -37,6 +37,7 @@ import Leagues from './pages/Leagues';
 import Castaways from './pages/Castaways';
 import CastawayDetail from './pages/CastawayDetail';
 import Contact from './pages/Contact';
+import FAQ from './pages/FAQ';
 import LeagueHistory from './pages/LeagueHistory';
 import Notifications from './pages/Notifications';
 import DraftSettings from './pages/DraftSettings';
@@ -70,6 +71,8 @@ import { AdminEmailQueue } from './pages/admin/AdminEmailQueue';
 import { AdminAnalytics } from './pages/admin/AdminAnalytics';
 import { AdminSystemHealth } from './pages/admin/AdminSystemHealth';
 import { AdminContent } from './pages/admin/AdminContent';
+import { AdminCampaigns } from './pages/admin/AdminCampaigns';
+import { AdminSocial } from './pages/admin/AdminSocial';
 import { AdminErrorBoundary } from './components/AdminErrorBoundary';
 
 // Wrapper to add error boundary to admin pages
@@ -97,6 +100,7 @@ export default function App() {
             <Route path="/sms" element={<SMSCommands />} />
             <Route path="/l/:code" element={<PublicLeaderboard />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/faq" element={<FAQ />} />
             <Route path="/trivia" element={<Trivia />} />
             <Route path="/castaways" element={<Castaways />} />
             <Route path="/castaways/:id" element={<CastawayDetail />} />
@@ -187,6 +191,8 @@ export default function App() {
               <Route path="/admin/email-queue" element={withAdminErrorBoundary(AdminEmailQueue)} />
               <Route path="/admin/health" element={withAdminErrorBoundary(AdminSystemHealth)} />
               <Route path="/admin/content" element={withAdminErrorBoundary(AdminContent)} />
+              <Route path="/admin/campaigns" element={withAdminErrorBoundary(AdminCampaigns)} />
+              <Route path="/admin/social" element={withAdminErrorBoundary(AdminSocial)} />
               {/* Fun Stats (admin only) */}
               <Route path="/admin/fun-stats" element={<StatsOverview />} />
               <Route path="/admin/fun-stats/players" element={<PlayerStats />} />

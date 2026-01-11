@@ -1,64 +1,67 @@
 /**
  * Global Leaderboard Route
  *
- * Cross-league leaderboard with Bayesian weighted average scoring
+ * Cross-league leaderboard with weighted average scoring
+ * Uses steeper confidence penalty for small sample sizes:
+ * - 1 league: 33% weight on raw score, 67% regression to mean
+ * - 2 leagues: 55% weight
+ * - 3 leagues: 70% weight
+ * - 4+ leagues: asymptotically approaches 100%
  */
 
 import { Router, Response } from 'express';
 import { supabaseAdmin } from '../../config/supabase.js';
+import { getWeightedRankings, getConfidenceIndicator } from '../../services/weightedRankings.js';
 
 const router = Router();
 
-// GET /api/leagues/global-leaderboard - Global leaderboard with Bayesian weighted average
+// GET /api/leagues/global-leaderboard - Global leaderboard with weighted average
 router.get('/global-leaderboard', async (req, res: Response) => {
   try {
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const offset = parseInt(req.query.offset as string) || 0;
 
-    // Confidence factor for Bayesian weighted average
-    // With C=1, players at 1 league get 50% weight, 2 leagues get 67%, 3 leagues get 75%
-    const CONFIDENCE_FACTOR = 1;
-
-    // OPTIMIZED: Single SQL query using CTEs to eliminate N+1 queries
-    // This replaces multiple separate queries with one efficient query
-    const { data: rawStats, error } = await supabaseAdmin.rpc('get_global_leaderboard_stats');
-
-    if (error) {
-      console.error('RPC error:', error);
-      throw error;
-    }
-
-    // Get active season (independent query, can run in parallel if needed)
+    // Get active season
     const { data: activeSeason } = await supabaseAdmin
       .from('seasons')
       .select('id, number, name')
       .eq('is_active', true)
       .single();
 
-    // Process stats from single query result
-    const statsRaw = (rawStats || []).map((row: any) => ({
-      userId: row.user_id,
-      displayName: row.display_name || 'Unknown',
-      avatarUrl: row.avatar_url,
-      totalPoints: row.total_points || 0,
-      leagueCount: row.league_count || 0,
-      averagePoints: row.average_points || 0,
-      hasEliminatedCastaway: row.has_eliminated_castaway || false,
+    if (!activeSeason) {
+      return res.json({
+        leaderboard: [],
+        pagination: { total: 0, limit, offset, hasMore: false },
+        summary: { totalPlayers: 0, topScore: 0, activeTorches: 0 },
+        activeSeason: null,
+      });
+    }
+
+    // Get weighted rankings using the service
+    const rankings = await getWeightedRankings(activeSeason.id);
+
+    // Get eliminated castaway status for each user
+    const { data: eliminatedStatus } = await supabaseAdmin.rpc('get_global_leaderboard_stats');
+    
+    const eliminatedMap = new Map<string, boolean>();
+    (eliminatedStatus || []).forEach((row: any) => {
+      eliminatedMap.set(row.user_id, row.has_eliminated_castaway || false);
+    });
+
+    // Map rankings to response format with confidence indicators
+    const allStats = rankings.map((player, index) => ({
+      userId: player.userId,
+      displayName: player.displayName,
+      avatarUrl: player.avatarUrl,
+      totalPoints: player.totalPoints,
+      leagueCount: player.leagueCount,
+      averagePoints: player.rawAverage,
+      weightedScore: player.weightedScore,
+      confidence: player.confidence,
+      confidenceIndicator: getConfidenceIndicator(player.leagueCount),
+      scores: player.scores,
+      hasEliminatedCastaway: eliminatedMap.get(player.userId) || false,
     }));
-
-    // Calculate global average for Bayesian weighting
-    const totalAllPoints = statsRaw.reduce((sum: number, p: any) => sum + p.totalPoints, 0);
-    const totalAllLeagues = statsRaw.reduce((sum: number, p: any) => sum + p.leagueCount, 0);
-    const globalAverage = totalAllLeagues > 0 ? totalAllPoints / totalAllLeagues : 0;
-
-    // Apply Bayesian weighted average and sort
-    const allStats = statsRaw.map((p: any) => ({
-      ...p,
-      weightedScore: Math.round(
-        (p.averagePoints * p.leagueCount + globalAverage * CONFIDENCE_FACTOR) /
-        (p.leagueCount + CONFIDENCE_FACTOR)
-      ),
-    })).sort((a: any, b: any) => b.weightedScore - a.weightedScore);
 
     // Apply pagination
     const paginatedStats = allStats.slice(offset, offset + limit);
@@ -66,7 +69,7 @@ router.get('/global-leaderboard', async (req, res: Response) => {
     // Summary stats
     const totalPlayers = allStats.length;
     const topScore = allStats.length > 0 ? allStats[0].weightedScore : 0;
-    const activeTorches = allStats.filter((p: any) => !p.hasEliminatedCastaway).length;
+    const activeTorches = allStats.filter((p) => !p.hasEliminatedCastaway).length;
 
     res.json({
       leaderboard: paginatedStats,
@@ -86,6 +89,44 @@ router.get('/global-leaderboard', async (req, res: Response) => {
   } catch (err) {
     console.error('GET /api/global-leaderboard error:', err);
     res.status(500).json({ error: 'Failed to fetch global leaderboard' });
+  }
+});
+
+// GET /api/leagues/rankings/:seasonId - Get weighted rankings for a specific season
+router.get('/rankings/:seasonId', async (req, res: Response) => {
+  try {
+    const { seasonId } = req.params;
+
+    if (!seasonId) {
+      return res.status(400).json({ error: 'seasonId is required' });
+    }
+
+    const rankings = await getWeightedRankings(seasonId);
+
+    // Add rank position and confidence indicator
+    const response = rankings.map((player, index) => ({
+      rank: index + 1,
+      playerId: player.userId,
+      playerName: player.displayName,
+      leagueCount: player.leagueCount,
+      rawAverage: player.rawAverage,
+      confidence: player.confidence,
+      weightedScore: player.weightedScore,
+      scores: player.scores,
+      confidenceIndicator: getConfidenceIndicator(player.leagueCount),
+    }));
+
+    return res.json({
+      seasonId,
+      totalPlayers: response.length,
+      rankings: response,
+    });
+  } catch (error) {
+    console.error('Rankings error:', error);
+    return res.status(500).json({
+      error: 'Failed to calculate rankings',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
 });
 

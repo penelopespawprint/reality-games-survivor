@@ -13,9 +13,24 @@ import { useAuth } from '@/lib/auth';
 import { Navigation } from '@/components/Navigation';
 import { AdminNavBar } from '@/components/AdminNavBar';
 
-// Shared API helper that ensures token is fresh
-async function apiWithAuth(endpoint: string, options?: RequestInit) {
-  // Get a fresh session - this will auto-refresh if needed
+// Shared API helper that ensures token is fresh and handles auth errors
+async function apiWithAuthLocal(endpoint: string, options?: RequestInit) {
+  const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
+  
+  // Helper to make the request with a given token
+  const makeRequest = async (token: string) => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...options?.headers,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response;
+  };
+
+  // Get current session
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
   if (sessionError) {
@@ -23,46 +38,32 @@ async function apiWithAuth(endpoint: string, options?: RequestInit) {
     throw new Error('Session error - please refresh the page');
   }
 
-  const token = sessionData.session?.access_token;
+  let token = sessionData.session?.access_token;
+  
+  // If no token, try to refresh
   if (!token) {
-    // Try to refresh the session
     const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
     if (refreshError || !refreshData.session?.access_token) {
       throw new Error('Not authenticated - please log in again');
     }
-    return apiWithAuth(endpoint, options); // Retry with fresh token
+    token = refreshData.session.access_token;
   }
 
-  const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      ...options?.headers,
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
+  // Make the request
+  let response = await makeRequest(token);
+
+  // Handle 401/403 - try refreshing token once
+  if (response.status === 401 || response.status === 403) {
+    console.log('Auth error, attempting token refresh...');
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    
+    if (!refreshError && refreshData.session?.access_token) {
+      // Retry with fresh token
+      response = await makeRequest(refreshData.session.access_token);
+    }
+  }
 
   if (!response.ok) {
-    // Handle 401/403 specifically
-    if (response.status === 401 || response.status === 403) {
-      // Try to refresh the session and retry once
-      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-      if (!refreshError && refreshData.session?.access_token) {
-        // Retry the request with fresh token
-        const retryResponse = await fetch(`${API_URL}${endpoint}`, {
-          ...options,
-          headers: {
-            ...options?.headers,
-            Authorization: `Bearer ${refreshData.session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        if (retryResponse.ok) {
-          return retryResponse.json();
-        }
-      }
-    }
     const data = await response.json().catch(() => ({}));
     throw new Error(data.error || `API error: ${response.status}`);
   }
@@ -182,7 +183,7 @@ export function AdminScoringGrid() {
         });
       });
 
-      await apiWithAuth(`/api/episodes/${selectedEpisodeId}/scoring/save`, {
+      await apiWithAuthLocal(`/api/episodes/${selectedEpisodeId}/scoring/save`, {
         method: 'POST',
         body: JSON.stringify({ scores: scoresArray }),
       });
@@ -191,9 +192,11 @@ export function AdminScoringGrid() {
       setIsDirty(false);
       setSkipNextScoreReset(true); // Prevent the useEffect from resetting gridScores
 
-      // Invalidate queries to sync with server state (for other views)
+      // Invalidate queries to sync with server state (for list view and other views)
       queryClient.invalidateQueries({ queryKey: ['episodeScores', selectedEpisodeId] });
+      queryClient.invalidateQueries({ queryKey: ['episodeScores'] }); // Also invalidate broader key for list view sync
       queryClient.invalidateQueries({ queryKey: ['scoringStatus', selectedEpisodeId] });
+      queryClient.invalidateQueries({ queryKey: ['scoringStatus'] }); // Also invalidate broader key
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save scores');
     } finally {

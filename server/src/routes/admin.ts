@@ -43,6 +43,8 @@ import alertingRouter from './admin/alerting.js';
 import statsRouter from './admin/stats.js';
 import analyticsRouter from './admin/analytics.js';
 import contentRouter from './admin/content.js';
+import campaignsRouter from './admin/campaigns.js';
+import socialRouter from './admin/social.js';
 
 const router = Router();
 
@@ -68,6 +70,8 @@ router.use('/announcements', announcementsRouter);
 router.use('/stats', statsRouter);  // Handles /stats/* - comprehensive analytics
 router.use('/analytics', analyticsRouter);  // Handles /analytics/* - 3-tab analytics
 router.use('/content', contentRouter);  // Handles /content/* - CMS for emails and site copy
+router.use('/campaigns', campaignsRouter);  // Handles /campaigns/* - Email and SMS campaigns
+router.use('/social', socialRouter);  // Handles /social/* - Buffer social media integration
 router.use('/', emailsRouter);      // Handles /email-queue/* and /failed-emails/*
 router.use('/', alertingRouter);    // Handles /test-alert, /alerting/*, /notification-preferences/*
 

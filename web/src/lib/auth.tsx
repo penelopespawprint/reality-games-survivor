@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // If profile doesn't exist yet (new user), wait a bit and retry
         // Handle both PGRST116 (PostgREST "no rows") and 406 status
-        const isNotFound = error?.code === 'PGRST116' || (error as any)?.status === 406;
+        const isNotFound = error?.code === 'PGRST116' || (error as { status?: number })?.status === 406;
         if (isNotFound && attempt < retries - 1) {
           // Progressive delay - longer waits for later attempts
           // First retry: 150ms, second: 300ms, third: 500ms, etc.

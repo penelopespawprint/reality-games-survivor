@@ -11,17 +11,17 @@ export declare const createLeagueSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     name: string;
     season_id: string;
+    is_public?: boolean | undefined;
     password?: string | null | undefined;
     donation_amount?: number | null | undefined;
-    is_public?: boolean | undefined;
     max_players?: number | undefined;
     require_donation?: boolean | undefined;
 }, {
     name: string;
     season_id: string;
+    is_public?: boolean | undefined;
     password?: string | null | undefined;
     donation_amount?: number | null | undefined;
-    is_public?: boolean | undefined;
     max_players?: number | undefined;
     require_donation?: boolean | undefined;
 }>;
@@ -35,17 +35,17 @@ export declare const updateLeagueSettingsSchema: z.ZodObject<{
     is_public: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
     name?: string | undefined;
+    is_public?: boolean | undefined;
     password?: string | null | undefined;
     donation_amount?: number | null | undefined;
-    is_public?: boolean | undefined;
     require_donation?: boolean | undefined;
     donation_notes?: string | null | undefined;
     payout_method?: string | null | undefined;
 }, {
     name?: string | undefined;
+    is_public?: boolean | undefined;
     password?: string | null | undefined;
     donation_amount?: number | null | undefined;
-    is_public?: boolean | undefined;
     require_donation?: boolean | undefined;
     donation_notes?: string | null | undefined;
     payout_method?: string | null | undefined;

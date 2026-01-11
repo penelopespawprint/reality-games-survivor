@@ -201,14 +201,14 @@ export function GlobalChat() {
                         isOwn ? 'bg-burgundy-500' : 'bg-neutral-400'
                       }`}
                     >
-                      {(msg.user as any)?.display_name?.charAt(0)?.toUpperCase() || '?'}
+                      {msg.user?.display_name?.charAt(0)?.toUpperCase() || '?'}
                     </div>
 
                     {/* Message */}
                     <div className={`max-w-[75%] ${isOwn ? 'text-right' : ''}`}>
                       {!isOwn && (
                         <p className="text-xs text-neutral-500 mb-0.5 px-1">
-                          {formatDisplayName((msg.user as any)?.display_name)}
+                          {formatDisplayName(msg.user?.display_name)}
                         </p>
                       )}
                       <div

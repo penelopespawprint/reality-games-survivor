@@ -9,7 +9,7 @@
  *   return <h1>{copy}</h1>;
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type QueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
 
 interface SiteCopy {
@@ -112,7 +112,7 @@ export function usePageCopy(page: string, fallbacks: Record<string, string> = {}
  * @param queryClient - React Query client instance
  * @param key - The copy key to prefetch
  */
-export async function prefetchSiteCopy(queryClient: any, key: string) {
+export async function prefetchSiteCopy(queryClient: QueryClient, key: string) {
   await queryClient.prefetchQuery({
     queryKey: ['site-copy', key],
     queryFn: async () => {

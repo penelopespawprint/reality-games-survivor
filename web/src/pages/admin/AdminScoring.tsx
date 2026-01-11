@@ -32,19 +32,53 @@ import {
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
 
-async function apiWithAuth(endpoint: string, options?: RequestInit) {
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  if (!token) throw new Error('Not authenticated');
+// Shared API helper that ensures token is fresh and handles auth errors
+async function apiWithAuthLocal(endpoint: string, options?: RequestInit) {
+  // Helper to make the request with a given token
+  const makeRequest = async (token: string) => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...options?.headers,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    return response;
+  };
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      ...options?.headers,
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
+  // Get current session
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    console.error('Session error:', sessionError);
+    throw new Error('Session error - please refresh the page');
+  }
+
+  let token = sessionData.session?.access_token;
+  
+  // If no token, try to refresh
+  if (!token) {
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError || !refreshData.session?.access_token) {
+      throw new Error('Not authenticated - please log in again');
+    }
+    token = refreshData.session.access_token;
+  }
+
+  // Make the request
+  let response = await makeRequest(token);
+
+  // Handle 401/403 - try refreshing token once
+  if (response.status === 401 || response.status === 403) {
+    console.log('Auth error, attempting token refresh...');
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    
+    if (!refreshError && refreshData.session?.access_token) {
+      // Retry with fresh token
+      response = await makeRequest(refreshData.session.access_token);
+    }
+  }
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
@@ -151,7 +185,7 @@ export function AdminScoring() {
           quantity,
         }));
 
-      await apiWithAuth(`/api/episodes/${selectedEpisodeId}/scoring/save`, {
+      await apiWithAuthLocal(`/api/episodes/${selectedEpisodeId}/scoring/save`, {
         method: 'POST',
         body: JSON.stringify({ scores: scoresArray }),
       });
@@ -159,7 +193,10 @@ export function AdminScoring() {
       setLastSavedAt(new Date());
       setIsDirty(false);
       setSkipNextScoreReset(true);
+      // Invalidate queries to sync with server state (for grid view and other views)
       queryClient.invalidateQueries({ queryKey: ['episodeScores', selectedEpisodeId] });
+      queryClient.invalidateQueries({ queryKey: ['episodeScores'] }); // Also invalidate broader key for grid view sync
+      queryClient.invalidateQueries({ queryKey: ['scoringStatus', selectedEpisodeId] });
       refetchStatus();
     },
     [selectedEpisodeId, user?.id, queryClient, refetchStatus]
@@ -170,7 +207,7 @@ export function AdminScoring() {
     mutationFn: async () => {
       if (!selectedEpisodeId) throw new Error('No episode selected');
 
-      return apiWithAuth(`/api/episodes/${selectedEpisodeId}/scoring/finalize`, {
+      return apiWithAuthLocal(`/api/episodes/${selectedEpisodeId}/scoring/finalize`, {
         method: 'POST',
       }) as Promise<{
         finalized: boolean;

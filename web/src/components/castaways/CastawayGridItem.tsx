@@ -131,8 +131,7 @@ export function CastawayGridItem({ castaway, stats }: CastawayGridItemProps) {
               {castaway.tribe_original || 'Unknown'}
             </span>
             {castaway.status === 'active' && (
-              <span className="flex items-center gap-1 text-xs font-bold text-green-600">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-xs font-bold text-green-600">
                 Active
               </span>
             )}

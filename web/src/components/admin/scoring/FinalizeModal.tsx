@@ -3,12 +3,21 @@
  */
 import { AlertTriangle, CheckCircle, Loader2, X } from 'lucide-react';
 
+interface ScoringStatus {
+  is_complete: boolean;
+  total_castaways: number;
+  scored_castaways: number;
+  unscored_castaway_ids: string[];
+  unscored_castaway_names: string[];
+  is_finalized: boolean;
+}
+
 interface FinalizeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   isPending: boolean;
-  scoringStatus: any;
+  scoringStatus: ScoringStatus | null;
 }
 
 export function FinalizeModal({ 

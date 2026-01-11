@@ -204,21 +204,37 @@ export function groupRulesByCategory(
 }
 
 /**
- * Most commonly used scoring rule codes
+ * Priority scoring rule codes - most commonly used rules for live scoring
+ * These appear at the top of both List View and Grid View
  */
 export const MOST_COMMON_CODES = [
-  'RAND_CONFESSIONAL', // Shown in Confessional
-  'PRE_SURVIVE_TRIBAL', // Survive Tribal (Pre-Merge)
-  'POST_SURVIVE_TRIBAL', // Survive Tribal (Post-Merge)
-  'PRE_NO_TRIBAL', // Avoid Tribal Council (Pre-Merge)
-  'POST_NO_TRIBAL', // Avoid Tribal Council (Post-Merge)
-  'PRE_TEAM_IMMUNITY_WIN', // Team Wins Immunity (Pre-Merge)
-  'POST_IND_IMMUNITY_WIN', // Win Individual Immunity
-  'IDOL_FIND', // Find Hidden Immunity Idol
-  'PRE_SNUFFED', // Torch Snuffed (Pre-Merge)
-  'POST_SNUFFED', // Torch Snuffed (Post-Merge)
-  'PRE_VOTE_RECEIVED_COUNT', // Vote Received Counts (Pre-Merge)
-  'POST_VOTE_RECEIVED_COUNT', // Vote Received Counts (Post-Merge)
+  // Confessionals
+  'RAND_CONFESSIONAL', // point if your player is shown in a confessional
+  
+  // Pre-Merge Challenges
+  'PRE_TEAM_REWARD_WIN', // point if your player's team wins a reward challenge
+  'PRE_TEAM_IMMUNITY_WIN', // point if your player's team wins an immunity challenge
+  'PRE_TEAM_COMBINED_WIN', // point if your player's team wins a combined reward/immunity challenge
+  'PRE_TEAM_LAST_PLACE', // point if your player's team gets last place
+  
+  // Pre-Merge Tribal Council
+  'PRE_NO_TRIBAL', // points if your player doesn't go to tribal council
+  'PRE_ATTEND_TRIBAL', // points if your player goes to tribal council
+  'PRE_SURVIVE_TRIBAL', // points if your player goes to tribal council but doesn't get snuffed
+  'PRE_VOTE_RECEIVED_COUNT', // point for each vote your player receives to vote them out
+  'PRE_SNUFFED', // points if your player is snuffed at tribal council
+  
+  // Post-Merge Challenges
+  'POST_IND_REWARD_WIN', // points if your player wins an individual reward challenge
+  'POST_TEAM_REWARD_WIN', // point if your player participates in a team reward challenge and wins
+  'POST_IND_IMMUNITY_WIN', // points if your player wins individual immunity
+  'POST_COMBINED_WIN', // points if your player wins a combined reward/individual immunity challenge
+  
+  // Post-Merge Tribal Council
+  'POST_NO_TRIBAL', // points if your player does not go to tribal council
+  'POST_SURVIVE_TRIBAL', // points if your player goes to tribal council but doesn't get snuffed
+  'POST_VOTE_RECEIVED_COUNT', // point for each vote your player receives to vote them out
+  'POST_SNUFFED', // points if your player is snuffed at tribal council
 ];
 
 /**

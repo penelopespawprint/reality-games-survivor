@@ -13,14 +13,7 @@ import {
   Loader2,
   AlertTriangle,
   Check,
-  Calculator,
-  Users,
-  Trophy,
-  BarChart3,
-  Settings,
-  FileText,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
 
@@ -171,57 +164,6 @@ export function QuickActionsBar() {
           {notification.message}
         </div>
       )}
-
-      {/* Admin Shortcuts */}
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-neutral-400 uppercase tracking-wider mb-3">
-          Admin Shortcuts
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            to="/admin/scoring"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm bg-burgundy-600 hover:bg-burgundy-700 text-white transition-colors"
-          >
-            <Calculator className="h-4 w-4" />
-            Enter Scores
-          </Link>
-          <Link
-            to="/admin/castaways"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm bg-teal-600 hover:bg-teal-700 text-white transition-colors"
-          >
-            <Users className="h-4 w-4" />
-            Edit Castaways
-          </Link>
-          <Link
-            to="/admin/leagues"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
-          >
-            <Trophy className="h-4 w-4" />
-            Manage Leagues
-          </Link>
-          <Link
-            to="/admin/stats"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
-          >
-            <BarChart3 className="h-4 w-4" />
-            Weekly Stats
-          </Link>
-          <Link
-            to="/admin/seasons"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm bg-amber-600 hover:bg-amber-700 text-white transition-colors"
-          >
-            <Settings className="h-4 w-4" />
-            Season Settings
-          </Link>
-          <Link
-            to="/admin/content"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-sm bg-purple-600 hover:bg-purple-700 text-white transition-colors"
-          >
-            <FileText className="h-4 w-4" />
-            CMS Content
-          </Link>
-        </div>
-      </div>
 
       <h3 className="text-sm font-semibold text-neutral-400 uppercase tracking-wider mb-4">
         System Controls

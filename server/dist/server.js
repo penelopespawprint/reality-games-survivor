@@ -23,6 +23,7 @@ import resultsRoutes from './routes/results.js';
 import triviaRoutes from './routes/trivia.js';
 import siteCopyRoutes from './routes/site-copy.js';
 import statsRoutes from './routes/stats.js';
+import rankingsRoutes from './routes/rankings.js';
 // Jobs scheduler
 import { startScheduler } from './jobs/index.js';
 // Job alerting
@@ -78,6 +79,7 @@ app.use('/api/results', resultsRoutes);
 app.use('/api/trivia', triviaRoutes);
 app.use('/api/site-copy', siteCopyRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/rankings', rankingsRoutes);
 app.use('/webhooks', webhookRoutes);
 // Sentry error handler - In Sentry SDK v8+, use setupExpressErrorHandler
 if (Sentry && typeof Sentry.setupExpressErrorHandler === 'function') {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Mail,
@@ -9,9 +9,6 @@ import {
   X,
   Send,
   Search,
-  ChevronDown,
-  ChevronRight,
-  Check,
   AlertCircle,
   RefreshCw,
   Plus,
@@ -90,10 +87,27 @@ interface Castaway {
   status: string;
 }
 
-type TabType = 'emails' | 'how-to-play' | 'page-headings' | 'site-copy' | 'castaways';
+// Primary category tabs
+type CategoryTab = 'emails' | 'sms' | 'castaways' | 'pages';
+
+// Page names for the site content
+const PAGE_TABS = [
+  { id: 'home', label: 'Home' },
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'leagues', label: 'Leagues' },
+  { id: 'castaways', label: 'Castaways' },
+  { id: 'how-to-play', label: 'How to Play' },
+  { id: 'scoring', label: 'Scoring' },
+  { id: 'timeline', label: 'Timeline' },
+  { id: 'draft-rankings', label: 'Draft Rankings' },
+  { id: 'leaderboard', label: 'Leaderboard' },
+  { id: 'profile', label: 'Profile' },
+  { id: 'contact', label: 'Contact' },
+] as const;
 
 export function AdminContent() {
-  const [activeTab, setActiveTab] = useState<TabType>('emails');
+  const [activeCategory, setActiveCategory] = useState<CategoryTab>('emails');
+  const [activePage, setActivePage] = useState<string>('home');
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [selectedCopy, setSelectedCopy] = useState<SiteCopy | null>(null);
   const [selectedCastaway, setSelectedCastaway] = useState<Castaway | null>(null);
@@ -102,8 +116,6 @@ export function AdminContent() {
   const [createMode, setCreateMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [_pageFilter, _setPageFilter] = useState<string>('all');
-  const [expandedPages, setExpandedPages] = useState<Set<string>>(new Set(['home', 'dashboard']));
   const [castawayFunFact, setCastawayFunFact] = useState('');
 
   const queryClient = useQueryClient();
@@ -119,13 +131,20 @@ export function AdminContent() {
     },
   });
 
-  // Fetch site copy
-  const { data: copyData, isLoading: copyLoading } = useQuery({
-    queryKey: ['admin', 'site-copy', _pageFilter],
+  // Fetch site copy for the active page
+  const { data: pageContentData, isLoading: pageContentLoading } = useQuery({
+    queryKey: ['admin', 'page-content', activePage],
     queryFn: async () => {
-      const response = await apiWithAuth(`/api/admin/content/site-copy?page=${_pageFilter}`);
-      return response || { data: [], grouped: {} };
+      const { data, error } = await supabase
+        .from('site_copy')
+        .select('*')
+        .eq('page', activePage)
+        .order('section')
+        .order('key');
+      if (error) throw error;
+      return data || [];
     },
+    enabled: activeCategory === 'pages',
   });
 
   // Fetch castaways for Season 50
@@ -146,42 +165,8 @@ export function AdminContent() {
       if (error) throw error;
       return data || [];
     },
-    enabled: activeTab === 'castaways',
+    enabled: activeCategory === 'castaways',
   });
-
-  // Fetch page headings (section = 'header')
-  const { data: pageHeadingsData, isLoading: pageHeadingsLoading } = useQuery({
-    queryKey: ['admin', 'page-headings'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('site_copy')
-        .select('*')
-        .eq('section', 'header')
-        .order('key');
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: activeTab === 'page-headings',
-  });
-
-  // Fetch How to Play content
-  const { data: howToPlayData, isLoading: howToPlayLoading } = useQuery({
-    queryKey: ['admin', 'how-to-play-content'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('site_copy')
-        .select('*')
-        .eq('page', 'how-to-play')
-        .order('key');
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: activeTab === 'how-to-play',
-  });
-
-  // State for selected page heading
-  const [selectedHeading, setSelectedHeading] = useState<SiteCopy | null>(null);
-  const [selectedHowToPlay, setSelectedHowToPlay] = useState<SiteCopy | null>(null);
 
   // Update castaway fun fact mutation
   const updateCastawayFunFact = useMutation({
@@ -331,40 +316,9 @@ export function AdminContent() {
       t.slug.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const _filteredCopy = ((copyData?.data as SiteCopy[]) || []).filter(
-    (c: SiteCopy) =>
-      c.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const filteredCastaways = ((castawaysData as Castaway[]) || []).filter((c: Castaway) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Group page headings by page name (first part of key, e.g., "leagues" from "leagues.header.title")
-  const groupedHeadings = ((pageHeadingsData as SiteCopy[]) || []).reduce(
-    (acc: Record<string, SiteCopy[]>, item) => {
-      const pageName = item.key.split('.')[0];
-      if (!acc[pageName]) acc[pageName] = [];
-      acc[pageName].push(item);
-      return acc;
-    },
-    {}
-  );
-  const headingPages = Object.keys(groupedHeadings).sort();
-
-  const togglePage = (page: string) => {
-    const newExpanded = new Set(expandedPages);
-    if (newExpanded.has(page)) {
-      newExpanded.delete(page);
-    } else {
-      newExpanded.add(page);
-    }
-    setExpandedPages(newExpanded);
-  };
-
-  const groupedCopy = (copyData?.grouped || {}) as Record<string, SiteCopy[]>;
-  const pages = Object.keys(groupedCopy).sort();
 
   return (
     <div className="min-h-screen bg-cream-50">
@@ -378,132 +332,146 @@ export function AdminContent() {
             <h1 className="text-3xl font-display font-bold text-neutral-800">Content Management</h1>
             <p className="text-neutral-600 mt-1">Edit email templates and site copy</p>
           </div>
-          <button
-            onClick={() => clearCache.mutate()}
-            disabled={clearCache.isPending}
-            className="flex items-center gap-2 px-4 py-2 bg-cream-100 text-neutral-700 rounded-xl hover:bg-cream-200 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${clearCache.isPending ? 'animate-spin' : ''}`} />
-            {clearCache.isPending ? 'Clearing...' : 'Clear Cache'}
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                setActiveTab('emails');
-                setSelectedTemplate(null);
-                setSelectedCopy(null);
-                setSelectedCastaway(null);
-                setSelectedHeading(null);
-                setSelectedHowToPlay(null);
-                setEditMode(false);
-                setCreateMode(false);
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                activeTab === 'emails'
-                  ? 'bg-burgundy-500 text-white'
-                  : 'bg-white text-neutral-700 hover:bg-cream-100'
-              }`}
+          <div className="flex items-center gap-3">
+            <a
+              href="/admin/social"
+              className="flex items-center gap-2 px-4 py-2 bg-white text-neutral-700 rounded-xl hover:bg-cream-100 border border-cream-200 transition-colors"
+            >
+              <Send className="h-4 w-4" />
+              Social Media
+            </a>
+            <a
+              href="/admin/campaigns"
+              className="flex items-center gap-2 px-4 py-2 bg-burgundy-500 text-white rounded-xl hover:bg-burgundy-600 transition-colors"
             >
               <Mail className="h-4 w-4" />
-              Email Templates
-            </button>
+              Send Campaigns
+            </a>
             <button
-              onClick={() => {
-                setActiveTab('how-to-play');
-                setSelectedTemplate(null);
-                setSelectedCopy(null);
-                setSelectedCastaway(null);
-                setSelectedHeading(null);
-                setSelectedHowToPlay(null);
-                setEditMode(false);
-                setCreateMode(false);
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                activeTab === 'how-to-play'
-                  ? 'bg-burgundy-500 text-white'
-                  : 'bg-white text-neutral-700 hover:bg-cream-100'
-              }`}
+              onClick={() => clearCache.mutate()}
+              disabled={clearCache.isPending}
+              className="flex items-center gap-2 px-4 py-2 bg-cream-100 text-neutral-700 rounded-xl hover:bg-cream-200 transition-colors disabled:opacity-50"
             >
-              <FileText className="h-4 w-4" />
-              How to Play
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('page-headings');
-                setSelectedTemplate(null);
-                setSelectedCopy(null);
-                setSelectedCastaway(null);
-                setSelectedHeading(null);
-                setSelectedHowToPlay(null);
-                setEditMode(false);
-                setCreateMode(false);
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                activeTab === 'page-headings'
-                  ? 'bg-burgundy-500 text-white'
-                  : 'bg-white text-neutral-700 hover:bg-cream-100'
-              }`}
-            >
-              <Type className="h-4 w-4" />
-              Page Headings
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('site-copy');
-                setSelectedTemplate(null);
-                setSelectedCopy(null);
-                setSelectedCastaway(null);
-                setSelectedHeading(null);
-                setSelectedHowToPlay(null);
-                setEditMode(false);
-                setCreateMode(false);
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                activeTab === 'site-copy'
-                  ? 'bg-burgundy-500 text-white'
-                  : 'bg-white text-neutral-700 hover:bg-cream-100'
-              }`}
-            >
-              <FileText className="h-4 w-4" />
-              All Site Copy
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('castaways');
-                setSelectedTemplate(null);
-                setSelectedCopy(null);
-                setSelectedCastaway(null);
-                setSelectedHeading(null);
-                setSelectedHowToPlay(null);
-                setEditMode(false);
-                setCreateMode(false);
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                activeTab === 'castaways'
-                  ? 'bg-burgundy-500 text-white'
-                  : 'bg-white text-neutral-700 hover:bg-cream-100'
-              }`}
-            >
-              <Users className="h-4 w-4" />
-              Castaways
+              <RefreshCw className={`h-4 w-4 ${clearCache.isPending ? 'animate-spin' : ''}`} />
+              {clearCache.isPending ? 'Clearing...' : 'Clear Cache'}
             </button>
           </div>
-          {activeTab === 'emails' && (
-            <button
-              onClick={() => {
-                setCreateMode(true);
-                setSelectedTemplate(null);
-                setEditMode(false);
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all"
-            >
-              <Plus className="h-4 w-4" />
-              New Template
-            </button>
+        </div>
+
+        {/* Tabs - Organized by category */}
+        <div className="mb-6">
+          {/* Primary Category Tabs */}
+          <div className="flex items-center justify-between border-b border-cream-200 pb-4 mb-4">
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setActiveCategory('emails');
+                  setSelectedTemplate(null);
+                  setSelectedCopy(null);
+                  setSelectedCastaway(null);
+                  setEditMode(false);
+                  setCreateMode(false);
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
+                  activeCategory === 'emails'
+                    ? 'bg-burgundy-500 text-white shadow-md'
+                    : 'bg-white text-neutral-700 hover:bg-cream-100 border border-cream-200'
+                }`}
+              >
+                <Mail className="h-4 w-4" />
+                Emails
+              </button>
+              <button
+                onClick={() => {
+                  setActiveCategory('sms');
+                  setSelectedTemplate(null);
+                  setSelectedCopy(null);
+                  setSelectedCastaway(null);
+                  setEditMode(false);
+                  setCreateMode(false);
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
+                  activeCategory === 'sms'
+                    ? 'bg-burgundy-500 text-white shadow-md'
+                    : 'bg-white text-neutral-700 hover:bg-cream-100 border border-cream-200'
+                }`}
+              >
+                <Send className="h-4 w-4" />
+                SMS
+              </button>
+              <button
+                onClick={() => {
+                  setActiveCategory('castaways');
+                  setSelectedTemplate(null);
+                  setSelectedCopy(null);
+                  setSelectedCastaway(null);
+                  setEditMode(false);
+                  setCreateMode(false);
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
+                  activeCategory === 'castaways'
+                    ? 'bg-burgundy-500 text-white shadow-md'
+                    : 'bg-white text-neutral-700 hover:bg-cream-100 border border-cream-200'
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                Castaways
+              </button>
+              <button
+                onClick={() => {
+                  setActiveCategory('pages');
+                  setSelectedTemplate(null);
+                  setSelectedCopy(null);
+                  setSelectedCastaway(null);
+                  setEditMode(false);
+                  setCreateMode(false);
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
+                  activeCategory === 'pages'
+                    ? 'bg-burgundy-500 text-white shadow-md'
+                    : 'bg-white text-neutral-700 hover:bg-cream-100 border border-cream-200'
+                }`}
+              >
+                <FileText className="h-4 w-4" />
+                Pages
+              </button>
+            </div>
+            {activeCategory === 'emails' && (
+              <button
+                onClick={() => {
+                  setCreateMode(true);
+                  setSelectedTemplate(null);
+                  setEditMode(false);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all"
+              >
+                <Plus className="h-4 w-4" />
+                New Template
+              </button>
+            )}
+          </div>
+
+          {/* Page Tabs - Only show when Pages category is active */}
+          {activeCategory === 'pages' && (
+            <div className="flex gap-2 flex-wrap">
+              {PAGE_TABS.map((page) => (
+                <button
+                  key={page.id}
+                  onClick={() => {
+                    setActivePage(page.id);
+                    setSelectedCopy(null);
+                    setEditMode(false);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    activePage === page.id
+                      ? 'bg-teal-500 text-white'
+                      : 'bg-cream-100 text-neutral-600 hover:bg-cream-200'
+                  }`}
+                >
+                  {page.label}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -517,7 +485,7 @@ export function AdminContent() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
                     type="text"
-                    placeholder={activeTab === 'emails' ? 'Search templates...' : 'Search copy...'}
+                    placeholder={activeCategory === 'emails' ? 'Search templates...' : activeCategory === 'castaways' ? 'Search castaways...' : 'Search content...'}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500"
@@ -525,7 +493,7 @@ export function AdminContent() {
                 </div>
 
                 {/* Category Filter for Emails */}
-                {activeTab === 'emails' && (
+                {activeCategory === 'emails' && (
                   <div className="flex gap-2 mt-3 flex-wrap">
                     {['all', 'transactional', 'lifecycle', 'marketing'].map((cat) => (
                       <button
@@ -546,7 +514,72 @@ export function AdminContent() {
 
               {/* List */}
               <div className="max-h-[600px] overflow-y-auto">
-                {activeTab === 'emails' ? (
+                {activeCategory === 'sms' ? (
+                  <div className="p-8 text-center">
+                    <Send className="h-12 w-12 text-neutral-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-neutral-700 mb-2">SMS Templates</h3>
+                    <p className="text-neutral-500 text-sm mb-4">
+                      SMS message templates are managed through the campaigns system.
+                    </p>
+                    <a
+                      href="/admin/campaigns"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-burgundy-500 text-white rounded-xl hover:bg-burgundy-600 transition-colors"
+                    >
+                      <Send className="h-4 w-4" />
+                      Go to Campaigns
+                    </a>
+                  </div>
+                ) : activeCategory === 'pages' ? (
+                  pageContentLoading ? (
+                    <div className="p-8 text-center text-neutral-500">Loading...</div>
+                  ) : !pageContentData || pageContentData.length === 0 ? (
+                    <div className="p-8 text-center text-neutral-500">
+                      No content found for this page
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-cream-100">
+                      {pageContentData.map((item: SiteCopy) => (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            setSelectedCopy(item);
+                            setSelectedTemplate(null);
+                            setSelectedCastaway(null);
+                            setEditMode(false);
+                          }}
+                          className={`w-full text-left p-4 hover:bg-cream-50 transition-all ${
+                            selectedCopy?.id === item.id ? 'bg-cream-100' : ''
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-neutral-800">
+                                {item.key.split('.').slice(1).join(' › ') || item.key}
+                              </p>
+                              {item.section && (
+                                <p className="text-xs text-teal-600 mt-0.5">
+                                  Section: {item.section}
+                                </p>
+                              )}
+                            </div>
+                            <span
+                              className={`px-2 py-0.5 text-xs rounded-full flex-shrink-0 ml-2 ${
+                                item.is_active
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-neutral-100 text-neutral-500'
+                              }`}
+                            >
+                              {item.content_type || 'text'}
+                            </span>
+                          </div>
+                          <p className="text-sm text-neutral-500 mt-2 line-clamp-2">
+                            {item.content?.replace(/<[^>]*>/g, '').substring(0, 100) || 'No content'}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                ) : activeCategory === 'emails' ? (
                   templatesLoading ? (
                     <div className="p-8 text-center text-neutral-500">Loading...</div>
                   ) : filteredTemplates.length === 0 ? (
@@ -560,7 +593,6 @@ export function AdminContent() {
                             setSelectedTemplate(template);
                             setSelectedCopy(null);
                             setSelectedCastaway(null);
-                            setSelectedHeading(null);
                             setEditMode(false);
                             setPreviewMode(false);
                           }}
@@ -604,161 +636,12 @@ export function AdminContent() {
                       ))}
                     </div>
                   )
-                ) : activeTab === 'site-copy' ? (
-                  copyLoading ? (
+                ) : activeCategory === 'castaways' ? (
+                  castawaysLoading ? (
                     <div className="p-8 text-center text-neutral-500">Loading...</div>
-                  ) : pages.length === 0 ? (
-                    <div className="p-8 text-center text-neutral-500">No content found</div>
+                  ) : filteredCastaways.length === 0 ? (
+                    <div className="p-8 text-center text-neutral-500">No castaways found</div>
                   ) : (
-                    <div className="divide-y divide-cream-100">
-                      {pages.map((page) => (
-                        <div key={page}>
-                          <button
-                            onClick={() => togglePage(page)}
-                            className="w-full flex items-center justify-between p-4 hover:bg-cream-50 transition-all"
-                          >
-                            <span className="font-medium text-neutral-800 capitalize">{page}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-neutral-500">
-                                {groupedCopy[page]?.length || 0} items
-                              </span>
-                              {expandedPages.has(page) ? (
-                                <ChevronDown className="h-4 w-4 text-neutral-400" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 text-neutral-400" />
-                              )}
-                            </div>
-                          </button>
-                          {expandedPages.has(page) && (
-                            <div className="bg-cream-50">
-                              {groupedCopy[page]?.map((item: SiteCopy) => (
-                                <button
-                                  key={item.id}
-                                  onClick={() => {
-                                    setSelectedCopy(item);
-                                    setSelectedTemplate(null);
-                                    setSelectedCastaway(null);
-                                    setSelectedHeading(null);
-                                    setEditMode(false);
-                                  }}
-                                  className={`w-full text-left p-4 pl-8 hover:bg-cream-100 transition-all ${
-                                    selectedCopy?.id === item.id ? 'bg-cream-200' : ''
-                                  }`}
-                                >
-                                  <p className="text-sm font-medium text-neutral-700">
-                                    {item.key.split('.').pop()}
-                                  </p>
-                                  <p className="text-xs text-neutral-500 mt-1 line-clamp-1">
-                                    {item.content}
-                                  </p>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )
-                ) : activeTab === 'how-to-play' ? (
-                  howToPlayLoading ? (
-                    <div className="p-8 text-center text-neutral-500">Loading...</div>
-                  ) : !howToPlayData || howToPlayData.length === 0 ? (
-                    <div className="p-8 text-center text-neutral-500">
-                      No How to Play content found
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-cream-100">
-                      {howToPlayData.map((item: SiteCopy) => (
-                        <button
-                          key={item.id}
-                          onClick={() => {
-                            setSelectedHowToPlay(item);
-                            setSelectedCopy(null);
-                            setSelectedTemplate(null);
-                            setSelectedCastaway(null);
-                            setSelectedHeading(null);
-                            setEditMode(false);
-                          }}
-                          className={`w-full text-left p-4 hover:bg-cream-50 transition-all ${
-                            selectedHowToPlay?.id === item.id ? 'bg-cream-100' : ''
-                          }`}
-                        >
-                          <p className="text-sm font-medium text-neutral-700">
-                            {item.key
-                              .replace('howtoplay.', '')
-                              .replace('how-to-play.', '')
-                              .replace(/\./g, ' › ')}
-                          </p>
-                          <p className="text-xs text-neutral-500 mt-1 line-clamp-2">
-                            {item.content?.replace(/<[^>]*>/g, '').substring(0, 100) ||
-                              'No content'}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  )
-                ) : activeTab === 'page-headings' ? (
-                  pageHeadingsLoading ? (
-                    <div className="p-8 text-center text-neutral-500">Loading...</div>
-                  ) : headingPages.length === 0 ? (
-                    <div className="p-8 text-center text-neutral-500">No page headings found</div>
-                  ) : (
-                    <div className="divide-y divide-cream-100">
-                      {headingPages.map((page) => (
-                        <div key={page}>
-                          <button
-                            onClick={() => togglePage(page)}
-                            className="w-full flex items-center justify-between p-4 hover:bg-cream-50 transition-all"
-                          >
-                            <span className="font-medium text-neutral-800 capitalize">
-                              {page.replace(/-/g, ' ')}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-neutral-500">
-                                {groupedHeadings[page]?.length || 0} items
-                              </span>
-                              {expandedPages.has(page) ? (
-                                <ChevronDown className="h-4 w-4 text-neutral-400" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 text-neutral-400" />
-                              )}
-                            </div>
-                          </button>
-                          {expandedPages.has(page) && (
-                            <div className="bg-cream-50">
-                              {groupedHeadings[page]?.map((item: SiteCopy) => (
-                                <button
-                                  key={item.id}
-                                  onClick={() => {
-                                    setSelectedHeading(item);
-                                    setSelectedCopy(null);
-                                    setSelectedTemplate(null);
-                                    setSelectedCastaway(null);
-                                    setEditMode(false);
-                                  }}
-                                  className={`w-full text-left p-4 pl-8 hover:bg-cream-100 transition-all ${
-                                    selectedHeading?.id === item.id ? 'bg-cream-200' : ''
-                                  }`}
-                                >
-                                  <p className="text-sm font-medium text-neutral-700">
-                                    {item.key.endsWith('.title') ? '📄 Title' : '💬 Subtitle'}
-                                  </p>
-                                  <p className="text-xs text-neutral-500 mt-1 line-clamp-1">
-                                    {item.content}
-                                  </p>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )
-                ) : castawaysLoading ? (
-                  <div className="p-8 text-center text-neutral-500">Loading...</div>
-                ) : filteredCastaways.length === 0 ? (
-                  <div className="p-8 text-center text-neutral-500">No castaways found</div>
-                ) : (
                   <div className="divide-y divide-cream-100">
                     {filteredCastaways.map((castaway: Castaway) => (
                       <button
@@ -801,7 +684,8 @@ export function AdminContent() {
                       </button>
                     ))}
                   </div>
-                )}
+                  )
+                ) : null}
               </div>
             </div>
           </div>
@@ -835,35 +719,15 @@ export function AdminContent() {
                 getSampleVariables={getSampleVariables}
               />
             ) : selectedCopy ? (
-              <SiteCopyEditor
+              <PageContentEditor
                 copy={selectedCopy}
                 editMode={editMode}
                 setEditMode={setEditMode}
                 onSave={(data) => updateCopy.mutate({ ...data, key: selectedCopy.key })}
                 saving={updateCopy.isPending}
-              />
-            ) : selectedHeading ? (
-              <PageHeadingEditor
-                heading={selectedHeading}
-                editMode={editMode}
-                setEditMode={setEditMode}
-                onSave={(data) => updateCopy.mutate({ ...data, key: selectedHeading.key })}
-                saving={updateCopy.isPending}
                 onCancel={() => {
                   setEditMode(false);
-                  queryClient.invalidateQueries({ queryKey: ['admin', 'page-headings'] });
-                }}
-              />
-            ) : selectedHowToPlay ? (
-              <HowToPlayEditor
-                content={selectedHowToPlay}
-                editMode={editMode}
-                setEditMode={setEditMode}
-                onSave={(data) => updateCopy.mutate({ ...data, key: selectedHowToPlay.key })}
-                saving={updateCopy.isPending}
-                onCancel={() => {
-                  setEditMode(false);
-                  queryClient.invalidateQueries({ queryKey: ['admin', 'how-to-play-content'] });
+                  queryClient.invalidateQueries({ queryKey: ['admin', 'page-content', activePage] });
                 }}
               />
             ) : selectedCastaway ? (
@@ -884,27 +748,29 @@ export function AdminContent() {
             ) : (
               <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-12 text-center">
                 <div className="text-neutral-400 mb-4">
-                  {activeTab === 'emails' ? (
+                  {activeCategory === 'emails' ? (
                     <Mail className="h-16 w-16 mx-auto" />
-                  ) : activeTab === 'site-copy' ? (
-                    <FileText className="h-16 w-16 mx-auto" />
-                  ) : (
+                  ) : activeCategory === 'castaways' ? (
                     <Users className="h-16 w-16 mx-auto" />
+                  ) : (
+                    <FileText className="h-16 w-16 mx-auto" />
                   )}
                 </div>
                 <h3 className="text-lg font-medium text-neutral-700 mb-2">
                   Select{' '}
-                  {activeTab === 'emails'
+                  {activeCategory === 'emails'
                     ? 'a template'
-                    : activeTab === 'site-copy'
-                      ? 'content'
-                      : 'a castaway'}{' '}
+                    : activeCategory === 'castaways'
+                      ? 'a castaway'
+                      : 'content'}{' '}
                   to edit
                 </h3>
                 <p className="text-neutral-500">
-                  {activeTab === 'emails'
+                  {activeCategory === 'emails'
                     ? 'Choose an email template from the list to view or edit it.'
-                    : 'Choose a content item from the list to view or edit it.'}
+                    : activeCategory === 'castaways'
+                      ? 'Choose a castaway from the list to edit their fun fact.'
+                      : 'Choose a content item from the list to view or edit it.'}
                 </p>
               </div>
             )}
@@ -1290,36 +1156,75 @@ function EmailTemplateEditor({
   );
 }
 
-// Site Copy Editor Component
-function SiteCopyEditor({
+// Page Content Editor Component - with rich text support
+function PageContentEditor({
   copy,
   editMode,
   setEditMode,
   onSave,
   saving,
+  onCancel,
 }: {
   copy: SiteCopy;
   editMode: boolean;
   setEditMode: (v: boolean) => void;
   onSave: (data: { content: string; is_active: boolean }) => void;
   saving: boolean;
+  onCancel: () => void;
 }) {
   const [content, setContent] = useState(copy.content);
-  const [isActive, setIsActive] = useState(copy.is_active);
+  const [isActive, setIsActive] = useState(copy.is_active ?? true);
 
   // Reset state when copy changes
-  useState(() => {
+  useEffect(() => {
     setContent(copy.content);
-    setIsActive(copy.is_active);
-  });
+    setIsActive(copy.is_active ?? true);
+  }, [copy]);
+
+  // Determine if this should use rich text
+  const isRichText = copy.content_type === 'html' || copy.content?.includes('<');
+
+  // Quill configuration
+  const quillModules = useMemo(
+    () => ({
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ color: [] }, { background: [] }],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ align: [] }],
+        ['link'],
+        ['blockquote'],
+        ['clean'],
+      ],
+    }),
+    []
+  );
+
+  const quillFormats = [
+    'header',
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'color',
+    'background',
+    'list',
+    'bullet',
+    'align',
+    'link',
+    'blockquote',
+  ];
+
+  const displayKey = copy.key.split('.').slice(1).join(' › ') || copy.key;
 
   return (
     <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-cream-200 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-neutral-800">{copy.key}</h2>
-          <p className="text-sm text-neutral-500">{copy.description}</p>
+          <h2 className="text-lg font-bold text-neutral-800 capitalize">{displayKey}</h2>
+          <p className="text-sm text-neutral-500">{copy.description || `Edit ${copy.page} content`}</p>
         </div>
         <div className="flex items-center gap-2">
           {!editMode ? (
@@ -1327,7 +1232,7 @@ function SiteCopyEditor({
               onClick={() => {
                 setEditMode(true);
                 setContent(copy.content);
-                setIsActive(copy.is_active);
+                setIsActive(copy.is_active ?? true);
               }}
               className="flex items-center gap-2 px-3 py-2 bg-burgundy-500 text-white rounded-xl hover:bg-burgundy-600 transition-all"
             >
@@ -1337,14 +1242,17 @@ function SiteCopyEditor({
           ) : (
             <>
               <button
-                onClick={() => setEditMode(false)}
+                onClick={() => {
+                  setEditMode(false);
+                  onCancel();
+                }}
                 className="flex items-center gap-2 px-3 py-2 bg-cream-100 text-neutral-700 rounded-xl hover:bg-cream-200 transition-all"
               >
                 <X className="h-4 w-4" />
                 Cancel
               </button>
               <button
-                onClick={() => onSave({ content, is_active: isActive ?? true })}
+                onClick={() => onSave({ content, is_active: isActive })}
                 disabled={saving}
                 className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all disabled:opacity-50"
               >
@@ -1370,15 +1278,11 @@ function SiteCopyEditor({
         )}
         <div>
           <span className="text-neutral-500">Type:</span>{' '}
-          <span className="font-medium text-neutral-700">{copy.content_type}</span>
+          <span className="font-medium text-neutral-700">{copy.content_type || 'text'}</span>
         </div>
-        <div className="flex items-center gap-1">
-          {copy.is_active ? (
-            <Check className="h-4 w-4 text-green-500" />
-          ) : (
-            <AlertCircle className="h-4 w-4 text-neutral-400" />
-          )}
-          <span className="text-neutral-500">{copy.is_active ? 'Active' : 'Inactive'}</span>
+        <div>
+          <span className="text-neutral-500">Key:</span>{' '}
+          <span className="font-mono text-xs text-neutral-600">{copy.key}</span>
         </div>
       </div>
 
@@ -1387,49 +1291,71 @@ function SiteCopyEditor({
         {editMode ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Content</label>
-              {copy.content_type === 'text' ? (
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500"
-                />
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Content</label>
+              {isRichText ? (
+                <div className="border border-cream-200 rounded-xl overflow-hidden">
+                  <ReactQuill
+                    theme="snow"
+                    value={content}
+                    onChange={setContent}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    className="bg-white"
+                    style={{ minHeight: '200px' }}
+                    placeholder="Enter content..."
+                  />
+                </div>
               ) : (
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  rows={12}
-                  className="w-full px-4 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500 font-mono text-sm"
+                  rows={6}
+                  className="w-full px-4 py-3 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500 resize-none"
+                  placeholder="Enter content..."
                 />
               )}
             </div>
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
-                id="copy_is_active"
+                id="page_content_is_active"
                 checked={isActive}
                 onChange={(e) => setIsActive(e.target.checked)}
                 className="rounded border-cream-300 text-burgundy-500 focus:ring-burgundy-500"
               />
-              <label htmlFor="copy_is_active" className="text-sm text-neutral-700">
+              <label htmlFor="page_content_is_active" className="text-sm text-neutral-700">
                 Active
               </label>
             </div>
           </div>
         ) : (
-          <div>
-            <p className="text-sm text-neutral-500 mb-2">Current Content:</p>
-            <div className="bg-cream-50 rounded-xl p-4">
-              {copy.content_type === 'html' ? (
-                <div dangerouslySetInnerHTML={{ __html: copy.content }} />
+          <div className="space-y-4">
+            <div className="bg-cream-50 rounded-xl p-6">
+              {isRichText ? (
+                <div
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: content }}
+                />
               ) : (
-                <p className="text-neutral-800 whitespace-pre-wrap">{copy.content}</p>
+                <p className="text-neutral-700 whitespace-pre-wrap">{content}</p>
               )}
             </div>
           </div>
         )}
       </div>
+
+      {/* Preview when editing */}
+      {editMode && isRichText && content && (
+        <div className="p-4 border-t border-cream-200 bg-cream-50">
+          <p className="text-sm text-neutral-600 mb-2 font-medium">Preview:</p>
+          <div className="bg-white rounded-xl p-4 border border-cream-200">
+            <div
+              className="prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1875,290 +1801,6 @@ function CastawayFunFactEditor({
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-// Page Heading Editor Component
-function PageHeadingEditor({
-  heading,
-  editMode,
-  setEditMode,
-  onSave,
-  saving,
-  onCancel,
-}: {
-  heading: SiteCopy;
-  editMode: boolean;
-  setEditMode: (v: boolean) => void;
-  onSave: (data: { content: string; is_active: boolean }) => void;
-  saving: boolean;
-  onCancel: () => void;
-}) {
-  const [content, setContent] = useState(heading.content);
-
-  // Reset state when heading changes
-  useState(() => {
-    setContent(heading.content);
-  });
-
-  const isTitle = heading.key.endsWith('.title');
-  const pageName = heading.key.split('.')[0].replace(/-/g, ' ');
-
-  return (
-    <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
-      {/* Header */}
-      <div className="p-4 border-b border-cream-200 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-neutral-800 capitalize">
-            {pageName} {isTitle ? 'Title' : 'Subtitle'}
-          </h2>
-          <p className="text-sm text-neutral-500">{heading.description}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {!editMode ? (
-            <button
-              onClick={() => {
-                setEditMode(true);
-                setContent(heading.content);
-              }}
-              className="flex items-center gap-2 px-3 py-2 bg-burgundy-500 text-white rounded-xl hover:bg-burgundy-600 transition-all"
-            >
-              <Edit className="h-4 w-4" />
-              Edit
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={() => {
-                  setEditMode(false);
-                  onCancel();
-                }}
-                className="flex items-center gap-2 px-3 py-2 bg-cream-100 text-neutral-700 rounded-xl hover:bg-cream-200 transition-all"
-              >
-                <X className="h-4 w-4" />
-                Cancel
-              </button>
-              <button
-                onClick={() => onSave({ content, is_active: true })}
-                disabled={saving}
-                className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all disabled:opacity-50"
-              >
-                <Save className="h-4 w-4" />
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        {editMode ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                {isTitle ? 'Page Title' : 'Page Subtitle'}
-              </label>
-              {isTitle ? (
-                <input
-                  type="text"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="w-full px-4 py-3 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500 text-lg font-semibold"
-                  placeholder="Enter page title..."
-                />
-              ) : (
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500 resize-none"
-                  placeholder="Enter page subtitle..."
-                />
-              )}
-            </div>
-            <p className="text-xs text-neutral-500">
-              This text will appear as the {isTitle ? 'main heading' : 'subtext'} on the {pageName}{' '}
-              page.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="bg-cream-50 rounded-xl p-6">
-              {isTitle ? (
-                <h3 className="text-2xl font-display font-bold text-neutral-800">{content}</h3>
-              ) : (
-                <p className="text-neutral-600">{content}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-neutral-500">
-              <Type className="h-4 w-4" />
-              <span>Key: {heading.key}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Preview */}
-      {editMode && (
-        <div className="p-4 border-t border-cream-200 bg-cream-50">
-          <p className="text-sm text-neutral-600 mb-2 font-medium">Preview:</p>
-          <div className="bg-white rounded-xl p-4 border border-cream-200">
-            {isTitle ? (
-              <h3 className="text-2xl font-display font-bold text-neutral-800">{content}</h3>
-            ) : (
-              <p className="text-neutral-600">{content}</p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// How to Play Content Editor Component
-function HowToPlayEditor({
-  content: contentItem,
-  editMode,
-  setEditMode,
-  onSave,
-  saving,
-  onCancel,
-}: {
-  content: SiteCopy;
-  editMode: boolean;
-  setEditMode: (v: boolean) => void;
-  onSave: (data: { content: string; is_active: boolean }) => void;
-  saving: boolean;
-  onCancel: () => void;
-}) {
-  const [content, setContent] = useState(contentItem.content);
-
-  // Reset state when content item changes
-  useState(() => {
-    setContent(contentItem.content);
-  });
-
-  const displayKey = contentItem.key
-    .replace('howtoplay.', '')
-    .replace('how-to-play.', '')
-    .replace(/\./g, ' › ');
-
-  // Determine if this should use rich text or plain text
-  const isRichText = contentItem.content_type === 'html' || contentItem.content?.includes('<');
-
-  // Quill configuration
-  const quillModules = {
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      ['link'],
-      ['clean'],
-    ],
-  };
-
-  const quillFormats = ['header', 'bold', 'italic', 'underline', 'list', 'bullet', 'link'];
-
-  return (
-    <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
-      {/* Header */}
-      <div className="p-4 border-b border-cream-200 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-neutral-800 capitalize">{displayKey}</h2>
-          <p className="text-sm text-neutral-500">
-            {contentItem.description || 'How to Play content'}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {!editMode ? (
-            <button
-              onClick={() => {
-                setEditMode(true);
-                setContent(contentItem.content);
-              }}
-              className="flex items-center gap-2 px-3 py-2 bg-burgundy-500 text-white rounded-xl hover:bg-burgundy-600 transition-all"
-            >
-              <Edit className="h-4 w-4" />
-              Edit
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={() => {
-                  setEditMode(false);
-                  onCancel();
-                }}
-                className="flex items-center gap-2 px-3 py-2 bg-cream-100 text-neutral-700 rounded-xl hover:bg-cream-200 transition-all"
-              >
-                <X className="h-4 w-4" />
-                Cancel
-              </button>
-              <button
-                onClick={() => onSave({ content, is_active: true })}
-                disabled={saving}
-                className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all disabled:opacity-50"
-              >
-                <Save className="h-4 w-4" />
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        {editMode ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">Content</label>
-              {isRichText ? (
-                <div className="border border-cream-200 rounded-xl overflow-hidden">
-                  <ReactQuill
-                    theme="snow"
-                    value={content}
-                    onChange={(value: string) => setContent(value)}
-                    modules={quillModules}
-                    formats={quillFormats}
-                    placeholder="Enter content..."
-                    className="quill-how-to-play"
-                  />
-                </div>
-              ) : (
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-3 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500 resize-none font-mono text-sm"
-                  placeholder="Enter content..."
-                />
-              )}
-            </div>
-            <p className="text-xs text-neutral-500">Key: {contentItem.key}</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="bg-cream-50 rounded-xl p-6">
-              {isRichText ? (
-                <div
-                  className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: content }}
-                />
-              ) : (
-                <p className="text-neutral-700">{content}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-neutral-500">
-              <FileText className="h-4 w-4" />
-              <span>Key: {contentItem.key}</span>
-              <span className="mx-2">•</span>
-              <span>Type: {contentItem.content_type || 'text'}</span>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { AnimatedTorch } from './AnimatedTorch';
 import { CountdownTimer } from './CountdownTimer';
 
 interface TriviaFinalCTAProps {
-  user: any;
+  user: { id: string; email?: string } | null;
 }
 
 export function TriviaFinalCTA({ user }: TriviaFinalCTAProps) {

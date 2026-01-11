@@ -15,6 +15,9 @@ interface PlayerStats {
   leagueCount: number;
   averagePoints: number;
   weightedScore: number;
+  confidence: number;
+  confidenceIndicator: string;
+  scores: number[];
   hasEliminatedCastaway: boolean;
 }
 
@@ -123,7 +126,7 @@ export default function GlobalLeaderboard() {
       {/* Weighted Score Explanation Callout */}
       <div className="mb-6 bg-burgundy-50 border border-burgundy-100 rounded-xl px-4 py-3 text-sm text-burgundy-700">
         <span className="font-medium">Ranked by weighted score:</span> Players in more leagues get
-        more accurate rankings. (1 league = 50%, 2-3 = 67-75%, 4-7 = 80-88%, 7+ = 89%+)
+        more accurate rankings. Confidence: ⚠️ = 1 league (33%), ✓ = 2 (55%), ✓✓ = 3 (70%), ✓✓✓ = 5+ (~83%+)
       </div>
 
       {/* Stats Summary */}
@@ -168,7 +171,8 @@ export default function GlobalLeaderboard() {
               </p>
               <p className="text-xs text-neutral-400">
                 {leaderboard[1].leagueCount}{' '}
-                {leaderboard[1].leagueCount === 1 ? 'league' : 'leagues'}
+                {leaderboard[1].leagueCount === 1 ? 'league' : 'leagues'}{' '}
+                {leaderboard[1].confidenceIndicator}
               </p>
             </div>
 
@@ -186,7 +190,8 @@ export default function GlobalLeaderboard() {
               </p>
               <p className="text-xs text-neutral-500">
                 {leaderboard[0].leagueCount}{' '}
-                {leaderboard[0].leagueCount === 1 ? 'league' : 'leagues'}
+                {leaderboard[0].leagueCount === 1 ? 'league' : 'leagues'}{' '}
+                {leaderboard[0].confidenceIndicator}
               </p>
             </div>
 
@@ -206,7 +211,8 @@ export default function GlobalLeaderboard() {
               </p>
               <p className="text-xs text-neutral-400">
                 {leaderboard[2].leagueCount}{' '}
-                {leaderboard[2].leagueCount === 1 ? 'league' : 'leagues'}
+                {leaderboard[2].leagueCount === 1 ? 'league' : 'leagues'}{' '}
+                {leaderboard[2].confidenceIndicator}
               </p>
             </div>
           </div>
@@ -299,7 +305,10 @@ export default function GlobalLeaderboard() {
                     </p>
                     <p className="text-sm text-neutral-400">
                       {player.leagueCount} {player.leagueCount === 1 ? 'league' : 'leagues'} ·{' '}
-                      {player.totalPoints} total pts
+                      {player.totalPoints} total pts ·{' '}
+                      <span title={`Confidence: ${Math.round((player.confidence || 0.5) * 100)}%`}>
+                        {player.confidenceIndicator || '⚠️'}
+                      </span>
                     </p>
                   </div>
 
@@ -310,7 +319,9 @@ export default function GlobalLeaderboard() {
                     >
                       {player.weightedScore}
                     </p>
-                    <p className="text-xs text-neutral-400">score</p>
+                    <p className="text-xs text-neutral-400">
+                      avg: {player.averagePoints?.toFixed(1) || '0'}
+                    </p>
                   </div>
                 </div>
               );

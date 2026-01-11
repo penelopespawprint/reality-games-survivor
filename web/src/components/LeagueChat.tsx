@@ -215,7 +215,7 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
                             isOwn ? 'bg-burgundy-500' : 'bg-neutral-400'
                           }`}
                         >
-                          {(msg.user as any)?.display_name?.charAt(0)?.toUpperCase() || '?'}
+                          {msg.user?.display_name?.charAt(0)?.toUpperCase() || '?'}
                         </div>
                       )}
                     </div>
@@ -224,7 +224,7 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
                     <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'}`}>
                       {showAvatar && !isOwn && (
                         <p className="text-xs text-neutral-500 mb-1 ml-1">
-                          {formatDisplayName((msg.user as any)?.display_name)}
+                          {formatDisplayName(msg.user?.display_name)}
                         </p>
                       )}
                       <div
