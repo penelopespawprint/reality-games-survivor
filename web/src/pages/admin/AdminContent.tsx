@@ -112,7 +112,7 @@ const PAGE_TABS = [
 ] as const;
 
 export function AdminContent() {
-  const [activeCategory, setActiveCategory] = useState<CategoryTab>('emails');
+  const [activeCategory, setActiveCategory] = useState<CategoryTab>('pages');
   const [activePage, setActivePage] = useState<string>('home');
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [selectedCopy, setSelectedCopy] = useState<SiteCopy | null>(null);
@@ -389,9 +389,45 @@ export function AdminContent() {
 
         {/* Tabs - Organized by category */}
         <div className="mb-6">
-          {/* Primary Category Tabs */}
+          {/* Primary Category Tabs - Pages first (most common) */}
           <div className="flex items-center justify-between border-b border-cream-200 pb-4 mb-4">
             <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setActiveCategory('pages');
+                  setSelectedTemplate(null);
+                  setSelectedCopy(null);
+                  setSelectedCastaway(null);
+                  setEditMode(false);
+                  setCreateMode(false);
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
+                  activeCategory === 'pages'
+                    ? 'bg-burgundy-500 text-white shadow-md'
+                    : 'bg-white text-neutral-700 hover:bg-cream-100 border border-cream-200'
+                }`}
+              >
+                <FileText className="h-4 w-4" />
+                Page Content
+              </button>
+              <button
+                onClick={() => {
+                  setActiveCategory('castaways');
+                  setSelectedTemplate(null);
+                  setSelectedCopy(null);
+                  setSelectedCastaway(null);
+                  setEditMode(false);
+                  setCreateMode(false);
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
+                  activeCategory === 'castaways'
+                    ? 'bg-burgundy-500 text-white shadow-md'
+                    : 'bg-white text-neutral-700 hover:bg-cream-100 border border-cream-200'
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                Castaways
+              </button>
               <button
                 onClick={() => {
                   setActiveCategory('emails');
@@ -427,42 +463,6 @@ export function AdminContent() {
               >
                 <Send className="h-4 w-4" />
                 SMS
-              </button>
-              <button
-                onClick={() => {
-                  setActiveCategory('castaways');
-                  setSelectedTemplate(null);
-                  setSelectedCopy(null);
-                  setSelectedCastaway(null);
-                  setEditMode(false);
-                  setCreateMode(false);
-                }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
-                  activeCategory === 'castaways'
-                    ? 'bg-burgundy-500 text-white shadow-md'
-                    : 'bg-white text-neutral-700 hover:bg-cream-100 border border-cream-200'
-                }`}
-              >
-                <Users className="h-4 w-4" />
-                Castaways
-              </button>
-              <button
-                onClick={() => {
-                  setActiveCategory('pages');
-                  setSelectedTemplate(null);
-                  setSelectedCopy(null);
-                  setSelectedCastaway(null);
-                  setEditMode(false);
-                  setCreateMode(false);
-                }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-all ${
-                  activeCategory === 'pages'
-                    ? 'bg-burgundy-500 text-white shadow-md'
-                    : 'bg-white text-neutral-700 hover:bg-cream-100 border border-cream-200'
-                }`}
-              >
-                <FileText className="h-4 w-4" />
-                Pages
               </button>
             </div>
             {activeCategory === 'emails' && (
