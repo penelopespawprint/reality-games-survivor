@@ -144,7 +144,7 @@ export function Navigation() {
                         to="/leagues"
                         onClick={() => setLeaguesOpen(false)}
                         className={`block px-4 py-2 text-sm hover:bg-neutral-50 ${
-                          isActive('/leagues') && !isActive('/draft-rankings')
+                          isActive('/leagues') && !isActive('/draft/rankings')
                             ? 'text-burgundy-600 bg-burgundy-50'
                             : 'text-neutral-600'
                         }`}
@@ -152,10 +152,10 @@ export function Navigation() {
                         All Leagues
                       </Link>
                       <Link
-                        to="/draft-rankings"
+                        to="/draft/rankings"
                         onClick={() => setLeaguesOpen(false)}
                         className={`block px-4 py-2 text-sm hover:bg-neutral-50 ${
-                          isActive('/draft-rankings')
+                          isActive('/draft/rankings')
                             ? 'text-burgundy-600 bg-burgundy-50'
                             : 'text-neutral-600'
                         }`}
@@ -433,7 +433,7 @@ export function Navigation() {
                   <Link
                     to="/leagues"
                     className={`block px-8 py-2 text-sm ${
-                      isActive('/leagues') && !isActive('/draft-rankings')
+                      isActive('/leagues') && !isActive('/draft/rankings')
                         ? 'text-burgundy-600 bg-burgundy-50'
                         : 'text-neutral-600'
                     }`}
@@ -441,9 +441,9 @@ export function Navigation() {
                     All Leagues
                   </Link>
                   <Link
-                    to="/draft-rankings"
+                    to="/draft/rankings"
                     className={`block px-8 py-2 text-sm ${
-                      isActive('/draft-rankings')
+                      isActive('/draft/rankings')
                         ? 'text-burgundy-600 bg-burgundy-50'
                         : 'text-neutral-600'
                     }`}
