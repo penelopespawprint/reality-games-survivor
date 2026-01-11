@@ -5,10 +5,10 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
 const router = Router();
-// Cache for site copy (refresh every 5 minutes)
+// Cache for site copy (refresh every 30 seconds for faster CMS updates)
 let copyCache = null;
 let cacheTime = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 30 * 1000; // 30 seconds - short for dev, can increase in prod
 // Get all site copy (cached)
 router.get('/', async (req, res) => {
     try {

@@ -73,6 +73,7 @@ import { AdminSystemHealth } from './pages/admin/AdminSystemHealth';
 import { AdminContent } from './pages/admin/AdminContent';
 import { AdminCampaigns } from './pages/admin/AdminCampaigns';
 import { AdminSocial } from './pages/admin/AdminSocial';
+import { AdminFAQ } from './pages/admin/AdminFAQ';
 import { AdminErrorBoundary } from './components/AdminErrorBoundary';
 
 // Wrapper to add error boundary to admin pages
@@ -193,6 +194,7 @@ export default function App() {
               <Route path="/admin/content" element={withAdminErrorBoundary(AdminContent)} />
               <Route path="/admin/campaigns" element={withAdminErrorBoundary(AdminCampaigns)} />
               <Route path="/admin/social" element={withAdminErrorBoundary(AdminSocial)} />
+              <Route path="/admin/faq" element={withAdminErrorBoundary(AdminFAQ)} />
               {/* Fun Stats (admin only) */}
               <Route path="/admin/fun-stats" element={<StatsOverview />} />
               <Route path="/admin/fun-stats/players" element={<PlayerStats />} />

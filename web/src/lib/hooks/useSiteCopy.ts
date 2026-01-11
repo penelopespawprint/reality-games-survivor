@@ -43,8 +43,8 @@ export function useSiteCopy() {
   } = useQuery({
     queryKey: ['site-copy'],
     queryFn: fetchSiteCopy,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes (formerly cacheTime)
+    staleTime: 30 * 1000, // 30 seconds - refresh more often for CMS changes
+    gcTime: 5 * 60 * 1000, // 5 minutes cache
   });
 
   /**
@@ -77,8 +77,8 @@ export function usePageCopy(page: string) {
   } = useQuery({
     queryKey: ['site-copy', 'page', page],
     queryFn: () => fetchPageCopy(page),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const getCopy = (key: string, fallback: string): string => {
