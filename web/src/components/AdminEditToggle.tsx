@@ -15,9 +15,9 @@ export function AdminEditToggle() {
 
   return (
     <>
-      {/* Edit mode banner below nav */}
+      {/* Edit mode banner at bottom */}
       {isEditMode && (
-        <div className="fixed top-14 left-0 right-0 z-[90] bg-burgundy-600 text-white text-center py-2 text-sm font-medium shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 z-[90] bg-burgundy-600 text-white text-center py-2 text-sm font-medium shadow-lg">
           EDIT MODE ON - Click any underlined text to edit
         </div>
       )}

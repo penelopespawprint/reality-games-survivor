@@ -85,6 +85,7 @@ export function AdminNavBar() {
 
   const isCommunicateActive = () =>
     isActive('/admin/announcements') ||
+    isActive('/admin/social') ||
     isActive('/admin/push') ||
     isActive('/admin/email-queue') ||
     isActive('/admin/sms');
@@ -109,6 +110,7 @@ export function AdminNavBar() {
 
   const communicateItems = [
     { path: '/admin/announcements', label: 'Announcements' },
+    { path: '/admin/social', label: 'Social Media' },
     { path: '/admin/email-queue', label: 'Email Queue', badgeKey: 'failedEmails' as const },
   ];
 

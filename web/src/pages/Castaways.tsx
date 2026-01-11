@@ -6,6 +6,7 @@ import { Users, Loader2 } from 'lucide-react';
 import { CastawayFilterBar, CastawayGridItem } from '@/components/castaways';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
+import { EditableText } from '@/components/EditableText';
 
 interface EpisodeScoreData {
   castaway_id: string;
@@ -293,34 +294,40 @@ export default function Castaways() {
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-3 mb-4">
               <span className="text-4xl">🔥</span>
-              <h1 className="text-4xl font-display font-bold text-neutral-800">
+              <EditableText copyKey="castaways.header.title" as="h1" className="text-4xl font-display font-bold text-neutral-800">
                 {getCopy(
                   'castaways.header.title',
                   `${season?.name || `Season ${season?.number || ''}`} Castaways`
                 )}
-              </h1>
+              </EditableText>
             </div>
-            <p className="text-neutral-500 text-lg">
+            <EditableText copyKey="castaways.header.subtitle" as="p" className="text-neutral-500 text-lg">
               {getCopy(
                 'castaways.header.subtitle',
                 'Meet the contestants competing for the title of Sole Survivor'
               )}
-            </p>
+            </EditableText>
           </div>
 
           {/* Stats Row - Variation A Style */}
           <div className="grid grid-cols-3 gap-4 mb-8 max-w-2xl mx-auto">
             <div className="bg-white rounded-2xl p-4 text-center shadow-lg border border-cream-200">
               <p className="text-3xl font-bold text-neutral-800">{castaways?.length || 0}</p>
-              <p className="text-sm text-neutral-500">Total</p>
+              <EditableText copyKey="castaways.stats.total" as="p" className="text-sm text-neutral-500">
+                {getCopy('castaways.stats.total', 'Total')}
+              </EditableText>
             </div>
             <div className="bg-white rounded-2xl p-4 text-center shadow-lg border border-cream-200">
               <p className="text-3xl font-bold text-green-600">{activeCount}</p>
-              <p className="text-sm text-neutral-500">Active</p>
+              <EditableText copyKey="castaways.stats.active" as="p" className="text-sm text-neutral-500">
+                {getCopy('castaways.stats.active', 'Active')}
+              </EditableText>
             </div>
             <div className="bg-white rounded-2xl p-4 text-center shadow-lg border border-cream-200">
               <p className="text-3xl font-bold text-neutral-400">{eliminatedCount}</p>
-              <p className="text-sm text-neutral-500">Eliminated</p>
+              <EditableText copyKey="castaways.stats.eliminated" as="p" className="text-sm text-neutral-500">
+                {getCopy('castaways.stats.eliminated', 'Eliminated')}
+              </EditableText>
             </div>
           </div>
 

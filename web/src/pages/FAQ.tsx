@@ -2,17 +2,19 @@
  * FAQ Page
  *
  * Frequently Asked Questions with collapsible sections.
- * Content is managed via CMS.
+ * Content is managed via CMS. Admins can edit inline when edit mode is on.
  */
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { EditableText } from '@/components/EditableText';
 import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
-import { ChevronDown, HelpCircle, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
+import { useEditMode } from '@/lib/hooks/useEditMode';
+import { ChevronDown, HelpCircle, Loader2, Pencil, Check, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface FAQItem {
@@ -118,7 +120,51 @@ const DEFAULT_FAQS: FAQItem[] = [
 
 export default function FAQ() {
   const [openItems, setOpenItems] = useState<Set<string>>(new Set());
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editQuestion, setEditQuestion] = useState('');
+  const [editAnswer, setEditAnswer] = useState('');
   const { getCopy } = useSiteCopy();
+  const { isAdmin } = useAuth();
+  const { isEditMode } = useEditMode();
+  const queryClient = useQueryClient();
+
+  // Mutation to update FAQ item
+  const updateFAQ = useMutation({
+    mutationFn: async ({ id, question, answer }: { id: string; question: string; answer: string }) => {
+      const { error } = await supabase
+        .from('site_copy')
+        .update({
+          key: `faq.${question.toLowerCase().replace(/\s+/g, '_').replace(/[?]/g, '')}`,
+          content: answer
+        })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['faq-content'] });
+      setEditingId(null);
+    },
+  });
+
+  const startEditing = (faq: FAQItem) => {
+    setEditingId(faq.id);
+    setEditQuestion(faq.question);
+    setEditAnswer(faq.answer);
+    // Make sure item is open when editing
+    setOpenItems((prev) => new Set([...prev, faq.id]));
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditQuestion('');
+    setEditAnswer('');
+  };
+
+  const saveEditing = () => {
+    if (editingId) {
+      updateFAQ.mutate({ id: editingId, question: editQuestion, answer: editAnswer });
+    }
+  };
 
   // Fetch FAQ content from CMS (site_copy table)
   const { data: faqData, isLoading } = useQuery({
@@ -245,23 +291,79 @@ export default function FAQ() {
               <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden divide-y divide-cream-100">
                 {category.items.map((faq) => (
                   <div key={faq.id}>
-                    <button
-                      onClick={() => toggleItem(faq.id)}
-                      className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-cream-50 transition-colors"
-                    >
-                      <span className="font-medium text-neutral-800 pr-4">{faq.question}</span>
-                      <ChevronDown
-                        className={`h-5 w-5 text-neutral-400 flex-shrink-0 transition-transform ${
-                          openItems.has(faq.id) ? 'rotate-180' : ''
-                        }`}
-                      />
-                    </button>
+                    {/* Question row */}
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => toggleItem(faq.id)}
+                        className="flex-1 px-6 py-4 flex items-center justify-between text-left hover:bg-cream-50 transition-colors"
+                      >
+                        {editingId === faq.id ? (
+                          <input
+                            type="text"
+                            value={editQuestion}
+                            onChange={(e) => setEditQuestion(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 mr-4 px-3 py-1 border-2 border-burgundy-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy-500"
+                          />
+                        ) : (
+                          <span className={`font-medium text-neutral-800 pr-4 ${isAdmin && isEditMode ? 'border-b-2 border-dashed border-burgundy-300' : ''}`}>
+                            {faq.question}
+                          </span>
+                        )}
+                        <ChevronDown
+                          className={`h-5 w-5 text-neutral-400 flex-shrink-0 transition-transform ${
+                            openItems.has(faq.id) ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+                      {/* Edit button for admins */}
+                      {isAdmin && isEditMode && editingId !== faq.id && (
+                        <button
+                          onClick={() => startEditing(faq)}
+                          className="p-2 mr-2 bg-burgundy-500 hover:bg-burgundy-600 text-white rounded transition-all"
+                          title="Edit FAQ"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                    {/* Answer section */}
                     {openItems.has(faq.id) && (
                       <div className="px-6 pb-4 text-neutral-600 leading-relaxed">
-                        <div
-                          className="prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: faq.answer }}
-                        />
+                        {editingId === faq.id ? (
+                          <div className="space-y-3">
+                            <textarea
+                              value={editAnswer}
+                              onChange={(e) => setEditAnswer(e.target.value)}
+                              rows={4}
+                              className="w-full px-3 py-2 border-2 border-burgundy-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-burgundy-500"
+                              placeholder="Answer (HTML supported)"
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={saveEditing}
+                                disabled={updateFAQ.isPending}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm"
+                              >
+                                {updateFAQ.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                Save
+                              </button>
+                              <button
+                                onClick={cancelEditing}
+                                disabled={updateFAQ.isPending}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-neutral-400 hover:bg-neutral-500 text-white rounded-lg text-sm"
+                              >
+                                <X className="h-4 w-4" />
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className={`prose prose-sm max-w-none ${isAdmin && isEditMode ? 'border-b-2 border-dashed border-burgundy-300' : ''}`}
+                            dangerouslySetInnerHTML={{ __html: faq.answer }}
+                          />
+                        )}
                       </div>
                     )}
                   </div>

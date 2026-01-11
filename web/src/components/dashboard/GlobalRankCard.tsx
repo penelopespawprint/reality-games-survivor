@@ -6,6 +6,8 @@
 
 import { Link } from 'react-router-dom';
 import { TrendingUp } from 'lucide-react';
+import { EditableText } from '@/components/EditableText';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 
 interface GlobalRankCardProps {
   rank: number;
@@ -13,6 +15,8 @@ interface GlobalRankCardProps {
 }
 
 export function GlobalRankCard({ rank, totalPoints }: GlobalRankCardProps) {
+  const { getCopy } = useSiteCopy();
+
   return (
     <Link
       to="/leaderboard"
@@ -24,13 +28,22 @@ export function GlobalRankCard({ rank, totalPoints }: GlobalRankCardProps) {
             <TrendingUp className="h-7 w-7 text-amber-600 group-hover:text-white transition-colors" />
           </div>
           <div>
-            <h3 className="font-bold text-lg text-neutral-800">Your Global Rank</h3>
-            <p className="text-neutral-500 text-sm">{totalPoints} points earned this season</p>
+            <EditableText copyKey="dashboard.rank.title" as="h3" className="font-bold text-lg text-neutral-800">
+              {getCopy('dashboard.rank.title', 'Your Global Rank')}
+            </EditableText>
+            <p className="text-neutral-500 text-sm">
+              {totalPoints}{' '}
+              <EditableText copyKey="dashboard.rank.points_label" as="span" className="text-neutral-500 text-sm">
+                {getCopy('dashboard.rank.points_label', 'points earned this season')}
+              </EditableText>
+            </p>
           </div>
         </div>
         <div className="text-right">
           <p className="text-4xl font-display font-bold text-burgundy-500">#{rank}</p>
-          <p className="text-xs text-neutral-400 mt-1">out of all players</p>
+          <EditableText copyKey="dashboard.rank.out_of" as="p" className="text-xs text-neutral-400 mt-1">
+            {getCopy('dashboard.rank.out_of', 'out of all players')}
+          </EditableText>
         </div>
       </div>
     </Link>
