@@ -11,7 +11,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, Loader2, Bell, Smartphone, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { apiWithAuth } from '@/lib/api';
 import type { Database } from '@/types/supabase';
 
 type UserInsert = Database['public']['Tables']['users']['Insert'];
