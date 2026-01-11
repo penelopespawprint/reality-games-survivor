@@ -7,16 +7,14 @@ import {
   RefreshCw,
   CheckCircle,
   XCircle,
-  AlertCircle,
   Loader2,
   Clock,
   RotateCcw,
-  Inbox,
   Send,
   AlertTriangle,
+  Sparkles,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { Navigation } from '@/components/Navigation';
 import { AdminNavBar } from '@/components/AdminNavBar';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
@@ -127,103 +125,106 @@ export function AdminEmailQueue() {
 
   return (
     <>
-      <Navigation />
       <AdminNavBar />
-      <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 p-4 pb-24">
+      <div className="min-h-screen bg-neutral-900 p-4 pb-24">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Link
             to="/admin"
-            className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
+            className="p-2 bg-neutral-800 rounded-xl hover:bg-neutral-700 transition-all border border-neutral-700"
           >
-            <ArrowLeft className="h-5 w-5 text-neutral-600" />
+            <ArrowLeft className="h-5 w-5 text-neutral-400" />
           </Link>
           <div className="flex-1">
-            <h1 className="text-2xl font-display font-bold text-neutral-800 flex items-center gap-2">
-              <Mail className="h-6 w-6 text-burgundy-500" />
-              Email Queue
+            <h1 className="text-2xl font-display font-bold text-white flex items-center gap-2">
+              <Mail className="h-6 w-6 text-orange-400" />
+              Email Dashboard
             </h1>
-            <p className="text-neutral-500">Monitor and manage email delivery</p>
+            <p className="text-neutral-400">Track outgoing messages</p>
           </div>
           <button
             onClick={() => refetch()}
             disabled={isLoading}
-            className="p-2 bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all border border-cream-200"
+            className="p-2 bg-neutral-800 rounded-xl hover:bg-neutral-700 transition-all border border-neutral-700"
           >
-            <RefreshCw className={`h-5 w-5 text-neutral-600 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-5 w-5 text-neutral-400 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-          <div className="bg-white rounded-2xl shadow-card p-4 border border-cream-200">
-            <div className="flex items-center gap-2 text-neutral-500 text-sm mb-1">
+        {/* Stats - Two rows on mobile, one row on desktop */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          {/* Row 1: Waiting & Sending */}
+          <div className="bg-neutral-800 rounded-2xl p-4 border border-neutral-700">
+            <div className="flex items-center gap-2 text-neutral-400 text-sm mb-1">
               <Clock className="h-4 w-4" />
-              Pending
+              Waiting
             </div>
-            <p className="text-2xl font-bold text-neutral-800">{stats?.pending || 0}</p>
+            <p className="text-2xl font-bold text-white">{stats?.pending || 0}</p>
           </div>
-          <div className="bg-white rounded-2xl shadow-card p-4 border border-cream-200">
-            <div className="flex items-center gap-2 text-neutral-500 text-sm mb-1">
+          <div className="bg-neutral-800 rounded-2xl p-4 border border-neutral-700">
+            <div className="flex items-center gap-2 text-neutral-400 text-sm mb-1">
               <Loader2 className="h-4 w-4" />
-              Processing
+              Sending
             </div>
-            <p className="text-2xl font-bold text-neutral-800">{stats?.processing || 0}</p>
+            <p className="text-2xl font-bold text-white">{stats?.processing || 0}</p>
           </div>
-          <div className="bg-green-50 rounded-2xl border border-green-200 p-4">
-            <div className="flex items-center gap-2 text-green-600 text-sm mb-1">
+
+          {/* Row 2: Delivered & Issues */}
+          <div className="bg-green-900/30 rounded-2xl border border-green-700/50 p-4">
+            <div className="flex items-center gap-2 text-green-400 text-sm mb-1">
               <Send className="h-4 w-4" />
-              Sent Today
+              Delivered Today
             </div>
-            <p className="text-2xl font-bold text-green-700">{stats?.sent_today || 0}</p>
+            <p className="text-2xl font-bold text-green-400">{stats?.sent_today || 0}</p>
           </div>
-          <div className="bg-red-50 rounded-2xl border border-red-200 p-4">
-            <div className="flex items-center gap-2 text-red-600 text-sm mb-1">
+          <div className="bg-red-900/30 rounded-2xl border border-red-700/50 p-4">
+            <div className="flex items-center gap-2 text-red-400 text-sm mb-1">
               <XCircle className="h-4 w-4" />
-              Failed Today
+              Issues Today
             </div>
-            <p className="text-2xl font-bold text-red-700">{stats?.failed_today || 0}</p>
-          </div>
-          <div className="bg-blue-50 rounded-2xl border border-blue-200 p-4">
-            <div className="flex items-center gap-2 text-blue-600 text-sm mb-1">
-              <Inbox className="h-4 w-4" />
-              Total Sent
-            </div>
-            <p className="text-2xl font-bold text-blue-700">{stats?.total_sent || 0}</p>
+            <p className="text-2xl font-bold text-red-400">{stats?.failed_today || 0}</p>
           </div>
         </div>
 
-        {/* Failed Emails - Pending Retry */}
+        {/* Total sent - full width */}
+        <div className="bg-gradient-to-r from-orange-600/20 to-burgundy-600/20 rounded-2xl border border-orange-500/30 p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-orange-300 text-sm mb-1">All-Time Delivered</p>
+              <p className="text-3xl font-bold text-white">{stats?.total_sent?.toLocaleString() || 0}</p>
+            </div>
+            <Sparkles className="h-8 w-8 text-orange-400" />
+          </div>
+        </div>
+
+        {/* Failed Emails - Needs Attention */}
         {pendingRetry.length > 0 && (
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-display font-bold text-neutral-800 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
-                Needs Attention ({pendingRetry.length})
-              </h2>
-            </div>
+            <h2 className="text-lg font-display font-bold text-white mb-3 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-400" />
+              Needs Attention ({pendingRetry.length})
+            </h2>
             <div className="space-y-3">
               {pendingRetry.map((email) => (
                 <div
                   key={email.id}
-                  className="bg-white rounded-2xl shadow-card p-4 border border-amber-200"
+                  className="bg-neutral-800 rounded-2xl p-4 border border-amber-500/50"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-neutral-800 truncate">
+                      <p className="font-medium text-white truncate">
                         {email.email_job.subject}
                       </p>
-                      <p className="text-sm text-neutral-500 truncate">
+                      <p className="text-sm text-neutral-400 truncate">
                         To: {email.email_job.to_email}
                       </p>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">
-                      Pending Retry
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                      Needs Retry
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-sm text-neutral-500">
-                    <span>
-                      Failed:{' '}
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-500">
                       {new Date(email.failed_at).toLocaleString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -234,23 +235,23 @@ export function AdminEmailQueue() {
                     <button
                       onClick={() => retryMutation.mutate(email.id)}
                       disabled={retryingId === email.id}
-                      className="btn btn-primary py-1.5 px-3 text-sm"
+                      className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white py-1.5 px-3 rounded-lg text-sm font-medium transition-colors"
                     >
                       {retryingId === email.id ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Retrying...
+                          Sending...
                         </>
                       ) : (
                         <>
                           <RotateCcw className="h-4 w-4" />
-                          Retry
+                          Resend
                         </>
                       )}
                     </button>
                   </div>
                   {email.notes && (
-                    <p className="mt-2 text-xs text-red-600 bg-red-50 rounded-lg p-2">
+                    <p className="mt-2 text-xs text-red-400 bg-red-900/30 rounded-lg p-2 border border-red-700/50">
                       {email.notes}
                     </p>
                   )}
@@ -260,30 +261,30 @@ export function AdminEmailQueue() {
           </div>
         )}
 
-        {/* Retried Emails */}
+        {/* Retry History */}
         {retriedEmails.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-lg font-display font-bold text-neutral-800 mb-3 flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              Retry History ({retriedEmails.length})
+            <h2 className="text-lg font-display font-bold text-white mb-3 flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-400" />
+              Recent Retries ({retriedEmails.length})
             </h2>
             <div className="space-y-2">
               {retriedEmails.map((email) => (
                 <div
                   key={email.id}
-                  className={`bg-white rounded-xl p-3 border ${
-                    email.retry_succeeded ? 'border-green-200' : 'border-red-200'
+                  className={`bg-neutral-800 rounded-xl p-3 border ${
+                    email.retry_succeeded ? 'border-green-700/50' : 'border-red-700/50'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {email.retry_succeeded ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <CheckCircle className="h-5 w-5 text-green-400" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-red-500" />
+                        <XCircle className="h-5 w-5 text-red-400" />
                       )}
                       <div>
-                        <p className="font-medium text-neutral-800 text-sm">
+                        <p className="font-medium text-white text-sm">
                           {email.email_job.subject}
                         </p>
                         <p className="text-xs text-neutral-500">{email.email_job.to_email}</p>
@@ -292,11 +293,11 @@ export function AdminEmailQueue() {
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs ${
                         email.retry_succeeded
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
+                          ? 'bg-green-900/50 text-green-400 border border-green-700/50'
+                          : 'bg-red-900/50 text-red-400 border border-red-700/50'
                       }`}
                     >
-                      {email.retry_succeeded ? 'Sent' : 'Failed'}
+                      {email.retry_succeeded ? 'Delivered' : 'Failed'}
                     </span>
                   </div>
                 </div>
@@ -307,28 +308,14 @@ export function AdminEmailQueue() {
 
         {/* Empty State */}
         {!isLoading && pendingRetry.length === 0 && retriedEmails.length === 0 && (
-          <div className="bg-white rounded-2xl shadow-card p-8 border border-cream-200 text-center">
-            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-            <h3 className="text-lg font-display font-bold text-neutral-800 mb-1">
-              All Emails Delivered
+          <div className="bg-neutral-800 rounded-2xl p-8 border border-neutral-700 text-center">
+            <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-3" />
+            <h3 className="text-lg font-display font-bold text-white mb-1">
+              All Clear!
             </h3>
-            <p className="text-neutral-500">No failed emails in the queue.</p>
+            <p className="text-neutral-400">All emails have been delivered successfully.</p>
           </div>
         )}
-
-        {/* Info */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">About Email Queue</p>
-              <p className="text-blue-600">
-                Emails are processed every 5 minutes. Failed emails are moved to a dead letter queue
-                after 3 retry attempts. Use the Retry button to manually re-send failed emails.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </>
   );

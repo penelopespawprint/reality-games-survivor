@@ -6,6 +6,7 @@ import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { Trophy, Users, TrendingUp, Medal, ChevronDown } from 'lucide-react';
 import { GlobalChat } from '@/components/GlobalChat';
 import { TorchStaff } from '@/components/icons';
+import { EditableText } from '@/components/EditableText';
 
 interface PlayerStats {
   userId: string;
@@ -116,11 +117,26 @@ export default function GlobalLeaderboard() {
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <Trophy className="h-8 w-8 text-burgundy-500" />
-          <h1 className="text-3xl font-display font-bold text-neutral-800">{seasonTitle}</h1>
+          {/* Only show EditableText when using CMS fallback, not dynamic season title */}
+          {activeSeason ? (
+            <h1 className="text-3xl font-display font-bold text-neutral-800">{seasonTitle}</h1>
+          ) : (
+            <EditableText
+              copyKey="leaderboard.header.title"
+              as="h1"
+              className="text-3xl font-display font-bold text-neutral-800"
+            >
+              {seasonTitle}
+            </EditableText>
+          )}
         </div>
-        <p className="text-neutral-500">
+        <EditableText
+          copyKey="leaderboard.header.subtitle"
+          as="p"
+          className="text-neutral-500"
+        >
           {getCopy('leaderboard.header.subtitle', 'See where you rank among all players')}
-        </p>
+        </EditableText>
       </div>
 
       {/* Stats Summary */}

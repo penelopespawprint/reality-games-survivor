@@ -75,6 +75,7 @@ import { AdminCampaigns } from './pages/admin/AdminCampaigns';
 import { AdminSocial } from './pages/admin/AdminSocial';
 import { AdminFAQ } from './pages/admin/AdminFAQ';
 import { AdminErrorBoundary } from './components/AdminErrorBoundary';
+import { AdminEditToggle } from './components/AdminEditToggle';
 
 // Wrapper to add error boundary to admin pages
 const withAdminErrorBoundary = (Component: React.ComponentType) => (
@@ -205,6 +206,8 @@ export default function App() {
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          {/* Global admin edit toggle - appears on all pages for admins */}
+          <AdminEditToggle />
         </AuthProvider>
       </ToastProvider>
     </ErrorBoundary>

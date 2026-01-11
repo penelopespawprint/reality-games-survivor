@@ -1,6 +1,6 @@
 /**
- * Public Site Copy API
- * Provides read-only access to site copy for the frontend
+ * Site Copy API
+ * Provides read and inline edit access to site copy for the frontend
  */
 declare const router: import("express-serve-static-core").Router;
 export declare function clearSiteCopyCache(): void;
