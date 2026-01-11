@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Trophy,
@@ -13,31 +14,126 @@ import {
   Clock,
   Flame,
   MessageSquare,
-  Smartphone,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { EditableText } from '@/components/EditableText';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
-
-// Map icon names to components (exported for potential dynamic use)
-const _iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Users,
-  Trophy,
-  Target,
-  Calendar,
-  Star,
-  Award,
-  Zap,
-  Shield,
-  Flame,
-  Clock,
-};
+import { AdminReorderControls } from '@/components/AdminReorderControls';
+import { useEditMode } from '@/lib/hooks/useEditMode';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 
 export default function HowToPlay() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { getCopy } = useSiteCopy();
+  const { isEditMode } = useEditMode();
+  const queryClient = useQueryClient();
+
+  // Fetch step order from database
+  const { data: stepOrder } = useQuery({
+    queryKey: ['how-to-play', 'step-order'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('site_copy')
+        .select('content')
+        .eq('key', 'how-to-play.step-order')
+        .single();
+      if (data?.content) {
+        try {
+          return JSON.parse(data.content) as number[];
+        } catch {
+          return [0, 1, 2, 3, 4, 5];
+        }
+      }
+      return [0, 1, 2, 3, 4, 5];
+    },
+  });
+
+  // Fetch strategy order from database
+  const { data: strategyOrder } = useQuery({
+    queryKey: ['how-to-play', 'strategy-order'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('site_copy')
+        .select('content')
+        .eq('key', 'how-to-play.strategy-order')
+        .single();
+      if (data?.content) {
+        try {
+          return JSON.parse(data.content) as number[];
+        } catch {
+          return [0, 1, 2, 3];
+        }
+      }
+      return [0, 1, 2, 3];
+    },
+  });
+
+  // Mutation to save step order
+  const saveStepOrder = useMutation({
+    mutationFn: async (newOrder: number[]) => {
+      const { error } = await supabase
+        .from('site_copy')
+        .upsert({
+          key: 'how-to-play.step-order',
+          page: 'how-to-play',
+          content: JSON.stringify(newOrder),
+          is_active: true,
+        }, { onConflict: 'key' });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['how-to-play', 'step-order'] });
+    },
+  });
+
+  // Mutation to save strategy order
+  const saveStrategyOrder = useMutation({
+    mutationFn: async (newOrder: number[]) => {
+      const { error } = await supabase
+        .from('site_copy')
+        .upsert({
+          key: 'how-to-play.strategy-order',
+          page: 'how-to-play',
+          content: JSON.stringify(newOrder),
+          is_active: true,
+        }, { onConflict: 'key' });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['how-to-play', 'strategy-order'] });
+    },
+  });
+
+  const handleStepMoveUp = (currentIndex: number) => {
+    if (!stepOrder || currentIndex === 0) return;
+    const newOrder = [...stepOrder];
+    [newOrder[currentIndex - 1], newOrder[currentIndex]] = [newOrder[currentIndex], newOrder[currentIndex - 1]];
+    saveStepOrder.mutate(newOrder);
+  };
+
+  const handleStepMoveDown = (currentIndex: number) => {
+    if (!stepOrder || currentIndex === stepOrder.length - 1) return;
+    const newOrder = [...stepOrder];
+    [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
+    saveStepOrder.mutate(newOrder);
+  };
+
+  const handleStrategyMoveUp = (currentIndex: number) => {
+    if (!strategyOrder || currentIndex === 0) return;
+    const newOrder = [...strategyOrder];
+    [newOrder[currentIndex - 1], newOrder[currentIndex]] = [newOrder[currentIndex], newOrder[currentIndex - 1]];
+    saveStrategyOrder.mutate(newOrder);
+  };
+
+  const handleStrategyMoveDown = (currentIndex: number) => {
+    if (!strategyOrder || currentIndex === strategyOrder.length - 1) return;
+    const newOrder = [...strategyOrder];
+    [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
+    saveStrategyOrder.mutate(newOrder);
+  };
 
   const steps = [
     {
@@ -151,143 +247,8 @@ export default function HowToPlay() {
 
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-        {/* Steps Section */}
+        {/* Quick Links - Moved to top */}
         <section className="mb-16">
-          <EditableText copyKey="how-to-play.steps.section-title" as="h2" className="text-2xl font-display font-bold text-neutral-800 mb-8 text-center">
-            {getCopy('how-to-play.steps.section-title', 'The Game in 6 Steps')}
-          </EditableText>
-          <div className="space-y-6">
-            {steps.map((step, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden"
-              >
-                <div className="p-6 md:p-8">
-                  <div className="flex items-start gap-4 md:gap-6">
-                    <div className="flex-shrink-0 w-14 h-14 bg-burgundy-500 rounded-2xl flex items-center justify-center shadow-lg">
-                      <step.icon className="h-7 w-7 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-burgundy-500 font-bold text-sm">
-                          Step {index + 1}
-                        </span>
-                      </div>
-                      <EditableText copyKey={`how-to-play.step${index + 1}.title`} as="h3" className="text-xl md:text-2xl font-display font-bold text-neutral-800 mb-2">
-                        {step.title}
-                      </EditableText>
-                      <EditableText copyKey={`how-to-play.step${index + 1}.description`} as="p" className="text-neutral-600 mb-4">
-                        {step.description}
-                      </EditableText>
-                      {'linkTo' in step && step.linkTo && (
-                        <Link
-                          to={step.linkTo}
-                          className="inline-flex items-center gap-2 mt-2 text-burgundy-600 hover:text-burgundy-700 font-medium"
-                        >
-                          {step.linkText || 'Learn more'}
-                          <ArrowRight className="h-4 w-4" />
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Strategy Tips */}
-        <section className="mb-16">
-          <EditableText copyKey="how-to-play.strategies.section-title" as="h2" className="text-2xl font-display font-bold text-neutral-800 mb-8 text-center">
-            {getCopy('how-to-play.strategies.section-title', 'Strategy Tips')}
-          </EditableText>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {strategies.map((strategy, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-2xl shadow-card border border-cream-200 p-6"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <strategy.icon className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <EditableText copyKey={`how-to-play.strategy${index + 1}.title`} as="h3" className="font-display font-bold text-neutral-800 mb-1">
-                      {strategy.title}
-                    </EditableText>
-                    <EditableText copyKey={`how-to-play.strategy${index + 1}.description`} as="p" className="text-neutral-600 text-sm">
-                      {strategy.description}
-                    </EditableText>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* SMS Feature Section */}
-        <section className="mb-16">
-          <EditableText copyKey="how-to-play.sms.section-title" as="h2" className="text-2xl font-display font-bold text-neutral-800 mb-8 text-center">
-            {getCopy('how-to-play.sms.section-title', 'Make Picks via Text')}
-          </EditableText>
-          <div className="bg-gradient-to-r from-burgundy-50 to-amber-50 rounded-2xl shadow-card border border-burgundy-200 p-6 md:p-8">
-            <div className="flex flex-col md:flex-row items-start gap-6">
-              <div className="w-16 h-16 bg-burgundy-500 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <MessageSquare className="h-8 w-8 text-white" />
-              </div>
-              <div className="flex-1">
-                <EditableText copyKey="how-to-play.sms.title" as="h3" className="text-xl font-display font-bold text-neutral-800 mb-2">
-                  {getCopy('how-to-play.sms.title', 'SMS Commands')}
-                </EditableText>
-                <EditableText copyKey="how-to-play.sms.description" as="p" className="text-neutral-600 mb-4">
-                  {getCopy(
-                    'how-to-play.sms.description',
-                    "Can't get to the app? No problem! Make your weekly picks and check your status by texting our number."
-                  )}
-                </EditableText>
-                
-                <div className="bg-white rounded-xl p-4 mb-4 border border-cream-200">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Smartphone className="h-5 w-5 text-burgundy-500" />
-                    <span className="font-mono font-bold text-burgundy-600 text-lg">(424) 722-7529</span>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <code className="bg-cream-100 px-2 py-1 rounded font-mono text-burgundy-600">PICK [name]</code>
-                      <span className="text-neutral-600">Submit your weekly pick</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <code className="bg-cream-100 px-2 py-1 rounded font-mono text-burgundy-600">TEAM</code>
-                      <span className="text-neutral-600">View your roster</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <code className="bg-cream-100 px-2 py-1 rounded font-mono text-burgundy-600">STATUS</code>
-                      <span className="text-neutral-600">Check your pick status</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <code className="bg-cream-100 px-2 py-1 rounded font-mono text-burgundy-600">HELP</code>
-                      <span className="text-neutral-600">Get all commands</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <Link
-                  to="/sms-commands"
-                  className="inline-flex items-center gap-2 text-burgundy-600 hover:text-burgundy-700 font-medium"
-                >
-                  View all SMS commands
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Quick Links */}
-        <section className="mb-16">
-          <EditableText copyKey="how-to-play.links.section-title" as="h2" className="text-2xl font-display font-bold text-neutral-800 mb-8 text-center">
-            {getCopy('how-to-play.links.section-title', 'Learn More')}
-          </EditableText>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link
               to="/scoring"
@@ -357,6 +318,108 @@ export default function HowToPlay() {
                 <ArrowRight className="h-5 w-5 text-neutral-400 group-hover:text-blue-500 transition-colors" />
               </div>
             </Link>
+          </div>
+        </section>
+
+        {/* Steps Section */}
+        <section className="mb-16">
+          <EditableText copyKey="how-to-play.steps.section-title" as="h2" className="text-2xl font-display font-bold text-neutral-800 mb-8 text-center">
+            {getCopy('how-to-play.steps.section-title', 'The Game in 6 Steps')}
+          </EditableText>
+          <div className="space-y-6">
+            {(stepOrder || [0, 1, 2, 3, 4, 5]).map((originalIndex, displayIndex) => {
+              const step = steps[originalIndex];
+              if (!step) return null;
+              return (
+              <div
+                key={originalIndex}
+                className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden relative"
+              >
+                {isAdmin && isEditMode && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <AdminReorderControls
+                      index={displayIndex}
+                      totalItems={steps.length}
+                      onMoveUp={() => handleStepMoveUp(displayIndex)}
+                      onMoveDown={() => handleStepMoveDown(displayIndex)}
+                    />
+                  </div>
+                )}
+                <div className="p-6 md:p-8">
+                  <div className="flex items-start gap-4 md:gap-6">
+                    <div className="flex-shrink-0 w-14 h-14 bg-burgundy-500 rounded-2xl flex items-center justify-center shadow-lg">
+                      <step.icon className="h-7 w-7 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-burgundy-500 font-bold text-sm">
+                          Step {displayIndex + 1}
+                        </span>
+                      </div>
+                      <EditableText copyKey={`how-to-play.step${originalIndex + 1}.title`} as="h3" className="text-xl md:text-2xl font-display font-bold text-neutral-800 mb-2">
+                        {step.title}
+                      </EditableText>
+                      <EditableText copyKey={`how-to-play.step${originalIndex + 1}.description`} as="p" className="text-neutral-600 mb-4">
+                        {step.description}
+                      </EditableText>
+                      {'linkTo' in step && step.linkTo && (
+                        <Link
+                          to={step.linkTo}
+                          className="inline-flex items-center gap-2 mt-2 text-burgundy-600 hover:text-burgundy-700 font-medium"
+                        >
+                          {step.linkText || 'Learn more'}
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Strategy Tips */}
+        <section className="mb-16">
+          <EditableText copyKey="how-to-play.strategies.section-title" as="h2" className="text-2xl font-display font-bold text-neutral-800 mb-8 text-center">
+            {getCopy('how-to-play.strategies.section-title', 'Strategy Tips')}
+          </EditableText>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(strategyOrder || [0, 1, 2, 3]).map((originalIndex, displayIndex) => {
+              const strategy = strategies[originalIndex];
+              if (!strategy) return null;
+              return (
+                <div
+                  key={originalIndex}
+                  className="bg-white rounded-2xl shadow-card border border-cream-200 p-6 relative"
+                >
+                  {isAdmin && isEditMode && (
+                    <div className="absolute top-2 right-2">
+                      <AdminReorderControls
+                        index={displayIndex}
+                        totalItems={strategies.length}
+                        onMoveUp={() => handleStrategyMoveUp(displayIndex)}
+                        onMoveDown={() => handleStrategyMoveDown(displayIndex)}
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <strategy.icon className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div className="flex-1">
+                      <EditableText copyKey={`how-to-play.strategy${originalIndex + 1}.title`} as="h3" className="font-display font-bold text-neutral-800 mb-1">
+                        {strategy.title}
+                      </EditableText>
+                      <EditableText copyKey={`how-to-play.strategy${originalIndex + 1}.description`} as="p" className="text-neutral-600 text-sm">
+                        {strategy.description}
+                      </EditableText>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
 
