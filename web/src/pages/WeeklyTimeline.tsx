@@ -156,10 +156,12 @@ export default function WeeklyTimeline() {
       {/* Important Notes */}
       <div className="max-w-3xl mx-auto px-6 pb-12">
         <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-6">
-          <EditableText copyKey="timeline.notes.title" as="h3" className="font-display font-bold text-lg text-neutral-800 mb-4 flex items-center gap-2">
+          <h3 className="font-display font-bold text-lg text-neutral-800 mb-4 flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-amber-500" />
-            {getCopy('timeline.notes.title', 'Important Notes')}
-          </EditableText>
+            <EditableText copyKey="timeline.notes.title" as="span">
+              {getCopy('timeline.notes.title', 'Important Notes')}
+            </EditableText>
+          </h3>
           <ul className="space-y-3 text-neutral-600">
             <li className="flex items-start gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-burgundy-500 mt-2 flex-shrink-0" />

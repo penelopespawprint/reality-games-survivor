@@ -43,10 +43,12 @@ export default function SMSCommands() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 max-w-4xl mx-auto">
           <div>
-            <EditableText copyKey="sms.header.title" as="h1" className="text-2xl font-display font-bold text-neutral-800 flex items-center gap-2">
+            <h1 className="text-2xl font-display font-bold text-neutral-800 flex items-center gap-2">
               <MessageSquare className="h-6 w-6 text-burgundy-500" />
-              {getCopy('sms.header.title', 'SMS Commands')}
-            </EditableText>
+              <EditableText copyKey="sms.header.title" as="span">
+                {getCopy('sms.header.title', 'SMS Commands')}
+              </EditableText>
+            </h1>
             <EditableText copyKey="sms.header.subtitle" as="p" className="text-neutral-500">
               {getCopy('sms.header.subtitle', 'Make picks and check status via text')}
             </EditableText>

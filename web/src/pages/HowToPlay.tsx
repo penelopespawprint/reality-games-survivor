@@ -173,10 +173,12 @@ export default function HowToPlay() {
                           Step {index + 1}
                         </span>
                       </div>
-                      <h3 className="text-xl md:text-2xl font-display font-bold text-neutral-800 mb-2">
+                      <EditableText copyKey={`how-to-play.step${index + 1}.title`} as="h3" className="text-xl md:text-2xl font-display font-bold text-neutral-800 mb-2">
                         {step.title}
-                      </h3>
-                      <p className="text-neutral-600 mb-4">{step.description}</p>
+                      </EditableText>
+                      <EditableText copyKey={`how-to-play.step${index + 1}.description`} as="p" className="text-neutral-600 mb-4">
+                        {step.description}
+                      </EditableText>
                       {'linkTo' in step && step.linkTo && (
                         <Link
                           to={step.linkTo}

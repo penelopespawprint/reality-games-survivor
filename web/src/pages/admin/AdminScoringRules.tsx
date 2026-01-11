@@ -70,14 +70,18 @@ export function AdminScoringRules() {
   // Fetch all scoring rules
   const { data: rules, isLoading } = useQuery({
     queryKey: ['admin-scoring-rules'],
-    queryFn: async () => {
+    queryFn: async (): Promise<ScoringRule[]> => {
       const { data, error } = await supabase
         .from('scoring_rules')
         .select('*')
         .order('category')
         .order('sort_order');
       if (error) throw error;
-      return data || [];
+      // Cast to ScoringRule[], adding missing optional field
+      return (data || []).map((r) => ({
+        ...r,
+        effective_from_episode_id: (r as { effective_from_episode_id?: string | null }).effective_from_episode_id ?? null,
+      }));
     },
   });
 
@@ -85,7 +89,7 @@ export function AdminScoringRules() {
   const categories = Array.from(
     new Set([
       ...DEFAULT_CATEGORIES,
-      ...(rules?.map((r: ScoringRule) => r.category).filter(Boolean) || []),
+      ...(rules?.map((r) => r.category).filter(Boolean) || []),
     ])
   ) as string[];
 

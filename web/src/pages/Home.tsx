@@ -73,10 +73,12 @@ export function Home() {
       {/* MAIN CONTENT */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-3xl mx-auto text-center">
-          <EditableText copyKey="home.hero.badge" as="div" className="inline-flex items-center gap-2 bg-burgundy-100 text-burgundy-700 px-3 py-1.5 rounded-full text-sm font-semibold mb-6">
+          <div className="inline-flex items-center gap-2 bg-burgundy-100 text-burgundy-700 px-3 py-1.5 rounded-full text-sm font-semibold mb-6">
             <Flame className="h-4 w-4" />
-            {copy['home.hero.badge']}
-          </EditableText>
+            <EditableText copyKey="home.hero.badge" as="span">
+              {copy['home.hero.badge']}
+            </EditableText>
+          </div>
 
           <h1
             className="text-4xl sm:text-5xl lg:text-6xl text-neutral-800 leading-[1.1] mb-6"
