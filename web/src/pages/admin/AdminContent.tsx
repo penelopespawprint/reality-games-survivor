@@ -123,7 +123,6 @@ export function AdminContent() {
   const [createMode, setCreateMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [castawayFunFact, setCastawayFunFact] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -667,7 +666,6 @@ export function AdminContent() {
                           setSelectedCastaway(castaway);
                           setSelectedTemplate(null);
                           setSelectedCopy(null);
-                          setCastawayFunFact(castaway.fun_fact || '');
                           setEditMode(false);
                         }}
                         className={`w-full text-left p-4 hover:bg-cream-50 transition-all ${
@@ -748,19 +746,12 @@ export function AdminContent() {
                 }}
               />
             ) : selectedCastaway ? (
-              <CastawayFunFactEditor
+              <CastawayProfileEditor
                 castaway={selectedCastaway}
-                funFact={castawayFunFact}
-                setFunFact={setCastawayFunFact}
                 editMode={editMode}
                 setEditMode={setEditMode}
-                onSave={() =>
-                  updateCastawayFunFact.mutate({
-                    id: selectedCastaway.id,
-                    fun_fact: castawayFunFact,
-                  })
-                }
-                saving={updateCastawayFunFact.isPending}
+                onSave={(data) => updateCastawayProfile.mutate({ id: selectedCastaway.id, ...data })}
+                saving={updateCastawayProfile.isPending}
               />
             ) : (
               <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-12 text-center">
@@ -1657,24 +1648,47 @@ const defaultEmailTemplate = `<!DOCTYPE html>
 </body>
 </html>`;
 
-// Castaway Fun Fact Editor Component
-function CastawayFunFactEditor({
+// Castaway Profile Editor Component - Full profile editing
+function CastawayProfileEditor({
   castaway,
-  funFact,
-  setFunFact,
   editMode,
   setEditMode,
   onSave,
   saving,
 }: {
   castaway: Castaway;
-  funFact: string;
-  setFunFact: (v: string) => void;
   editMode: boolean;
   setEditMode: (v: boolean) => void;
-  onSave: () => void;
+  onSave: (data: {
+    age?: number | null;
+    hometown?: string | null;
+    occupation?: string | null;
+    tribe_original?: string | null;
+    previous_seasons?: string[] | null;
+    best_placement?: number | null;
+    fun_fact?: string | null;
+  }) => void;
   saving: boolean;
 }) {
+  const [age, setAge] = useState<number | null>(castaway.age);
+  const [hometown, setHometown] = useState(castaway.hometown || '');
+  const [occupation, setOccupation] = useState(castaway.occupation || '');
+  const [tribeOriginal, setTribeOriginal] = useState(castaway.tribe_original || '');
+  const [previousSeasons, setPreviousSeasons] = useState(castaway.previous_seasons?.join(', ') || '');
+  const [bestPlacement, setBestPlacement] = useState<number | null>(castaway.best_placement);
+  const [funFact, setFunFact] = useState(castaway.fun_fact || '');
+
+  // Reset form when castaway changes
+  useEffect(() => {
+    setAge(castaway.age);
+    setHometown(castaway.hometown || '');
+    setOccupation(castaway.occupation || '');
+    setTribeOriginal(castaway.tribe_original || '');
+    setPreviousSeasons(castaway.previous_seasons?.join(', ') || '');
+    setBestPlacement(castaway.best_placement);
+    setFunFact(castaway.fun_fact || '');
+  }, [castaway]);
+
   const quillModules = useMemo(
     () => ({
       toolbar: [
@@ -1688,6 +1702,22 @@ function CastawayFunFactEditor({
   );
 
   const quillFormats = ['bold', 'italic', 'underline', 'list', 'bullet', 'link'];
+
+  const handleSave = () => {
+    const seasons = previousSeasons
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    onSave({
+      age: age || null,
+      hometown: hometown || null,
+      occupation: occupation || null,
+      tribe_original: tribeOriginal || null,
+      previous_seasons: seasons.length > 0 ? seasons : null,
+      best_placement: bestPlacement || null,
+      fun_fact: funFact || null,
+    });
+  };
 
   return (
     <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
@@ -1703,7 +1733,7 @@ function CastawayFunFactEditor({
           )}
           <div>
             <h2 className="text-lg font-bold text-neutral-800">{castaway.name}</h2>
-            <p className="text-sm text-neutral-500">Edit fun fact with rich formatting</p>
+            <p className="text-sm text-neutral-500">Edit castaway profile</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -1718,17 +1748,14 @@ function CastawayFunFactEditor({
           ) : (
             <>
               <button
-                onClick={() => {
-                  setEditMode(false);
-                  setFunFact(castaway.fun_fact || '');
-                }}
+                onClick={() => setEditMode(false)}
                 className="flex items-center gap-2 px-3 py-2 bg-cream-100 text-neutral-700 rounded-xl hover:bg-cream-200 transition-all"
               >
                 <X className="h-4 w-4" />
                 Cancel
               </button>
               <button
-                onClick={onSave}
+                onClick={handleSave}
                 disabled={saving}
                 className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all disabled:opacity-50"
               >
@@ -1740,12 +1767,8 @@ function CastawayFunFactEditor({
         </div>
       </div>
 
-      {/* Status */}
+      {/* Status Bar */}
       <div className="p-4 bg-cream-50 border-b border-cream-200 flex items-center gap-4 text-sm">
-        <div className="flex items-center gap-2">
-          <Star className="h-4 w-4 text-amber-500" />
-          <span className="text-neutral-700 font-medium">Fun Fact</span>
-        </div>
         <span
           className={`px-2 py-0.5 text-xs rounded-full ${
             castaway.status === 'active'
@@ -1755,69 +1778,173 @@ function CastawayFunFactEditor({
         >
           {castaway.status}
         </span>
+        {castaway.tribe_original && (
+          <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
+            {castaway.tribe_original}
+          </span>
+        )}
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-4 max-h-[60vh] overflow-y-auto">
         {editMode ? (
           <div className="space-y-4">
-            <div className="border border-cream-200 rounded-xl overflow-hidden">
-              <ReactQuill
-                theme="snow"
-                value={funFact}
-                onChange={setFunFact}
-                modules={quillModules}
-                formats={quillFormats}
-                className="bg-white"
-                style={{ minHeight: '200px' }}
-                placeholder="Enter interesting trivia about this castaway..."
+            {/* Basic Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Age</label>
+                <input
+                  type="number"
+                  value={age || ''}
+                  onChange={(e) => setAge(e.target.value ? parseInt(e.target.value) : null)}
+                  className="w-full px-3 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500"
+                  placeholder="35"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Tribe</label>
+                <input
+                  type="text"
+                  value={tribeOriginal}
+                  onChange={(e) => setTribeOriginal(e.target.value)}
+                  className="w-full px-3 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500"
+                  placeholder="Soka"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">Hometown</label>
+              <input
+                type="text"
+                value={hometown}
+                onChange={(e) => setHometown(e.target.value)}
+                className="w-full px-3 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500"
+                placeholder="Los Angeles, CA"
               />
             </div>
-            <p className="text-xs text-neutral-500">
-              Use the toolbar to add bold, italic, lists, and links. The content will be displayed
-              on the castaway's profile page.
-            </p>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">Occupation</label>
+              <input
+                type="text"
+                value={occupation}
+                onChange={(e) => setOccupation(e.target.value)}
+                className="w-full px-3 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500"
+                placeholder="Software Engineer"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Previous Seasons
+                </label>
+                <input
+                  type="text"
+                  value={previousSeasons}
+                  onChange={(e) => setPreviousSeasons(e.target.value)}
+                  className="w-full px-3 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500"
+                  placeholder="Season 20, Season 40"
+                />
+                <p className="text-xs text-neutral-500 mt-1">Comma-separated list</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Best Placement
+                </label>
+                <input
+                  type="number"
+                  value={bestPlacement || ''}
+                  onChange={(e) => setBestPlacement(e.target.value ? parseInt(e.target.value) : null)}
+                  className="w-full px-3 py-2 border border-cream-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-burgundy-500"
+                  placeholder="1"
+                  min="1"
+                  max="20"
+                />
+                <p className="text-xs text-neutral-500 mt-1">1 = Winner</p>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">Fun Fact</label>
+              <div className="border border-cream-200 rounded-xl overflow-hidden">
+                <ReactQuill
+                  theme="snow"
+                  value={funFact}
+                  onChange={setFunFact}
+                  modules={quillModules}
+                  formats={quillFormats}
+                  className="bg-white"
+                  style={{ minHeight: '150px' }}
+                  placeholder="Enter interesting trivia about this castaway..."
+                />
+              </div>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
-            {funFact ? (
+            {/* Profile Display */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-cream-50 rounded-xl p-4">
+                <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Age</p>
+                <p className="text-lg font-semibold text-neutral-800">{castaway.age || '—'}</p>
+              </div>
+              <div className="bg-cream-50 rounded-xl p-4">
+                <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Tribe</p>
+                <p className="text-lg font-semibold text-neutral-800">{castaway.tribe_original || '—'}</p>
+              </div>
+            </div>
+
+            <div className="bg-cream-50 rounded-xl p-4">
+              <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Hometown</p>
+              <p className="text-lg font-semibold text-neutral-800">{castaway.hometown || '—'}</p>
+            </div>
+
+            <div className="bg-cream-50 rounded-xl p-4">
+              <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Occupation</p>
+              <p className="text-lg font-semibold text-neutral-800">{castaway.occupation || '—'}</p>
+            </div>
+
+            {(castaway.previous_seasons?.length || castaway.best_placement) && (
+              <div className="grid grid-cols-2 gap-4">
+                {castaway.previous_seasons?.length ? (
+                  <div className="bg-cream-50 rounded-xl p-4">
+                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Previous Seasons</p>
+                    <p className="text-sm font-medium text-neutral-800">{castaway.previous_seasons.join(', ')}</p>
+                  </div>
+                ) : null}
+                {castaway.best_placement && (
+                  <div className="bg-cream-50 rounded-xl p-4">
+                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Best Placement</p>
+                    <p className="text-lg font-semibold text-neutral-800">
+                      {castaway.best_placement === 1 ? '🏆 Winner' : `#${castaway.best_placement}`}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Fun Fact */}
+            {castaway.fun_fact ? (
               <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-5">
-                <div className="flex items-start gap-3">
-                  <Star className="h-6 w-6 text-amber-500 flex-shrink-0" />
-                  <div
-                    className="text-amber-700 leading-relaxed prose prose-sm max-w-none prose-amber"
-                    dangerouslySetInnerHTML={{ __html: funFact }}
-                  />
-                </div>
+                <p className="text-xs text-amber-600 uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <Star className="h-3 w-3" /> Fun Fact
+                </p>
+                <div
+                  className="text-amber-700 leading-relaxed prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: castaway.fun_fact }}
+                />
               </div>
             ) : (
-              <div className="bg-cream-50 rounded-xl p-8 text-center">
-                <Star className="h-12 w-12 text-neutral-300 mx-auto mb-3" />
-                <p className="text-neutral-500">No fun fact yet</p>
-                <p className="text-sm text-neutral-400 mt-1">
-                  Click "Edit" to add interesting trivia about this castaway
-                </p>
+              <div className="bg-cream-50 rounded-xl p-6 text-center">
+                <Star className="h-8 w-8 text-neutral-300 mx-auto mb-2" />
+                <p className="text-neutral-500 text-sm">No fun fact yet</p>
               </div>
             )}
           </div>
         )}
       </div>
-
-      {/* Preview note */}
-      {editMode && funFact && (
-        <div className="p-4 border-t border-cream-200 bg-cream-50">
-          <p className="text-sm text-neutral-600 mb-2 font-medium">Preview:</p>
-          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <Star className="h-5 w-5 text-amber-500 flex-shrink-0" />
-              <div
-                className="text-amber-700 leading-relaxed prose prose-sm max-w-none prose-amber"
-                dangerouslySetInnerHTML={{ __html: funFact }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
