@@ -8,6 +8,8 @@ import { Link } from 'react-router-dom';
 import { ListChecks, Target, Trophy, BookOpen, Flame, ChevronRight, Clock } from 'lucide-react';
 import type { GamePhase, Season, Episode } from '@/types';
 import { getCountdownText } from '@/lib/date-utils';
+import { EditableText } from '@/components/EditableText';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 
 interface QuickActionsGridProps {
   gamePhase: GamePhase;
@@ -26,6 +28,8 @@ export function QuickActionsGrid({
   castawayCount,
   hasPickedForNextEpisode = false,
 }: QuickActionsGridProps) {
+  const { getCopy } = useSiteCopy();
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {/* Primary CTA based on phase */}
@@ -39,9 +43,17 @@ export function QuickActionsGrid({
               <ListChecks className="h-7 w-7" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-xl">Set Your Draft Rankings</h3>
+              <EditableText copyKey="dashboard.cta.draft_rankings_title" as="h3" className="font-bold text-xl">
+                {getCopy('dashboard.cta.draft_rankings_title', 'Set Your Draft Rankings')}
+              </EditableText>
               <p className="text-burgundy-100 text-sm mt-1">
-                Rank {castawayCount > 0 ? `all ${castawayCount}` : 'the'} castaways before the draft
+                <EditableText copyKey="dashboard.cta.draft_rankings_desc" as="span" className="text-burgundy-100 text-sm">
+                  {getCopy('dashboard.cta.draft_rankings_desc', 'Rank')}
+                </EditableText>{' '}
+                {castawayCount > 0 ? `all ${castawayCount}` : 'the'}{' '}
+                <EditableText copyKey="dashboard.cta.castaways_before_draft" as="span" className="text-burgundy-100 text-sm">
+                  {getCopy('dashboard.cta.castaways_before_draft', 'castaways before the draft')}
+                </EditableText>
               </p>
             </div>
             <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
@@ -50,7 +62,10 @@ export function QuickActionsGrid({
             <div className="mt-4 pt-4 border-t border-white/20 flex items-center gap-2">
               <Clock className="h-4 w-4 text-burgundy-200" />
               <span className="text-sm text-burgundy-100">
-                Premiere in {getCountdownText(new Date(activeSeason.premiere_at))}
+                <EditableText copyKey="dashboard.cta.premiere_in" as="span" className="text-sm text-burgundy-100">
+                  {getCopy('dashboard.cta.premiere_in', 'Premiere in')}
+                </EditableText>{' '}
+                {getCountdownText(new Date(activeSeason.premiere_at))}
               </span>
             </div>
           )}
@@ -67,9 +82,14 @@ export function QuickActionsGrid({
                 <Target className="h-7 w-7" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-xl">Pick Submitted ✓</h3>
+                <EditableText copyKey="dashboard.cta.pick_submitted" as="h3" className="font-bold text-xl">
+                  {getCopy('dashboard.cta.pick_submitted', 'Pick Submitted ✓')}
+                </EditableText>
                 <p className="text-green-100 text-sm mt-1">
-                  Episode {nextEpisode.number} — Your pick is locked in!
+                  Episode {nextEpisode.number} —{' '}
+                  <EditableText copyKey="dashboard.cta.pick_locked" as="span" className="text-green-100 text-sm">
+                    {getCopy('dashboard.cta.pick_locked', 'Your pick is locked in!')}
+                  </EditableText>
                 </p>
               </div>
               <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
@@ -77,7 +97,10 @@ export function QuickActionsGrid({
             <div className="mt-4 pt-4 border-t border-white/20 flex items-center gap-2">
               <Clock className="h-4 w-4 text-green-200" />
               <span className="text-sm text-green-100">
-                Episode airs in {getCountdownText(new Date(nextEpisode.air_date))}
+                <EditableText copyKey="dashboard.cta.episode_airs_in" as="span" className="text-sm text-green-100">
+                  {getCopy('dashboard.cta.episode_airs_in', 'Episode airs in')}
+                </EditableText>{' '}
+                {getCountdownText(new Date(nextEpisode.air_date))}
               </span>
             </div>
           </Link>
@@ -91,9 +114,14 @@ export function QuickActionsGrid({
                 <Target className="h-7 w-7" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-xl">Make Your Pick</h3>
+                <EditableText copyKey="dashboard.cta.make_pick" as="h3" className="font-bold text-xl">
+                  {getCopy('dashboard.cta.make_pick', 'Make Your Pick')}
+                </EditableText>
                 <p className="text-burgundy-100 text-sm mt-1">
-                  Episode {nextEpisode.number} — Lock in before Wed 8pm ET
+                  Episode {nextEpisode.number} —{' '}
+                  <EditableText copyKey="dashboard.cta.lock_before" as="span" className="text-burgundy-100 text-sm">
+                    {getCopy('dashboard.cta.lock_before', 'Lock in before Wed 8pm ET')}
+                  </EditableText>
                 </p>
               </div>
               <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
@@ -101,7 +129,10 @@ export function QuickActionsGrid({
             <div className="mt-4 pt-4 border-t border-white/20 flex items-center gap-2">
               <Clock className="h-4 w-4 text-burgundy-200" />
               <span className="text-sm text-burgundy-100">
-                Picks lock in {getCountdownText(new Date(nextEpisode.picks_lock_at))}
+                <EditableText copyKey="dashboard.cta.picks_lock_in" as="span" className="text-sm text-burgundy-100">
+                  {getCopy('dashboard.cta.picks_lock_in', 'Picks lock in')}
+                </EditableText>{' '}
+                {getCountdownText(new Date(nextEpisode.picks_lock_at))}
               </span>
             </div>
           </Link>
@@ -116,9 +147,25 @@ export function QuickActionsGrid({
               <Trophy className="h-7 w-7" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-xl">View Final Standings</h3>
+              <EditableText copyKey="dashboard.cta.view_standings" as="h3" className="font-bold text-xl">
+                {getCopy('dashboard.cta.view_standings', 'View Final Standings')}
+              </EditableText>
               <p className="text-burgundy-100 text-sm mt-1">
-                {activeSeason ? `Season ${activeSeason.number} results are in!` : 'Results are in!'}
+                {activeSeason ? (
+                  <>
+                    <EditableText copyKey="dashboard.cta.season" as="span" className="text-burgundy-100 text-sm">
+                      {getCopy('dashboard.cta.season', 'Season')}
+                    </EditableText>{' '}
+                    {activeSeason.number}{' '}
+                    <EditableText copyKey="dashboard.cta.results_in" as="span" className="text-burgundy-100 text-sm">
+                      {getCopy('dashboard.cta.results_in', 'results are in!')}
+                    </EditableText>
+                  </>
+                ) : (
+                  <EditableText copyKey="dashboard.cta.results_in_simple" as="span" className="text-burgundy-100 text-sm">
+                    {getCopy('dashboard.cta.results_in_simple', 'Results are in!')}
+                  </EditableText>
+                )}
               </p>
             </div>
             <ChevronRight className="h-6 w-6 text-white/60 group-hover:translate-x-1 transition-transform" />
@@ -134,8 +181,12 @@ export function QuickActionsGrid({
         <div className="w-12 h-12 bg-burgundy-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-burgundy-500 transition-colors">
           <BookOpen className="h-6 w-6 text-burgundy-500 group-hover:text-white transition-colors" />
         </div>
-        <h3 className="font-bold text-neutral-800">Scoring Rules</h3>
-        <p className="text-neutral-500 text-sm mt-1">See how you score</p>
+        <EditableText copyKey="dashboard.quick.scoring_rules" as="h3" className="font-bold text-neutral-800">
+          {getCopy('dashboard.quick.scoring_rules', 'Scoring Rules')}
+        </EditableText>
+        <EditableText copyKey="dashboard.quick.scoring_rules_desc" as="p" className="text-neutral-500 text-sm mt-1">
+          {getCopy('dashboard.quick.scoring_rules_desc', 'See how you score')}
+        </EditableText>
       </Link>
 
       {/* View Castaways */}
@@ -147,9 +198,14 @@ export function QuickActionsGrid({
           <Flame className="h-6 w-6 text-orange-500 group-hover:text-white transition-colors" />
         </div>
         <h3 className="font-bold text-neutral-800">
-          {castawayCount > 0 ? castawayCount : 'View'} Castaways
+          {castawayCount > 0 ? castawayCount : ''}{' '}
+          <EditableText copyKey="dashboard.quick.castaways" as="span" className="font-bold text-neutral-800">
+            {getCopy('dashboard.quick.castaways', 'Castaways')}
+          </EditableText>
         </h3>
-        <p className="text-neutral-500 text-sm mt-1">Meet the players</p>
+        <EditableText copyKey="dashboard.quick.castaways_desc" as="p" className="text-neutral-500 text-sm mt-1">
+          {getCopy('dashboard.quick.castaways_desc', 'Meet the players')}
+        </EditableText>
       </Link>
     </div>
   );

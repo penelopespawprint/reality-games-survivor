@@ -212,10 +212,12 @@ export default function HowToPlay() {
                     <strategy.icon className="h-5 w-5 text-amber-600" />
                   </div>
                   <div>
-                    <h3 className="font-display font-bold text-neutral-800 mb-1">
+                    <EditableText copyKey={`how-to-play.strategy${index + 1}.title`} as="h3" className="font-display font-bold text-neutral-800 mb-1">
                       {strategy.title}
-                    </h3>
-                    <p className="text-neutral-600 text-sm">{strategy.description}</p>
+                    </EditableText>
+                    <EditableText copyKey={`how-to-play.strategy${index + 1}.description`} as="p" className="text-neutral-600 text-sm">
+                      {strategy.description}
+                    </EditableText>
                   </div>
                 </div>
               </div>

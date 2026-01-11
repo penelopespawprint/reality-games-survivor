@@ -8,6 +8,8 @@ import { Link } from 'react-router-dom';
 import { getAvatarUrl } from '@/lib/avatar';
 import { InlineWeeklyPick } from './InlineWeeklyPick';
 import { Star } from 'lucide-react';
+import { EditableText } from '@/components/EditableText';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 
 interface Castaway {
   id: string;
@@ -50,6 +52,8 @@ export function LeagueCard({
   showWeeklyPick = false,
   castawayPoints = [],
 }: LeagueCardProps) {
+  const { getCopy } = useSiteCopy();
+
   const getPointsForCastaway = (castawayId: string): number => {
     const found = castawayPoints.find((cp) => cp.castaway_id === castawayId);
     return found?.total_points || 0;
@@ -68,7 +72,9 @@ export function LeagueCard({
             </div>
             <div className="text-right">
               <p className="text-2xl font-display text-burgundy-500">{totalPoints}</p>
-              <p className="text-xs text-neutral-400">points</p>
+              <EditableText copyKey="dashboard.league.points_label" as="p" className="text-xs text-neutral-400">
+                {getCopy('dashboard.league.points_label', 'points')}
+              </EditableText>
             </div>
           </div>
 
@@ -107,7 +113,9 @@ export function LeagueCard({
                         {roster.castaway?.name || 'Unknown'}
                       </p>
                       <p className="text-xs text-neutral-400">
-                        {roster.castaway?.status === 'eliminated' ? 'Eliminated' : 'Active'}
+                        {roster.castaway?.status === 'eliminated'
+                          ? getCopy('dashboard.league.eliminated', 'Eliminated')
+                          : getCopy('dashboard.league.active', 'Active')}
                       </p>
                     </div>
                     {/* Points display */}
@@ -122,7 +130,9 @@ export function LeagueCard({
               })
             ) : (
               <div className="flex-1 text-center py-4 bg-cream-50 rounded-xl">
-                <p className="text-sm text-neutral-400">No castaways drafted yet</p>
+                <EditableText copyKey="dashboard.league.no_castaways" as="p" className="text-sm text-neutral-400">
+                  {getCopy('dashboard.league.no_castaways', 'No castaways drafted yet')}
+                </EditableText>
               </div>
             )}
           </div>
@@ -130,7 +140,9 @@ export function LeagueCard({
           {/* Rank indicator */}
           {rank && (
             <div className="mt-4 pt-4 border-t border-cream-100 flex items-center justify-between">
-              <span className="text-sm text-neutral-500">Your Rank</span>
+              <EditableText copyKey="dashboard.league.your_rank" as="span" className="text-sm text-neutral-500">
+                {getCopy('dashboard.league.your_rank', 'Your Rank')}
+              </EditableText>
               <span className="font-semibold text-burgundy-500">#{rank}</span>
             </div>
           )}
