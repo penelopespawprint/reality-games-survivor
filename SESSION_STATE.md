@@ -27,6 +27,8 @@
 - Fixed double navigation on GlobalLeaderboard page (removed duplicate Navigation/Footer)
 - Made CastawayDetail.tsx page fully editable with EditableText components
 - Matched GlobalLeaderboard width to Leagues page (max-w-6xl)
+- Fixed EditableText "Failed to update site copy" errors (API endpoint mismatch)
+- Added upsert support to site-copy API (auto-creates records if they don't exist)
 - Build verification passed after changes
 
 ### Blocked
