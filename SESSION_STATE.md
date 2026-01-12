@@ -7,7 +7,7 @@
 
 ## Current State
 
-**Last Session:** 2
+**Last Session:** 3
 **Last Updated:** 2026-01-11
 
 ### Completed
@@ -23,6 +23,8 @@
 - Category management added to AdminScoringRules.tsx (create, edit, delete categories)
 - Categories stored in site_copy table (no migration required)
 - Auto-seeding of default categories on first load
+- Fixed double navigation on Leagues page (removed duplicate Navigation/Footer)
+- Made CastawayDetail.tsx page fully editable with EditableText components
 - Build verification passed after changes
 
 ### Blocked
@@ -77,3 +79,23 @@
 - web/src/pages/admin/AdminScoringRules.tsx: Added lines 88-123 (category query + seeding), 176-217 (category mutations), 365-420 (category UI)
 - Categories persist across page reloads and are fully editable by admins
 - Testing required: Manual verification in browser at /admin/faq and /admin/scoring-rules
+
+### Session 3
+**Date:** 2026-01-11
+**Completed:**
+- Fixed duplicate navigation issue on Leagues.tsx
+- Removed Navigation and Footer imports from Leagues.tsx (page uses Layout wrapper)
+- Changed Leagues.tsx wrapper from full-page div to fragment
+- Made CastawayDetail.tsx page fully editable with EditableText components
+- Added EditableText to all static text: labels, headers, status badges, error messages
+- Added useSiteCopy hook to CastawayDetail.tsx
+- Created 20+ editable copy keys for castaway detail page
+- Build verification passed (0 TypeScript errors)
+- Pushed all changes to git (commit: 569b038)
+
+**Notes:**
+- web/src/pages/Leagues.tsx: Removed Navigation/Footer imports (lines 8-9), changed wrapper structure (lines 212-213, 570-571)
+- web/src/pages/CastawayDetail.tsx: Added useSiteCopy import (line 11), EditableText import (line 12), wrapped all static text with EditableText
+- Leagues page previously had double nav because it's wrapped in Layout component in App.tsx but also had its own Navigation/Footer
+- GlobalLeaderboard still has duplicate nav (not addressed per user request to only fix Leagues)
+- All castaway detail labels now editable: Age, From, Occupation, Fun Fact, Total Points, etc.
