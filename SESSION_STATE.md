@@ -81,7 +81,7 @@
 - Testing required: Manual verification in browser at /admin/faq and /admin/scoring-rules
 
 ### Session 3
-**Date:** 2026-01-11
+**Date:** 2026-01-12
 **Completed:**
 - Fixed duplicate navigation issue on Leagues.tsx
 - Removed Navigation and Footer imports from Leagues.tsx (page uses Layout wrapper)
@@ -91,13 +91,19 @@
 - Added useSiteCopy hook to CastawayDetail.tsx
 - Created 20+ editable copy keys for castaway detail page
 - Updated claude.md with comprehensive architecture patterns and context
+- Fixed duplicate navigation issue on GlobalLeaderboard.tsx
+- Removed Navigation and Footer imports from GlobalLeaderboard.tsx
+- Changed GlobalLeaderboard.tsx wrapper from full-page div to fragment
+- Verified GlobalChat component is present and properly imported
 - Build verification passed (0 TypeScript errors)
-- Pushed all changes to git (commits: 569b038, 99786a7, b6743c9)
+- Deployed to Railway production (commits: 569b038, 99786a7, b6743c9, 72efb2e, 9c3807e)
 
 **Notes:**
 - web/src/pages/Leagues.tsx: Removed Navigation/Footer imports (lines 8-9), changed wrapper structure (lines 212-213, 570-571)
+- web/src/pages/GlobalLeaderboard.tsx: Removed Navigation/Footer imports (lines 10-11), changed wrapper structure (lines 115-116, 442-443)
 - web/src/pages/CastawayDetail.tsx: Added useSiteCopy import (line 11), EditableText import (line 12), wrapped all static text with EditableText
-- Leagues page previously had double nav because it's wrapped in Layout component in App.tsx but also had its own Navigation/Footer
-- GlobalLeaderboard still has duplicate nav (not addressed per user request to only fix Leagues)
+- Both Leagues and GlobalLeaderboard had double nav because wrapped in Layout component in App.tsx but also had own Navigation/Footer
+- GlobalChat component already present in GlobalLeaderboard at line 286, should be visible after layout fix
 - All castaway detail labels now editable: Age, From, Occupation, Fun Fact, Total Points, etc.
 - claude.md now documents: EditableText pattern, Layout wrapper pattern, category management, key files, common tasks
+- Railway deployment triggered via API for survivor-web service
