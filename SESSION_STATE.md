@@ -90,8 +90,9 @@
 - Added EditableText to all static text: labels, headers, status badges, error messages
 - Added useSiteCopy hook to CastawayDetail.tsx
 - Created 20+ editable copy keys for castaway detail page
+- Updated claude.md with comprehensive architecture patterns and context
 - Build verification passed (0 TypeScript errors)
-- Pushed all changes to git (commit: 569b038)
+- Pushed all changes to git (commits: 569b038, 99786a7, b6743c9)
 
 **Notes:**
 - web/src/pages/Leagues.tsx: Removed Navigation/Footer imports (lines 8-9), changed wrapper structure (lines 212-213, 570-571)
@@ -99,3 +100,4 @@
 - Leagues page previously had double nav because it's wrapped in Layout component in App.tsx but also had its own Navigation/Footer
 - GlobalLeaderboard still has duplicate nav (not addressed per user request to only fix Leagues)
 - All castaway detail labels now editable: Age, From, Occupation, Fun Fact, Total Points, etc.
+- claude.md now documents: EditableText pattern, Layout wrapper pattern, category management, key files, common tasks
