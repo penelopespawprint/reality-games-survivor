@@ -38,13 +38,13 @@ async function updateSiteCopy(key: string, value: string) {
   const token = session.data.session?.access_token;
   if (!token) throw new Error('Not authenticated');
 
-  const response = await fetch(`${API_URL}/api/site-copy/update`, {
-    method: 'POST',
+  const response = await fetch(`${API_URL}/api/site-copy/${encodeURIComponent(key)}`, {
+    method: 'PUT',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ key, value }),
+    body: JSON.stringify({ content: value }),
   });
 
   if (!response.ok) {
