@@ -5,8 +5,6 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { EditableText } from '@/components/EditableText';
-import { Navigation } from '@/components/Navigation';
-import { Footer } from '@/components/Footer';
 import {
   Users,
   Search,
@@ -211,10 +209,8 @@ export default function Leagues() {
   const _isAlreadyMember = (leagueId: string) => myMemberships?.includes(leagueId);
 
   return (
-    <div className="min-h-screen bg-cream-50 flex flex-col">
-      <Navigation />
-
-      <main className="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
+    <>
+      <div className="max-w-6xl mx-auto px-4 py-8 w-full">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
@@ -571,9 +567,7 @@ export default function Leagues() {
           </div>
         </>
       )}
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 }

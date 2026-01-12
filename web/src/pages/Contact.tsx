@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { useQuery } from '@tanstack/react-query';
@@ -15,11 +15,10 @@ import {
   Bug,
   AlertCircle,
   Handshake,
-  FileText,
 } from 'lucide-react';
 import { EditableText } from '@/components/EditableText';
 
-type ContactReason = 'general' | 'partner' | 'issue' | 'scorekeeper' | 'other';
+type ContactReason = 'general' | 'partner' | 'issue' | 'other';
 
 export default function Contact() {
   const { user } = useAuth();
@@ -50,12 +49,12 @@ export default function Contact() {
   });
 
   // Set initial values from profile
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setName(profile.display_name || '');
       setEmail(profile.email || '');
     }
-  });
+  }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,12 +104,6 @@ export default function Contact() {
       label: 'Report an Issue',
       icon: Bug,
       description: 'Something not working right?',
-    },
-    {
-      value: 'scorekeeper',
-      label: 'Becoming a Scorekeeper',
-      icon: FileText,
-      description: 'Interested in helping score episodes',
     },
     {
       value: 'other',

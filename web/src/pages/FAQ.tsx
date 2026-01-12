@@ -14,7 +14,7 @@ import { EditableText } from '@/components/EditableText';
 import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { useAuth } from '@/lib/auth';
 import { useEditMode } from '@/lib/hooks/useEditMode';
-import { ChevronDown, HelpCircle, Loader2, Pencil, Check, X } from 'lucide-react';
+import { ChevronDown, HelpCircle, Loader2, Pencil, Check, X, Trash2, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface FAQItem {
@@ -146,6 +146,80 @@ export default function FAQ() {
     },
   });
 
+  // Mutation to delete FAQ item
+  const deleteFAQ = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('site_copy')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['faq-content'] });
+    },
+  });
+
+  // Mutation to swap sort orders of two FAQ items
+  const swapFAQOrder = useMutation({
+    mutationFn: async ({ item1Id, item1NewOrder, item2Id, item2NewOrder }: {
+      item1Id: string;
+      item1NewOrder: number;
+      item2Id: string;
+      item2NewOrder: number;
+    }) => {
+      // Use a transaction-like approach: update both in sequence
+      const { error: error1 } = await supabase
+        .from('site_copy')
+        .update({ sort_order: item1NewOrder })
+        .eq('id', item1Id);
+      if (error1) throw error1;
+
+      const { error: error2 } = await supabase
+        .from('site_copy')
+        .update({ sort_order: item2NewOrder })
+        .eq('id', item2Id);
+      if (error2) throw error2;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['faq-content'] });
+    },
+  });
+
+  const handleDelete = (id: string, question: string) => {
+    if (confirm(`Delete FAQ: "${question}"?`)) {
+      deleteFAQ.mutate(id);
+    }
+  };
+
+  const handleMoveUp = (faq: FAQItem, categoryItems: FAQItem[]) => {
+    const currentIndex = categoryItems.findIndex(item => item.id === faq.id);
+    if (currentIndex > 0) {
+      const prevItem = categoryItems[currentIndex - 1];
+      // Swap sort orders in a single mutation
+      swapFAQOrder.mutate({
+        item1Id: faq.id,
+        item1NewOrder: prevItem.sort_order,
+        item2Id: prevItem.id,
+        item2NewOrder: faq.sort_order,
+      });
+    }
+  };
+
+  const handleMoveDown = (faq: FAQItem, categoryItems: FAQItem[]) => {
+    const currentIndex = categoryItems.findIndex(item => item.id === faq.id);
+    if (currentIndex < categoryItems.length - 1) {
+      const nextItem = categoryItems[currentIndex + 1];
+      // Swap sort orders in a single mutation
+      swapFAQOrder.mutate({
+        item1Id: faq.id,
+        item1NewOrder: nextItem.sort_order,
+        item2Id: nextItem.id,
+        item2NewOrder: faq.sort_order,
+      });
+    }
+  };
+
   const startEditing = (faq: FAQItem) => {
     setEditingId(faq.id);
     setEditQuestion(faq.question);
@@ -268,14 +342,14 @@ export default function FAQ() {
             onClick={expandAll}
             className="text-sm text-burgundy-600 hover:text-burgundy-700 font-medium"
           >
-            Expand All
+            <EditableText copyKey="faq.expand_all" as="span" className="">{getCopy('faq.expand_all', 'Expand All')}</EditableText>
           </button>
           <span className="text-neutral-300">|</span>
           <button
             onClick={collapseAll}
             className="text-sm text-burgundy-600 hover:text-burgundy-700 font-medium"
           >
-            Collapse All
+            <EditableText copyKey="faq.collapse_all" as="span" className="">{getCopy('faq.collapse_all', 'Collapse All')}</EditableText>
           </button>
         </div>
 
@@ -285,7 +359,13 @@ export default function FAQ() {
             <div key={category.name}>
               <h2 className="text-lg font-semibold text-neutral-800 mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-burgundy-500" />
-                {category.name}
+                <EditableText
+                  copyKey={`faq.category.${category.name.toLowerCase().replace(/\s+/g, '_')}`}
+                  as="span"
+                  className=""
+                >
+                  {getCopy(`faq.category.${category.name.toLowerCase().replace(/\s+/g, '_')}`, category.name)}
+                </EditableText>
               </h2>
 
               <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden divide-y divide-cream-100">
@@ -316,15 +396,40 @@ export default function FAQ() {
                           }`}
                         />
                       </button>
-                      {/* Edit button for admins */}
+                      {/* Admin controls: Edit, Reorder, Delete */}
                       {isAdmin && isEditMode && editingId !== faq.id && (
-                        <button
-                          onClick={() => startEditing(faq)}
-                          className="p-2 mr-2 bg-burgundy-500 hover:bg-burgundy-600 text-white rounded transition-all"
-                          title="Edit FAQ"
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </button>
+                        <div className="flex items-center gap-1 mr-2">
+                          <button
+                            onClick={() => handleMoveUp(faq, category.items)}
+                            className="p-1.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-600 rounded transition-all"
+                            title="Move Up"
+                            disabled={category.items.indexOf(faq) === 0}
+                          >
+                            <ChevronUp className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveDown(faq, category.items)}
+                            className="p-1.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-600 rounded transition-all"
+                            title="Move Down"
+                            disabled={category.items.indexOf(faq) === category.items.length - 1}
+                          >
+                            <ChevronDown className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => startEditing(faq)}
+                            className="p-1.5 bg-burgundy-500 hover:bg-burgundy-600 text-white rounded transition-all"
+                            title="Edit FAQ"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(faq.id, faq.question)}
+                            className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded transition-all"
+                            title="Delete FAQ"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
                       )}
                     </div>
                     {/* Answer section */}
@@ -375,15 +480,19 @@ export default function FAQ() {
 
         {/* Still have questions? */}
         <div className="mt-12 bg-gradient-to-r from-burgundy-50 to-amber-50 rounded-2xl p-8 text-center border border-burgundy-100">
-          <h3 className="text-xl font-semibold text-neutral-800 mb-2">Still have questions?</h3>
-          <p className="text-neutral-600 mb-4">
-            We're here to help! Reach out and we'll get back to you as soon as possible.
-          </p>
+          <EditableText copyKey="faq.cta.title" as="h3" className="text-xl font-semibold text-neutral-800 mb-2">
+            {getCopy('faq.cta.title', 'Still have questions?')}
+          </EditableText>
+          <EditableText copyKey="faq.cta.description" as="p" className="text-neutral-600 mb-4">
+            {getCopy('faq.cta.description', "We're here to help! Reach out and we'll get back to you as soon as possible.")}
+          </EditableText>
           <Link
             to="/contact"
             className="inline-flex items-center gap-2 bg-burgundy-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-burgundy-600 transition-colors"
           >
-            Contact Us
+            <EditableText copyKey="faq.cta.button" as="span" className="">
+              {getCopy('faq.cta.button', 'Contact Us')}
+            </EditableText>
           </Link>
         </div>
       </main>

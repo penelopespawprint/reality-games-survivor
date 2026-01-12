@@ -14,6 +14,10 @@ import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { EditableText } from '@/components/EditableText';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
+import { AdminReorderControls } from '@/components/AdminReorderControls';
+import { useEditMode } from '@/lib/hooks/useEditMode';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 
 const TIMELINE_EVENTS = [
   {
@@ -49,8 +53,62 @@ const TIMELINE_EVENTS = [
 ];
 
 export default function WeeklyTimeline() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { getCopy } = useSiteCopy();
+  const { isEditMode } = useEditMode();
+  const queryClient = useQueryClient();
+
+  // Fetch event order from database
+  const { data: eventOrder } = useQuery({
+    queryKey: ['timeline', 'event-order'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('site_copy')
+        .select('content')
+        .eq('key', 'timeline.event-order')
+        .single();
+      if (data?.content) {
+        try {
+          return JSON.parse(data.content) as number[];
+        } catch {
+          return [0, 1, 2];
+        }
+      }
+      return [0, 1, 2];
+    },
+  });
+
+  // Mutation to save event order
+  const saveEventOrder = useMutation({
+    mutationFn: async (newOrder: number[]) => {
+      const { error } = await supabase
+        .from('site_copy')
+        .upsert({
+          key: 'timeline.event-order',
+          page: 'timeline',
+          content: JSON.stringify(newOrder),
+          is_active: true,
+        }, { onConflict: 'key' });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timeline', 'event-order'] });
+    },
+  });
+
+  const handleEventMoveUp = (currentIndex: number) => {
+    if (!eventOrder || currentIndex === 0) return;
+    const newOrder = [...eventOrder];
+    [newOrder[currentIndex - 1], newOrder[currentIndex]] = [newOrder[currentIndex], newOrder[currentIndex - 1]];
+    saveEventOrder.mutate(newOrder);
+  };
+
+  const handleEventMoveDown = (currentIndex: number) => {
+    if (!eventOrder || currentIndex === eventOrder.length - 1) return;
+    const newOrder = [...eventOrder];
+    [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
+    saveEventOrder.mutate(newOrder);
+  };
 
   return (
     <div className="min-h-screen bg-cream-50 flex flex-col">
@@ -81,7 +139,9 @@ export default function WeeklyTimeline() {
           <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-cream-300" />
 
           <div className="space-y-8">
-            {TIMELINE_EVENTS.map((event, index) => {
+            {(eventOrder || [0, 1, 2]).map((originalIndex, displayIndex) => {
+              const event = TIMELINE_EVENTS[originalIndex];
+              if (!event) return null;
               const Icon = event.icon;
               const bgColor =
                 event.color === 'burgundy'
@@ -117,7 +177,7 @@ export default function WeeklyTimeline() {
                         : 'text-blue-700';
 
               return (
-                <div key={index} className="relative flex gap-6">
+                <div key={originalIndex} className="relative flex gap-6">
                   {/* Icon */}
                   <div
                     className={`relative z-10 w-16 h-16 ${bgColor} rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0`}
@@ -126,23 +186,41 @@ export default function WeeklyTimeline() {
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1 bg-white rounded-2xl shadow-card border border-cream-200 p-6">
+                  <div className="flex-1 bg-white rounded-2xl shadow-card border border-cream-200 p-6 relative">
+                    {isAdmin && isEditMode && (
+                      <div className="absolute top-2 right-2 z-10">
+                        <AdminReorderControls
+                          index={displayIndex}
+                          totalItems={TIMELINE_EVENTS.length}
+                          onMoveUp={() => handleEventMoveUp(displayIndex)}
+                          onMoveDown={() => handleEventMoveDown(displayIndex)}
+                        />
+                      </div>
+                    )}
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className="font-display font-bold text-neutral-800">{event.day}</span>
+                      <EditableText copyKey={`timeline.event${originalIndex + 1}.day`} as="span" className="font-display font-bold text-neutral-800">
+                        {getCopy(`timeline.event${originalIndex + 1}.day`, event.day)}
+                      </EditableText>
                       <span className="text-neutral-400">•</span>
                       <span className="text-neutral-600 flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        {event.time}
+                        <EditableText copyKey={`timeline.event${originalIndex + 1}.time`} as="span" className="">
+                          {getCopy(`timeline.event${originalIndex + 1}.time`, event.time)}
+                        </EditableText>
                       </span>
                     </div>
-                    <h3 className="text-xl font-display font-bold text-neutral-800 mb-2">
-                      {event.title}
-                    </h3>
-                    <p className="text-neutral-600 mb-4">{event.description}</p>
+                    <EditableText copyKey={`timeline.event${originalIndex + 1}.title`} as="h3" className="text-xl font-display font-bold text-neutral-800 mb-2">
+                      {getCopy(`timeline.event${originalIndex + 1}.title`, event.title)}
+                    </EditableText>
+                    <EditableText copyKey={`timeline.event${originalIndex + 1}.description`} as="p" className="text-neutral-600 mb-4">
+                      {getCopy(`timeline.event${originalIndex + 1}.description`, event.description)}
+                    </EditableText>
                     <div className={`${lightBg} rounded-xl p-3 border`}>
                       <p className={`text-sm ${textColor} flex items-start gap-2`}>
                         <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span>{event.tip}</span>
+                        <EditableText copyKey={`timeline.event${originalIndex + 1}.tip`} as="span" className="">
+                          {getCopy(`timeline.event${originalIndex + 1}.tip`, event.tip)}
+                        </EditableText>
                       </p>
                     </div>
                   </div>
@@ -158,38 +236,34 @@ export default function WeeklyTimeline() {
         <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-6">
           <h3 className="font-display font-bold text-lg text-neutral-800 mb-4 flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-amber-500" />
-            <EditableText copyKey="timeline.notes.title" as="span">
+            <EditableText copyKey="timeline.notes.title" as="span" className="">
               {getCopy('timeline.notes.title', 'Important Notes')}
             </EditableText>
           </h3>
           <ul className="space-y-3 text-neutral-600">
             <li className="flex items-start gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-burgundy-500 mt-2 flex-shrink-0" />
-              <span>
-                <strong>All times are in Pacific Standard Time (PST)</strong> unless otherwise
-                noted. The episode airs at 8pm Eastern (5pm Pacific).
-              </span>
+              <EditableText copyKey="timeline.notes.note1" as="span" className="">
+                {getCopy('timeline.notes.note1', 'All times are in Pacific Standard Time (PST) unless otherwise noted. The episode airs at 8pm Eastern (5pm Pacific).')}
+              </EditableText>
             </li>
             <li className="flex items-start gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-burgundy-500 mt-2 flex-shrink-0" />
-              <span>
-                <strong>Double episodes</strong> may have adjusted schedules. We'll notify you of
-                any changes.
-              </span>
+              <EditableText copyKey="timeline.notes.note2" as="span" className="">
+                {getCopy('timeline.notes.note2', 'Double episodes may have adjusted schedules. We\'ll notify you of any changes.')}
+              </EditableText>
             </li>
             <li className="flex items-start gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-burgundy-500 mt-2 flex-shrink-0" />
-              <span>
-                <strong>Forgot to pick?</strong> The system randomly selects from your available
-                castaways.
-              </span>
+              <EditableText copyKey="timeline.notes.note3" as="span" className="">
+                {getCopy('timeline.notes.note3', 'Forgot to pick? The system randomly selects from your available castaways.')}
+              </EditableText>
             </li>
             <li className="flex items-start gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-burgundy-500 mt-2 flex-shrink-0" />
-              <span>
-                <strong>Both castaways eliminated?</strong> Your torch is snuffed for the season,
-                but you can still watch the leaderboard!
-              </span>
+              <EditableText copyKey="timeline.notes.note4" as="span" className="">
+                {getCopy('timeline.notes.note4', 'Both castaways eliminated? Your torch is snuffed for the season, but you can still watch the leaderboard!')}
+              </EditableText>
             </li>
           </ul>
         </div>
@@ -209,7 +283,9 @@ export default function WeeklyTimeline() {
               to="/settings"
               className="inline-flex items-center gap-2 bg-white text-amber-600 font-bold px-8 py-3 rounded-xl hover:bg-cream-100 transition-colors"
             >
-              Manage Notifications
+              <EditableText copyKey="timeline.cta.button_settings" as="span" className="">
+                {getCopy('timeline.cta.button_settings', 'Manage Notifications')}
+              </EditableText>
               <ArrowRight className="h-5 w-5" />
             </Link>
           ) : (
@@ -217,7 +293,9 @@ export default function WeeklyTimeline() {
               to="/signup"
               className="inline-flex items-center gap-2 bg-white text-amber-600 font-bold px-8 py-3 rounded-xl hover:bg-cream-100 transition-colors"
             >
-              Join Now - It's Free
+              <EditableText copyKey="timeline.cta.button_signup" as="span" className="">
+                {getCopy('timeline.cta.button_signup', 'Join Now - It\'s Free')}
+              </EditableText>
               <ArrowRight className="h-5 w-5" />
             </Link>
           )}

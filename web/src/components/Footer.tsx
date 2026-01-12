@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
+import { EditableText } from '@/components/EditableText';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const { getCopy } = useSiteCopy();
 
   return (
     <footer className="bg-neutral-900 text-white mt-auto">
@@ -12,23 +15,23 @@ export function Footer() {
             <Link to="/" className="flex items-center gap-2 mb-4">
               <img src="/logo.png" alt="RGFL" className="h-10 w-auto brightness-0 invert" />
             </Link>
-            <p className="text-neutral-400 text-sm">
-              Fantasy Survivor for people who actually watch Survivor.
-            </p>
+            <EditableText copyKey="footer.tagline" as="p" className="text-neutral-400 text-sm">
+              {getCopy('footer.tagline', 'Fantasy Survivor for people who actually watch Survivor.')}
+            </EditableText>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-display font-bold text-sm uppercase tracking-wider text-neutral-400 mb-4">
-              Play
-            </h4>
+            <EditableText copyKey="footer.play_header" as="h4" className="font-display font-bold text-sm uppercase tracking-wider text-neutral-400 mb-4">
+              {getCopy('footer.play_header', 'Play')}
+            </EditableText>
             <ul className="space-y-2">
               <li>
                 <Link
                   to="/how-to-play"
                   className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
                 >
-                  How to Play
+                  <EditableText copyKey="footer.link_how_to_play" as="span" className="">{getCopy('footer.link_how_to_play', 'How to Play')}</EditableText>
                 </Link>
               </li>
               <li>
@@ -36,7 +39,7 @@ export function Footer() {
                   to="/how-to-play#scoring"
                   className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
                 >
-                  Scoring Rules
+                  <EditableText copyKey="footer.link_scoring_rules" as="span" className="">{getCopy('footer.link_scoring_rules', 'Scoring Rules')}</EditableText>
                 </Link>
               </li>
               <li>
@@ -44,7 +47,7 @@ export function Footer() {
                   to="/castaways"
                   className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
                 >
-                  Castaways
+                  <EditableText copyKey="footer.link_castaways" as="span" className="">{getCopy('footer.link_castaways', 'Castaways')}</EditableText>
                 </Link>
               </li>
             </ul>
@@ -52,26 +55,16 @@ export function Footer() {
 
           {/* Resources */}
           <div>
-            <h4 className="font-display font-bold text-sm uppercase tracking-wider text-neutral-400 mb-4">
-              Resources
-            </h4>
+            <EditableText copyKey="footer.resources_header" as="h4" className="font-display font-bold text-sm uppercase tracking-wider text-neutral-400 mb-4">
+              {getCopy('footer.resources_header', 'Resources')}
+            </EditableText>
             <ul className="space-y-2">
-              {/* SMS Commands - hidden until feature launches
-              <li>
-                <Link
-                  to="/sms"
-                  className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
-                >
-                  SMS Commands
-                </Link>
-              </li>
-              */}
               <li>
                 <Link
                   to="/contact"
                   className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
                 >
-                  Contact Us
+                  <EditableText copyKey="footer.link_contact" as="span" className="">{getCopy('footer.link_contact', 'Contact Us')}</EditableText>
                 </Link>
               </li>
               <li>
@@ -79,7 +72,7 @@ export function Footer() {
                   to="/privacy"
                   className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
                 >
-                  Privacy Policy
+                  <EditableText copyKey="footer.link_privacy" as="span" className="">{getCopy('footer.link_privacy', 'Privacy Policy')}</EditableText>
                 </Link>
               </li>
               <li>
@@ -87,7 +80,7 @@ export function Footer() {
                   to="/terms"
                   className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
                 >
-                  Terms of Service
+                  <EditableText copyKey="footer.link_terms" as="span" className="">{getCopy('footer.link_terms', 'Terms of Service')}</EditableText>
                 </Link>
               </li>
             </ul>
@@ -95,9 +88,9 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-display font-bold text-sm uppercase tracking-wider text-neutral-400 mb-4">
-              Contact
-            </h4>
+            <EditableText copyKey="footer.contact_header" as="h4" className="font-display font-bold text-sm uppercase tracking-wider text-neutral-400 mb-4">
+              {getCopy('footer.contact_header', 'Contact')}
+            </EditableText>
             <ul className="space-y-2">
               <li>
                 <a
@@ -106,7 +99,7 @@ export function Footer() {
                   rel="noopener noreferrer"
                   className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
                 >
-                  @realitygamesfl
+                  <EditableText copyKey="footer.twitter_handle" as="span" className="">{getCopy('footer.twitter_handle', '@realitygamesfl')}</EditableText>
                 </a>
               </li>
             </ul>
@@ -115,17 +108,17 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-neutral-800 mt-4 pt-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-neutral-500 text-sm">
-            © {currentYear} Reality Games Fantasy League. All rights reserved.
-          </p>
+          <EditableText copyKey="footer.copyright" as="p" className="text-neutral-500 text-sm">
+            {getCopy('footer.copyright', `© ${currentYear} Reality Games Fantasy League. All rights reserved.`)}
+          </EditableText>
           <div className="flex items-center gap-4 text-sm text-neutral-500">
             <Link to="/privacy" className="hover:text-neutral-300 transition-colors">
-              Privacy
+              <EditableText copyKey="footer.bottom_privacy" as="span" className="">{getCopy('footer.bottom_privacy', 'Privacy')}</EditableText>
             </Link>
             <Link to="/terms" className="hover:text-neutral-300 transition-colors">
-              Terms
+              <EditableText copyKey="footer.bottom_terms" as="span" className="">{getCopy('footer.bottom_terms', 'Terms')}</EditableText>
             </Link>
-            <span>Not affiliated with CBS or Survivor.</span>
+            <EditableText copyKey="footer.disclaimer" as="span" className="">{getCopy('footer.disclaimer', 'Not affiliated with CBS or Survivor.')}</EditableText>
           </div>
         </div>
       </div>

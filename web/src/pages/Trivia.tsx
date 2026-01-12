@@ -96,6 +96,9 @@ export function Trivia() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardTitle, setLeaderboardTitle] = useState<string>('The Tribe Has Spoken');
 
+  // Track previous lockout state to detect when it changes
+  const [wasLocked, setWasLocked] = useState(false);
+
   // Fetch progress first (needed for auto-start logic)
   const { data: progress } = useQuery<ProgressData>({
     queryKey: ['trivia', 'progress'],
@@ -110,7 +113,15 @@ export function Trivia() {
       return response.data.data;
     },
     enabled: !!user && !!session?.access_token,
-    refetchInterval: 60000,
+    // Refetch more frequently when locked to detect when lockout expires
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data?.isLocked) {
+        // Check every 30 seconds when locked to detect expiration
+        return 30000;
+      }
+      return 60000;
+    },
   });
 
   // Auto-start game if user already has progress (and not locked/complete)
@@ -119,6 +130,28 @@ export function Trivia() {
       setGameStarted(true);
     }
   }, [progress]);
+
+  // Detect when lockout expires and refresh question state
+  useEffect(() => {
+    if (progress) {
+      if (wasLocked && !progress.isLocked) {
+        // Lockout just expired! Invalidate and refetch the next question
+        console.log('Lockout expired, refreshing trivia state...');
+        queryClient.invalidateQueries({ queryKey: ['trivia', 'next'] });
+        // Reset local state
+        setShowResult(false);
+        setSelectedIndex(null);
+        setIsTimedOut(false);
+        setTimeRemaining(20);
+        setQuestionReady(false);
+        setTimerActive(false);
+        setShowLeaderboard(false);
+        // Auto-start the game again
+        setGameStarted(true);
+      }
+      setWasLocked(progress.isLocked);
+    }
+  }, [progress?.isLocked, wasLocked, queryClient]);
 
   // Fetch next question (only when game is started)
   const {

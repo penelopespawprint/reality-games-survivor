@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useState, useEffect, useRef } from 'react';
 import { Shield, Menu, X, ChevronDown, Lightbulb, Mail, HelpCircle } from 'lucide-react';
+import { EditableText } from '@/components/EditableText';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 
 interface UserProfile {
   id: string;
@@ -14,6 +16,7 @@ interface UserProfile {
 export function Navigation() {
   const location = useLocation();
   const { user, signOut, loading } = useAuth();
+  const { getCopy } = useSiteCopy();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [howToPlayOpen, setHowToPlayOpen] = useState(false);
   const [leaguesOpen, setLeaguesOpen] = useState(false);
@@ -122,7 +125,7 @@ export function Navigation() {
                       : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                   }`}
                 >
-                  Dashboard
+                  <EditableText copyKey="nav.dashboard" as="span" className="">{getCopy('nav.dashboard', 'Dashboard')}</EditableText>
                 </Link>
                 <div className="relative" ref={leaguesRef}>
                   <button
@@ -133,7 +136,7 @@ export function Navigation() {
                         : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                     }`}
                   >
-                    Leagues
+                    <EditableText copyKey="nav.leagues" as="span" className="">{getCopy('nav.leagues', 'Leagues')}</EditableText>
                     <ChevronDown
                       className={`h-4 w-4 transition-transform ${leaguesOpen ? 'rotate-180' : ''}`}
                     />
@@ -149,7 +152,7 @@ export function Navigation() {
                             : 'text-neutral-600'
                         }`}
                       >
-                        All Leagues
+                        <EditableText copyKey="nav.all_leagues" as="span" className="">{getCopy('nav.all_leagues', 'All Leagues')}</EditableText>
                       </Link>
                       <Link
                         to="/draft/rankings"
@@ -160,7 +163,7 @@ export function Navigation() {
                             : 'text-neutral-600'
                         }`}
                       >
-                        Draft Rankings
+                        <EditableText copyKey="nav.draft_rankings" as="span" className="">{getCopy('nav.draft_rankings', 'Draft Rankings')}</EditableText>
                       </Link>
                     </div>
                   )}
@@ -173,7 +176,7 @@ export function Navigation() {
                       : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                   }`}
                 >
-                  Castaways
+                  <EditableText copyKey="nav.castaways" as="span" className="">{getCopy('nav.castaways', 'Castaways')}</EditableText>
                 </Link>
                 <Link
                   to="/leaderboard"
@@ -183,7 +186,7 @@ export function Navigation() {
                       : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                   }`}
                 >
-                  Leaderboard
+                  <EditableText copyKey="nav.leaderboard" as="span" className="">{getCopy('nav.leaderboard', 'Leaderboard')}</EditableText>
                 </Link>
                 <div className="relative" ref={howToPlayRef}>
                   <button
@@ -194,7 +197,7 @@ export function Navigation() {
                         : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                     }`}
                   >
-                    How to Play
+                    <EditableText copyKey="nav.how_to_play" as="span" className="">{getCopy('nav.how_to_play', 'How to Play')}</EditableText>
                     <ChevronDown
                       className={`h-4 w-4 transition-transform ${howToPlayOpen ? 'rotate-180' : ''}`}
                     />
@@ -212,7 +215,7 @@ export function Navigation() {
                             : 'text-neutral-600'
                         }`}
                       >
-                        How to Play
+                        <EditableText copyKey="nav.how_to_play_overview" as="span" className="">{getCopy('nav.how_to_play_overview', 'How to Play')}</EditableText>
                       </Link>
                       <Link
                         to="/scoring-rules"
@@ -223,7 +226,7 @@ export function Navigation() {
                             : 'text-neutral-600'
                         }`}
                       >
-                        Scoring Rules
+                        <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Scoring Rules')}</EditableText>
                       </Link>
                       <Link
                         to="/sms-commands"
@@ -234,7 +237,7 @@ export function Navigation() {
                             : 'text-neutral-600'
                         }`}
                       >
-                        SMS Commands
+                        <EditableText copyKey="nav.sms_commands" as="span" className="">{getCopy('nav.sms_commands', 'SMS Commands')}</EditableText>
                       </Link>
                       <Link
                         to="/timeline"
@@ -245,7 +248,7 @@ export function Navigation() {
                             : 'text-neutral-600'
                         }`}
                       >
-                        Weekly Timeline
+                        <EditableText copyKey="nav.weekly_timeline" as="span" className="">{getCopy('nav.weekly_timeline', 'Weekly Timeline')}</EditableText>
                       </Link>
                     </div>
                   )}
@@ -260,7 +263,7 @@ export function Navigation() {
                         : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                     }`}
                   >
-                    Contact
+                    <EditableText copyKey="nav.contact" as="span" className="">{getCopy('nav.contact', 'Contact')}</EditableText>
                     <ChevronDown
                       className={`h-4 w-4 transition-transform ${contactOpen ? 'rotate-180' : ''}`}
                     />
@@ -277,7 +280,7 @@ export function Navigation() {
                         }`}
                       >
                         <Mail className="h-4 w-4" />
-                        Contact Us
+                        <EditableText copyKey="nav.contact_us" as="span" className="">{getCopy('nav.contact_us', 'Contact Us')}</EditableText>
                       </Link>
                       <Link
                         to="/faq"
@@ -289,7 +292,7 @@ export function Navigation() {
                         }`}
                       >
                         <HelpCircle className="h-4 w-4" />
-                        FAQ
+                        <EditableText copyKey="nav.faq" as="span" className="">{getCopy('nav.faq', 'FAQ')}</EditableText>
                       </Link>
                     </div>
                   )}
@@ -300,9 +303,9 @@ export function Navigation() {
                   className="trivia-pulse ml-2 px-4 py-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold rounded-full text-sm flex items-center gap-2 hover:from-teal-600 hover:to-teal-700 transition-all shadow-md"
                 >
                   <Lightbulb className="w-4 h-4" />
-                  Trivia
+                  <EditableText copyKey="nav.trivia" as="span" className="">{getCopy('nav.trivia', 'Trivia')}</EditableText>
                   <span className="bg-white/25 px-1.5 py-0.5 rounded text-[10px] font-bold">
-                    NEW
+                    <EditableText copyKey="nav.trivia_badge" as="span" className="">{getCopy('nav.trivia_badge', 'NEW')}</EditableText>
                   </span>
                 </Link>
               </div>
@@ -358,7 +361,9 @@ export function Navigation() {
                   >
                     <div className="p-4 border-b border-neutral-100">
                       <p className="font-semibold text-neutral-800">{displayName || 'Survivor'}</p>
-                      <p className="text-sm text-neutral-400">Fantasy Player</p>
+                      <p className="text-sm text-neutral-400">
+                        <EditableText copyKey="nav.user_role" as="span" className="">{getCopy('nav.user_role', 'Fantasy Player')}</EditableText>
+                      </p>
                     </div>
                     <div className="p-2">
                       <Link
@@ -366,20 +371,20 @@ export function Navigation() {
                         className="block px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50 rounded-lg"
                         role="menuitem"
                       >
-                        Profile Settings
+                        <EditableText copyKey="nav.profile_settings" as="span" className="">{getCopy('nav.profile_settings', 'Profile Settings')}</EditableText>
                       </Link>
                       <Link
                         to="/profile/payments"
                         className="block px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50 rounded-lg"
                         role="menuitem"
                       >
-                        Payment History
+                        <EditableText copyKey="nav.payment_history" as="span" className="">{getCopy('nav.payment_history', 'Payment History')}</EditableText>
                       </Link>
                       {/* SMS Notifications - Coming Soon */}
                       <div className="px-3 py-2 text-sm text-neutral-400 flex items-center justify-between rounded-lg">
-                        <span>SMS Notifications</span>
+                        <span><EditableText copyKey="nav.sms_notifications" as="span" className="">{getCopy('nav.sms_notifications', 'SMS Notifications')}</EditableText></span>
                         <span className="text-xs bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-full">
-                          Coming Soon
+                          <EditableText copyKey="nav.coming_soon" as="span" className="">{getCopy('nav.coming_soon', 'Coming Soon')}</EditableText>
                         </span>
                       </div>
                       <hr className="my-2 border-neutral-100" />
@@ -388,7 +393,7 @@ export function Navigation() {
                         className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
                         role="menuitem"
                       >
-                        Sign out
+                        <EditableText copyKey="nav.sign_out" as="span" className="">{getCopy('nav.sign_out', 'Sign out')}</EditableText>
                       </button>
                     </div>
                   </div>
@@ -404,7 +409,9 @@ export function Navigation() {
               >
                 <div className="px-4 py-3 border-b border-burgundy-100">
                   <p className="font-semibold text-neutral-800">{displayName || 'Survivor'}</p>
-                  <p className="text-sm text-neutral-400">Fantasy Player</p>
+                  <p className="text-sm text-neutral-400">
+                    <EditableText copyKey="nav.user_role" as="span" className="">{getCopy('nav.user_role', 'Fantasy Player')}</EditableText>
+                  </p>
                 </div>
 
                 {/* Trivia - Highlighted on Mobile */}
@@ -414,8 +421,10 @@ export function Navigation() {
                   className="mx-4 mt-3 mb-2 px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-bold rounded-lg flex items-center justify-center gap-2 uppercase tracking-wide"
                 >
                   <Lightbulb className="w-5 h-5" />
-                  Play Trivia
-                  <span className="bg-white/20 px-2 py-0.5 rounded text-xs">NEW</span>
+                  <EditableText copyKey="nav.play_trivia" as="span" className="">{getCopy('nav.play_trivia', 'Play Trivia')}</EditableText>
+                  <span className="bg-white/20 px-2 py-0.5 rounded text-xs">
+                    <EditableText copyKey="nav.trivia_badge" as="span" className="">{getCopy('nav.trivia_badge', 'NEW')}</EditableText>
+                  </span>
                 </Link>
 
                 <Link
@@ -424,11 +433,11 @@ export function Navigation() {
                     isActive('/dashboard') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
                   }`}
                 >
-                  Dashboard
+                  <EditableText copyKey="nav.dashboard" as="span" className="">{getCopy('nav.dashboard', 'Dashboard')}</EditableText>
                 </Link>
                 <div>
                   <div className="px-4 py-2 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                    Leagues
+                    <EditableText copyKey="nav.leagues" as="span" className="">{getCopy('nav.leagues', 'Leagues')}</EditableText>
                   </div>
                   <Link
                     to="/leagues"
@@ -438,7 +447,7 @@ export function Navigation() {
                         : 'text-neutral-600'
                     }`}
                   >
-                    All Leagues
+                    <EditableText copyKey="nav.all_leagues" as="span" className="">{getCopy('nav.all_leagues', 'All Leagues')}</EditableText>
                   </Link>
                   <Link
                     to="/draft/rankings"
@@ -448,7 +457,7 @@ export function Navigation() {
                         : 'text-neutral-600'
                     }`}
                   >
-                    Draft Rankings
+                    <EditableText copyKey="nav.draft_rankings" as="span" className="">{getCopy('nav.draft_rankings', 'Draft Rankings')}</EditableText>
                   </Link>
                 </div>
                 <Link
@@ -459,7 +468,7 @@ export function Navigation() {
                       : 'text-neutral-600'
                   }`}
                 >
-                  Castaways
+                  <EditableText copyKey="nav.castaways" as="span" className="">{getCopy('nav.castaways', 'Castaways')}</EditableText>
                 </Link>
                 <Link
                   to="/leaderboard"
@@ -469,11 +478,11 @@ export function Navigation() {
                       : 'text-neutral-600'
                   }`}
                 >
-                  Leaderboard
+                  <EditableText copyKey="nav.leaderboard" as="span" className="">{getCopy('nav.leaderboard', 'Leaderboard')}</EditableText>
                 </Link>
                 <div>
                   <div className="px-4 py-2 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                    How to Play
+                    <EditableText copyKey="nav.how_to_play" as="span" className="">{getCopy('nav.how_to_play', 'How to Play')}</EditableText>
                   </div>
                   <Link
                     to="/how-to-play"
@@ -483,7 +492,7 @@ export function Navigation() {
                         : 'text-neutral-600'
                     }`}
                   >
-                    Overview
+                    <EditableText copyKey="nav.overview" as="span" className="">{getCopy('nav.overview', 'Overview')}</EditableText>
                   </Link>
                   <Link
                     to="/scoring-rules"
@@ -493,7 +502,7 @@ export function Navigation() {
                         : 'text-neutral-600'
                     }`}
                   >
-                    Scoring Rules
+                    <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Scoring Rules')}</EditableText>
                   </Link>
                   <Link
                     to="/timeline"
@@ -503,7 +512,7 @@ export function Navigation() {
                         : 'text-neutral-600'
                     }`}
                   >
-                    Weekly Timeline
+                    <EditableText copyKey="nav.weekly_timeline" as="span" className="">{getCopy('nav.weekly_timeline', 'Weekly Timeline')}</EditableText>
                   </Link>
                   <Link
                     to="/sms-commands"
@@ -513,12 +522,12 @@ export function Navigation() {
                         : 'text-neutral-600'
                     }`}
                   >
-                    SMS Commands
+                    <EditableText copyKey="nav.sms_commands" as="span" className="">{getCopy('nav.sms_commands', 'SMS Commands')}</EditableText>
                   </Link>
                 </div>
                 <div>
                   <div className="px-4 py-2 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                    Contact
+                    <EditableText copyKey="nav.contact" as="span" className="">{getCopy('nav.contact', 'Contact')}</EditableText>
                   </div>
                   <Link
                     to="/contact"
@@ -528,7 +537,7 @@ export function Navigation() {
                         : 'text-neutral-600'
                     }`}
                   >
-                    Contact Us
+                    <EditableText copyKey="nav.contact_us" as="span" className="">{getCopy('nav.contact_us', 'Contact Us')}</EditableText>
                   </Link>
                   <Link
                     to="/faq"
@@ -538,7 +547,7 @@ export function Navigation() {
                         : 'text-neutral-600'
                     }`}
                   >
-                    FAQ
+                    <EditableText copyKey="nav.faq" as="span" className="">{getCopy('nav.faq', 'FAQ')}</EditableText>
                   </Link>
                 </div>
                 {/* Admin link for mobile */}
@@ -556,13 +565,13 @@ export function Navigation() {
                 )}
                 <hr className="my-2 border-burgundy-100" />
                 <Link to="/profile" className="block px-4 py-3 text-sm text-neutral-600">
-                  Profile Settings
+                  <EditableText copyKey="nav.profile_settings" as="span" className="">{getCopy('nav.profile_settings', 'Profile Settings')}</EditableText>
                 </Link>
                 {/* SMS Notifications - Coming Soon */}
                 <div className="px-4 py-3 text-sm text-neutral-400 flex items-center justify-between">
-                  <span>SMS Notifications</span>
+                  <span><EditableText copyKey="nav.sms_notifications" as="span" className="">{getCopy('nav.sms_notifications', 'SMS Notifications')}</EditableText></span>
                   <span className="text-xs bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-full">
-                    Coming Soon
+                    <EditableText copyKey="nav.coming_soon" as="span" className="">{getCopy('nav.coming_soon', 'Coming Soon')}</EditableText>
                   </span>
                 </div>
                 <hr className="my-2 border-burgundy-100" />
@@ -570,7 +579,7 @@ export function Navigation() {
                   onClick={handleSignOut}
                   className="w-full text-left px-4 py-3 text-sm text-red-600 font-semibold"
                 >
-                  Sign out
+                  <EditableText copyKey="nav.sign_out" as="span" className="">{getCopy('nav.sign_out', 'Sign out')}</EditableText>
                 </button>
               </div>
             )}
@@ -616,7 +625,7 @@ export function Navigation() {
                   : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
               }`}
             >
-              Home
+              <EditableText copyKey="nav.home" as="span" className="">{getCopy('nav.home', 'Home')}</EditableText>
             </Link>
             <Link
               to="/how-to-play"
@@ -626,7 +635,7 @@ export function Navigation() {
                   : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
               }`}
             >
-              How to Play
+              <EditableText copyKey="nav.how_to_play" as="span" className="">{getCopy('nav.how_to_play', 'How to Play')}</EditableText>
             </Link>
             <Link
               to="/scoring-rules"
@@ -636,7 +645,7 @@ export function Navigation() {
                   : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
               }`}
             >
-              Scoring Rules
+              <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Scoring Rules')}</EditableText>
             </Link>
             <div className="relative group">
               <button
@@ -646,7 +655,7 @@ export function Navigation() {
                     : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
                 }`}
               >
-                Contact
+                <EditableText copyKey="nav.contact" as="span" className="">{getCopy('nav.contact', 'Contact')}</EditableText>
                 <ChevronDown className="h-4 w-4" />
               </button>
               <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-neutral-200 min-w-[160px] z-50 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
@@ -659,7 +668,7 @@ export function Navigation() {
                   }`}
                 >
                   <Mail className="h-4 w-4" />
-                  Contact Us
+                  <EditableText copyKey="nav.contact_us" as="span" className="">{getCopy('nav.contact_us', 'Contact Us')}</EditableText>
                 </Link>
                 <Link
                   to="/faq"
@@ -670,7 +679,7 @@ export function Navigation() {
                   }`}
                 >
                   <HelpCircle className="h-4 w-4" />
-                  FAQ
+                  <EditableText copyKey="nav.faq" as="span" className="">{getCopy('nav.faq', 'FAQ')}</EditableText>
                 </Link>
               </div>
             </div>
@@ -690,13 +699,13 @@ export function Navigation() {
               to="/login"
               className="hidden sm:block text-neutral-600 hover:text-burgundy-600 font-medium text-sm px-4 py-2 rounded-lg hover:bg-neutral-50 transition-colors"
             >
-              Login
+              <EditableText copyKey="nav.login" as="span" className="">{getCopy('nav.login', 'Login')}</EditableText>
             </Link>
             <Link
               to="/signup"
               className="bg-burgundy-500 hover:bg-burgundy-600 text-white font-semibold text-sm px-5 py-2 rounded-full transition-colors shadow-sm"
             >
-              Sign Up Free
+              <EditableText copyKey="nav.signup_free" as="span" className="">{getCopy('nav.signup_free', 'Sign Up Free')}</EditableText>
             </Link>
           </div>
         </div>
@@ -712,7 +721,7 @@ export function Navigation() {
                   : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >
-              Home
+              <EditableText copyKey="nav.home" as="span" className="">{getCopy('nav.home', 'Home')}</EditableText>
             </Link>
             <Link
               to="/how-to-play"
@@ -722,7 +731,7 @@ export function Navigation() {
                   : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >
-              How to Play
+              <EditableText copyKey="nav.how_to_play" as="span" className="">{getCopy('nav.how_to_play', 'How to Play')}</EditableText>
             </Link>
             <Link
               to="/scoring-rules"
@@ -732,7 +741,7 @@ export function Navigation() {
                   : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >
-              Scoring Rules
+              <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Scoring Rules')}</EditableText>
             </Link>
             <Link
               to="/contact"
@@ -742,7 +751,7 @@ export function Navigation() {
                   : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >
-              Contact Us
+              <EditableText copyKey="nav.contact_us" as="span" className="">{getCopy('nav.contact_us', 'Contact Us')}</EditableText>
             </Link>
             <Link
               to="/faq"
@@ -752,11 +761,11 @@ export function Navigation() {
                   : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >
-              FAQ
+              <EditableText copyKey="nav.faq" as="span" className="">{getCopy('nav.faq', 'FAQ')}</EditableText>
             </Link>
             <hr className="my-2 border-neutral-100 mx-4" />
             <Link to="/login" className="block px-4 py-3 text-sm font-medium text-neutral-600 mx-2">
-              Login
+              <EditableText copyKey="nav.login" as="span" className="">{getCopy('nav.login', 'Login')}</EditableText>
             </Link>
           </div>
         )}

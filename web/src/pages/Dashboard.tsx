@@ -403,12 +403,16 @@ export function Dashboard() {
         {/* My Leagues - Main Content */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-display font-bold text-neutral-800">My Leagues</h2>
+            <EditableText copyKey="dashboard.leagues.title" as="h2" className="text-lg font-display font-bold text-neutral-800">
+              {getCopy('dashboard.leagues.title', 'My Leagues')}
+            </EditableText>
             <Link
               to="/leagues"
               className="text-burgundy-500 hover:text-burgundy-600 text-sm font-semibold flex items-center gap-1"
             >
-              View All <ChevronRight className="h-4 w-4" />
+              <EditableText copyKey="dashboard.leagues.view_all" as="span" className="">
+                {getCopy('dashboard.leagues.view_all', 'View All')}
+              </EditableText> <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
 
@@ -434,14 +438,22 @@ export function Dashboard() {
               <div className="w-12 h-12 bg-cream-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Users className="h-6 w-6 text-neutral-400" />
               </div>
-              <h3 className="font-semibold text-neutral-800 mb-2">No leagues yet</h3>
-              <p className="text-neutral-500 mb-4">Join or create a league to start playing!</p>
+              <EditableText copyKey="dashboard.empty.title" as="h3" className="font-semibold text-neutral-800 mb-2">
+                {getCopy('dashboard.empty.title', 'No leagues yet')}
+              </EditableText>
+              <EditableText copyKey="dashboard.empty.description" as="p" className="text-neutral-500 mb-4">
+                {getCopy('dashboard.empty.description', 'Join or create a league to start playing!')}
+              </EditableText>
               <div className="flex gap-3 justify-center">
                 <Link to="/leagues/create" className="btn btn-primary">
-                  Create League
+                  <EditableText copyKey="dashboard.empty.create_button" as="span" className="">
+                    {getCopy('dashboard.empty.create_button', 'Create League')}
+                  </EditableText>
                 </Link>
                 <Link to="/leagues" className="btn btn-secondary">
-                  Browse Leagues
+                  <EditableText copyKey="dashboard.empty.browse_button" as="span" className="">
+                    {getCopy('dashboard.empty.browse_button', 'Browse Leagues')}
+                  </EditableText>
                 </Link>
               </div>
             </div>

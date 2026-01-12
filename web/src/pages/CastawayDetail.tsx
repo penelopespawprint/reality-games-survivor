@@ -8,6 +8,8 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
+import { EditableText } from '@/components/EditableText';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import {
@@ -43,6 +45,7 @@ interface CastawayRanking {
 
 export default function CastawayDetail() {
   const { id } = useParams<{ id: string }>();
+  const { getCopy } = useSiteCopy();
 
   // Fetch castaway details
   const {
@@ -223,14 +226,16 @@ export default function CastawayDetail() {
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="bg-white rounded-2xl shadow-card p-8 text-center max-w-md">
             <Skull className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-            <h2 className="text-xl font-display font-bold text-neutral-800 mb-2">
-              Castaway Not Found
-            </h2>
-            <p className="text-neutral-600 mb-4">
-              This castaway doesn't exist or has been removed.
-            </p>
+            <EditableText copyKey="castaway_detail.not_found.title" as="h2" className="text-xl font-display font-bold text-neutral-800 mb-2">
+              {getCopy('castaway_detail.not_found.title', 'Castaway Not Found')}
+            </EditableText>
+            <EditableText copyKey="castaway_detail.not_found.message" as="p" className="text-neutral-600 mb-4">
+              {getCopy('castaway_detail.not_found.message', "This castaway doesn't exist or has been removed.")}
+            </EditableText>
             <Link to="/castaways" className="btn btn-primary">
-              View All Castaways
+              <EditableText copyKey="castaway_detail.not_found.button" as="span">
+                {getCopy('castaway_detail.not_found.button', 'View All Castaways')}
+              </EditableText>
             </Link>
           </div>
         </div>
@@ -252,7 +257,9 @@ export default function CastawayDetail() {
           className="inline-flex items-center gap-2 text-neutral-600 hover:text-burgundy-600 mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Castaways
+          <EditableText copyKey="castaway_detail.back_link" as="span">
+            {getCopy('castaway_detail.back_link', 'Back to Castaways')}
+          </EditableText>
         </Link>
 
         {/* Hero Section - Large Photo Layout */}
@@ -278,7 +285,9 @@ export default function CastawayDetail() {
                 <div className="absolute top-4 left-4">
                   <div className="flex items-center gap-1.5 bg-neutral-800/90 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                     <Skull className="h-4 w-4" />
-                    Eliminated
+                    <EditableText copyKey="castaway_detail.status.eliminated" as="span">
+                      {getCopy('castaway_detail.status.eliminated', 'Eliminated')}
+                    </EditableText>
                   </div>
                 </div>
               )}
@@ -286,7 +295,9 @@ export default function CastawayDetail() {
                 <div className="absolute top-4 left-4">
                   <div className="flex items-center gap-1.5 bg-amber-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                     <Trophy className="h-4 w-4" />
-                    Winner
+                    <EditableText copyKey="castaway_detail.status.winner" as="span">
+                      {getCopy('castaway_detail.status.winner', 'Winner')}
+                    </EditableText>
                   </div>
                 </div>
               )}
@@ -302,9 +313,9 @@ export default function CastawayDetail() {
                     {castaway.tribe_original || 'Unknown Tribe'}
                   </div>
                   {castaway.status === 'active' && (
-                    <span className="text-sm font-semibold text-green-600">
-                      Active
-                    </span>
+                    <EditableText copyKey="castaway_detail.status.active" as="span" className="text-sm font-semibold text-green-600">
+                      {getCopy('castaway_detail.status.active', 'Active')}
+                    </EditableText>
                   )}
                 </div>
                 <h1 className="text-4xl font-display font-bold text-neutral-800">
@@ -319,7 +330,9 @@ export default function CastawayDetail() {
                     <div className="flex items-center gap-2 text-neutral-600">
                       <Calendar className="h-5 w-5 text-burgundy-500" />
                       <div>
-                        <p className="text-xs text-neutral-500 uppercase tracking-wide">Age</p>
+                        <EditableText copyKey="castaway_detail.label.age" as="p" className="text-xs text-neutral-500 uppercase tracking-wide">
+                          {getCopy('castaway_detail.label.age', 'Age')}
+                        </EditableText>
                         <p className="font-semibold text-neutral-800">{castaway.age} years old</p>
                       </div>
                     </div>
@@ -330,7 +343,9 @@ export default function CastawayDetail() {
                     <div className="flex items-center gap-2 text-neutral-600">
                       <MapPin className="h-5 w-5 text-burgundy-500" />
                       <div>
-                        <p className="text-xs text-neutral-500 uppercase tracking-wide">From</p>
+                        <EditableText copyKey="castaway_detail.label.from" as="p" className="text-xs text-neutral-500 uppercase tracking-wide">
+                          {getCopy('castaway_detail.label.from', 'From')}
+                        </EditableText>
                         <p className="font-semibold text-neutral-800">{castaway.hometown}</p>
                       </div>
                     </div>
@@ -341,9 +356,9 @@ export default function CastawayDetail() {
                     <div className="flex items-center gap-2 text-neutral-600">
                       <Briefcase className="h-5 w-5 text-burgundy-500" />
                       <div>
-                        <p className="text-xs text-neutral-500 uppercase tracking-wide">
-                          Occupation
-                        </p>
+                        <EditableText copyKey="castaway_detail.label.occupation" as="p" className="text-xs text-neutral-500 uppercase tracking-wide">
+                          {getCopy('castaway_detail.label.occupation', 'Occupation')}
+                        </EditableText>
                         <p className="font-semibold text-neutral-800">{castaway.occupation}</p>
                       </div>
                     </div>
@@ -357,7 +372,9 @@ export default function CastawayDetail() {
                   <div className="flex items-start gap-3">
                     <Star className="h-6 w-6 text-amber-500 flex-shrink-0" />
                     <div>
-                      <p className="font-semibold text-amber-800 mb-1">Fun Fact</p>
+                      <EditableText copyKey="castaway_detail.label.fun_fact" as="p" className="font-semibold text-amber-800 mb-1">
+                        {getCopy('castaway_detail.label.fun_fact', 'Fun Fact')}
+                      </EditableText>
                       <div
                         className="text-amber-700 leading-relaxed prose prose-sm max-w-none prose-amber"
                         dangerouslySetInnerHTML={{ __html: castaway.fun_fact }}
@@ -370,12 +387,18 @@ export default function CastawayDetail() {
               {/* Previous Seasons */}
               {castaway.previous_seasons && castaway.previous_seasons.length > 0 && (
                 <div className="bg-burgundy-50 border border-burgundy-200 rounded-xl p-4 mt-auto">
-                  <p className="font-semibold text-burgundy-800 mb-2">Survivor Veteran</p>
+                  <EditableText copyKey="castaway_detail.label.survivor_veteran" as="p" className="font-semibold text-burgundy-800 mb-2">
+                    {getCopy('castaway_detail.label.survivor_veteran', 'Survivor Veteran')}
+                  </EditableText>
                   <p className="text-burgundy-700">
-                    Previous seasons: {castaway.previous_seasons.join(', ')}
+                    <EditableText copyKey="castaway_detail.label.previous_seasons" as="span">
+                      {getCopy('castaway_detail.label.previous_seasons', 'Previous seasons:')}
+                    </EditableText> {castaway.previous_seasons.join(', ')}
                     {castaway.best_placement && (
                       <span className="ml-2 font-semibold">
-                        (Best finish: #{castaway.best_placement})
+                        (<EditableText copyKey="castaway_detail.label.best_finish" as="span">
+                          {getCopy('castaway_detail.label.best_finish', 'Best finish:')}
+                        </EditableText> #{castaway.best_placement})
                       </span>
                     )}
                   </p>
@@ -389,13 +412,17 @@ export default function CastawayDetail() {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-6 text-center">
             <p className="text-3xl font-bold text-burgundy-600">{totalPoints}</p>
-            <p className="text-neutral-500 text-sm">Total Points</p>
+            <EditableText copyKey="castaway_detail.label.total_points" as="p" className="text-neutral-500 text-sm">
+              {getCopy('castaway_detail.label.total_points', 'Total Points')}
+            </EditableText>
           </div>
           <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-6 text-center">
             <p className="text-3xl font-bold text-neutral-800">
               {castawayRank ? `#${castawayRank}` : '-'}
             </p>
-            <p className="text-neutral-500 text-sm">of {totalCastaways} Castaways</p>
+            <EditableText copyKey="castaway_detail.label.rank" as="p" className="text-neutral-500 text-sm">
+              {getCopy('castaway_detail.label.rank', `of ${totalCastaways} Castaways`)}
+            </EditableText>
           </div>
           {(confessionalCount || 0) >= 1 ? (
             <Link
@@ -403,12 +430,16 @@ export default function CastawayDetail() {
               className="bg-white rounded-2xl shadow-card border border-cream-200 p-6 text-center hover:shadow-lg hover:border-burgundy-200 transition-all"
             >
               <p className="text-3xl font-bold text-burgundy-600">{confessionalCount || 0}</p>
-              <p className="text-neutral-500 text-sm">Season 50 Confessionals</p>
+              <EditableText copyKey="castaway_detail.label.confessionals" as="p" className="text-neutral-500 text-sm">
+                {getCopy('castaway_detail.label.confessionals', 'Season 50 Confessionals')}
+              </EditableText>
             </Link>
           ) : (
             <div className="bg-white rounded-2xl shadow-card border border-cream-200 p-6 text-center">
               <p className="text-3xl font-bold text-neutral-800">0</p>
-              <p className="text-neutral-500 text-sm">Season 50 Confessionals</p>
+              <EditableText copyKey="castaway_detail.label.confessionals" as="p" className="text-neutral-500 text-sm">
+                {getCopy('castaway_detail.label.confessionals', 'Season 50 Confessionals')}
+              </EditableText>
             </div>
           )}
         </div>
@@ -416,9 +447,9 @@ export default function CastawayDetail() {
         {/* Week-over-Week Performance */}
         <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
           <div className="p-5 border-b border-cream-100">
-            <h2 className="text-lg font-display font-bold text-neutral-800">
-              Week-over-Week Performance
-            </h2>
+            <EditableText copyKey="castaway_detail.header.performance" as="h2" className="text-lg font-display font-bold text-neutral-800">
+              {getCopy('castaway_detail.header.performance', 'Week-over-Week Performance')}
+            </EditableText>
           </div>
 
           {episodeScores && episodeScores.length > 0 ? (
@@ -477,7 +508,9 @@ export default function CastawayDetail() {
                       )}
                       <div className="text-right">
                         <p className="text-xl font-bold text-neutral-800">{score.points}</p>
-                        <p className="text-xs text-neutral-400">points</p>
+                        <EditableText copyKey="castaway_detail.label.points" as="p" className="text-xs text-neutral-400">
+                          {getCopy('castaway_detail.label.points', 'points')}
+                        </EditableText>
                       </div>
                     </div>
                   </div>
@@ -486,8 +519,12 @@ export default function CastawayDetail() {
             </div>
           ) : (
             <div className="p-8 text-center text-neutral-500">
-              <p>No scoring data available yet.</p>
-              <p className="text-sm mt-1">Check back after episodes air!</p>
+              <EditableText copyKey="castaway_detail.empty.no_data" as="p">
+                {getCopy('castaway_detail.empty.no_data', 'No scoring data available yet.')}
+              </EditableText>
+              <EditableText copyKey="castaway_detail.empty.check_back" as="p" className="text-sm mt-1">
+                {getCopy('castaway_detail.empty.check_back', 'Check back after episodes air!')}
+              </EditableText>
             </div>
           )}
         </div>
