@@ -22,7 +22,7 @@
   "author": "Reality Games Fantasy League",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.25.2",
     "@sentry/node": "^8.0.0",
     "@supabase/supabase-js": "^2.45.0",
     "dotenv": "^16.4.5",
