@@ -1,7 +1,7 @@
 /**
  * Trivia Lockout Card Component
  *
- * Shows when user is locked out for 24 hours with live countdown.
+ * Shows when user is locked out for 2 hours with live countdown.
  */
 
 import { useState, useEffect } from 'react';

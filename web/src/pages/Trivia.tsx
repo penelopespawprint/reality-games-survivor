@@ -335,7 +335,7 @@ export function Trivia() {
             </h1>
             <p className="text-lg text-neutral-600 max-w-md mx-auto">
               Answer 24 questions to prove you're the ultimate Survivor fan. Get one wrong? Come
-              back in 24 hours!
+              back in 2 hours!
             </p>
           </div>
 
@@ -353,7 +353,7 @@ export function Trivia() {
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-orange-500 font-bold">3.</span>
-                <span>Get one wrong = 24 hour lockout</span>
+                <span>Get one wrong = 2 hour lockout</span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-orange-500 font-bold">4.</span>
@@ -456,7 +456,7 @@ export function Trivia() {
               Ready to Begin?
             </h2>
             <p className="text-neutral-600 mb-6 max-w-md mx-auto">
-              You have 20 seconds per question. Get one wrong and you're locked out for 24 hours.
+              You have 20 seconds per question. Get one wrong and you're locked out for 2 hours.
               Answer all 24 correctly to join the leaderboard!
             </p>
             <button
@@ -523,7 +523,7 @@ export function Trivia() {
         subtitle={
           isComplete
             ? "You've joined the ranks of Survivor trivia masters!"
-            : 'Your torch has been snuffed. Come back in 24 hours.'
+            : 'Your torch has been snuffed. Come back in 2 hours.'
         }
         isCompletion={isComplete || false}
       />

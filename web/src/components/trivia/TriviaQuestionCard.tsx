@@ -197,7 +197,7 @@ export function TriviaQuestionCard({
               </p>
               <div className="bg-red-100 border border-red-300 rounded-lg p-3 mt-3">
                 <p className="text-sm font-semibold text-red-800 text-center">
-                  ⏰ You're locked out for 24 hours. Come back tomorrow to continue.
+                  ⏰ You're locked out for 2 hours. Come back soon to continue.
                 </p>
               </div>
             </>

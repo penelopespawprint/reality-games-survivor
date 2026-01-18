@@ -1,6 +1,6 @@
 /**
  * Trivia Routes
- * Handles 24-question trivia with 24h lockout on wrong answer
+ * Handles 24-question trivia with 2h lockout on wrong answer
  */
 import { Router, Response } from 'express';
 import { authenticate, AuthenticatedRequest } from '../middleware/authenticate.js';
@@ -38,7 +38,7 @@ router.get('/next', authenticate, async (req: AuthenticatedRequest, res: Respons
       return sendSuccess(res, {
         isLocked: true,
         lockedUntil: user?.trivia_locked_until || null,
-        message: 'You got a question wrong! Come back in 24 hours to continue.',
+        message: 'You got a question wrong! Come back in 2 hours to continue.',
       });
     }
 
@@ -148,7 +148,7 @@ router.post('/answer', authenticate, async (req: AuthenticatedRequest, res: Resp
     const isLocked = lockoutCheck?.[0]?.is_user_trivia_locked ?? false;
 
     if (isLocked) {
-      return sendForbidden(res, 'You are locked out for 24 hours after getting a question wrong');
+      return sendForbidden(res, 'You are locked out for 2 hours after getting a question wrong');
     }
 
     // Get the question
@@ -219,10 +219,10 @@ router.post('/answer', authenticate, async (req: AuthenticatedRequest, res: Resp
       }
     }
 
-    // If wrong answer, lock user out for 24 hours and increment attempts
+    // If wrong answer, lock user out for 2 hours and increment attempts
     if (!isCorrect) {
       const lockoutUntil = new Date();
-      lockoutUntil.setHours(lockoutUntil.getHours() + 24);
+      lockoutUntil.setHours(lockoutUntil.getHours() + 2);
 
       // Get current attempts count
       const { data: userData } = await supabaseAdmin
@@ -312,7 +312,7 @@ router.post('/answer', authenticate, async (req: AuthenticatedRequest, res: Resp
       funFact: question.fun_fact,
       isTimeout,
       isLocked: !isCorrect, // Locked if wrong
-      lockedUntil: !isCorrect ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null,
+      lockedUntil: !isCorrect ? new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString() : null,
     });
   } catch (error) {
     console.error('Trivia answer error:', error);

@@ -62,7 +62,7 @@ export function TriviaSignupModal({
             <>
               <div className="text-5xl mb-4">⏰</div>
               <h2 className="text-3xl font-display font-bold text-neutral-800 mb-2">
-                Locked Out for 24 Hours
+                Locked Out for 2 Hours
               </h2>
               <p className="text-lg text-neutral-600">
                 You missed a question. Come back tomorrow to try again!
@@ -124,7 +124,7 @@ export function TriviaSignupModal({
         {reason === 'missed' && (
           <div className="text-center">
             <p className="text-sm text-neutral-500">
-              Your lockout expires in 24 hours. Check back tomorrow to continue!
+              Your lockout expires in 2 hours. Check back soon to continue!
             </p>
           </div>
         )}
