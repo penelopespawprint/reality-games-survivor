@@ -14,7 +14,7 @@ import { EditableText } from '@/components/EditableText';
 import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
 import { useAuth } from '@/lib/auth';
 import { useEditMode } from '@/lib/hooks/useEditMode';
-import { ChevronDown, HelpCircle, Loader2, Pencil, Check, X, Trash2, ChevronUp } from 'lucide-react';
+import { ChevronDown, HelpCircle, Loader2, Pencil, Check, X, Trash2, ChevronUp, LayoutDashboard, Trophy, BookOpen, Calculator, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface FAQItem {
@@ -334,6 +334,50 @@ export default function FAQ() {
           <EditableText copyKey="faq.header.subtitle" as="p" className="text-neutral-500">
             {getCopy('faq.header.subtitle', 'Everything you need to know about Reality Games Fantasy League')}
           </EditableText>
+        </div>
+
+        {/* Quick Links */}
+        <div className="mb-10 bg-white rounded-2xl shadow-card border border-cream-200 p-6">
+          <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wider mb-4 text-center">
+            Quick Links
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <Link
+              to="/dashboard"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-cream-50 hover:bg-burgundy-50 border border-cream-200 hover:border-burgundy-200 transition-colors group"
+            >
+              <LayoutDashboard className="h-6 w-6 text-burgundy-500 group-hover:text-burgundy-600" />
+              <span className="text-sm font-medium text-neutral-700 group-hover:text-burgundy-700">Dashboard</span>
+            </Link>
+            <Link
+              to="/leaderboard"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-cream-50 hover:bg-burgundy-50 border border-cream-200 hover:border-burgundy-200 transition-colors group"
+            >
+              <Trophy className="h-6 w-6 text-burgundy-500 group-hover:text-burgundy-600" />
+              <span className="text-sm font-medium text-neutral-700 group-hover:text-burgundy-700">Rank List</span>
+            </Link>
+            <Link
+              to="/how-to-play"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-cream-50 hover:bg-burgundy-50 border border-cream-200 hover:border-burgundy-200 transition-colors group"
+            >
+              <BookOpen className="h-6 w-6 text-burgundy-500 group-hover:text-burgundy-600" />
+              <span className="text-sm font-medium text-neutral-700 group-hover:text-burgundy-700">How to Play</span>
+            </Link>
+            <Link
+              to="/scoring-rules"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-cream-50 hover:bg-burgundy-50 border border-cream-200 hover:border-burgundy-200 transition-colors group"
+            >
+              <Calculator className="h-6 w-6 text-burgundy-500 group-hover:text-burgundy-600" />
+              <span className="text-sm font-medium text-neutral-700 group-hover:text-burgundy-700">Score Rules</span>
+            </Link>
+            <Link
+              to="/timeline"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-cream-50 hover:bg-burgundy-50 border border-cream-200 hover:border-burgundy-200 transition-colors group"
+            >
+              <Calendar className="h-6 w-6 text-burgundy-500 group-hover:text-burgundy-600" />
+              <span className="text-sm font-medium text-neutral-700 group-hover:text-burgundy-700">Weekly Timeline</span>
+            </Link>
+          </div>
         </div>
 
         {/* Expand/Collapse All */}

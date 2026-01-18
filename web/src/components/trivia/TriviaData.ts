@@ -13,252 +13,196 @@ export interface TriviaQuestion {
 
 export const TRIVIA_QUESTIONS: TriviaQuestion[] = [
   {
-    castaway: 'Angelina Keeley',
-    question: 'Angelina Keeley is the founder and CEO of what type of organization?',
-    options: ['Tech startup', 'Nonprofit for young girls', 'Fashion brand', 'Restaurant chain'],
+    castaway: 'Rob Mariano',
+    question: 'What memorable event happened during the All-Stars finale involving Rob Mariano?',
+    options: ['He won fire-making', 'He proposed to Amber', 'He found a hidden idol', 'He was voted out unanimously'],
     correctIndex: 1,
     funFact:
-      'Angelina founded Miss Limitless, a nonprofit that encourages and empowers young girls to run for student government positions.',
+      'Rob proposed to Amber on the All-Stars finale, they married and have 4 daughters.',
   },
   {
-    castaway: 'Aubry Bracco',
-    question: "What was Aubry Bracco's claim to fame according to her Edge of Extinction profile?",
-    options: [
-      'Winning immunity 4 times',
-      'Neutralizing a Super Idol',
-      'Finding 3 idols',
-      'Making fire fastest',
-    ],
+    castaway: 'Sandra Diaz-Twine',
+    question: 'What historic Survivor achievement does Sandra Diaz-Twine hold?',
+    options: ['Most days played', 'Only player to win twice', 'Most idols found', 'Most challenge wins'],
     correctIndex: 1,
     funFact:
-      "Aubry's Survivor audition video was posted online by casting for many years as an example of a good audition video.",
+      'Sandra is the only player to win Survivor twice, famous for her "As long as it ain\'t me" strategy.',
   },
   {
-    castaway: 'Charlie Davis',
-    question: 'Charlie Davis co-hosted which official Survivor podcast?',
-    options: [
-      'RHAP',
-      'Survivor Know-It-Alls',
-      'On Fire with Jeff Probst',
-      'The Ringer Survivor Show',
-    ],
-    correctIndex: 2,
+    castaway: 'Tony Vlachos',
+    question: 'What is Tony Vlachos famous for building during his Survivor seasons?',
+    options: ['Fire pits', 'Spy shacks and bunkers', 'Fishing traps', 'Tree houses'],
+    correctIndex: 1,
     funFact:
-      'Charlie graduated from Boston College law school and is known as a Taylor Swift superfan.',
-  },
-  {
-    castaway: 'Chrissy Hofbeck',
-    question: 'How many years did Chrissy Hofbeck apply to be on Survivor before being cast?',
-    options: ['5 years', '10 years', '16 years', '20 years'],
-    correctIndex: 2,
-    funFact:
-      'Chrissy is one of six women to win 4 individual immunities in a single season and was gifted the Super Idol on Day 1.',
-  },
-  {
-    castaway: 'Christian Hubicki',
-    question: 'Christian Hubicki once won a challenge due to his ability to do what for 5 hours?',
-    options: [
-      'Hold his breath',
-      'Balance on a perch',
-      'Make conversation with Jeff',
-      'Solve puzzles repeatedly',
-    ],
-    correctIndex: 2,
-    funFact:
-      'Christian won a 5-hour endurance challenge, in part due to his ramblings and attempts to make conversations with Jeff Probst.',
+      'Tony is known for building spy shacks/bunkers to eavesdrop on his tribemates.',
   },
   {
     castaway: 'Cirie Fields',
-    question: 'What major accomplishment did Cirie Fields achieve after Survivor?',
-    options: ['Won Big Brother', 'Won The Traitors', 'Won The Amazing Race', 'Won The Challenge'],
+    question: 'What was Cirie Fields famously described as before becoming a Survivor legend?',
+    options: ['A super athlete', 'Someone afraid to get off the couch', 'A wilderness expert', 'A competitive swimmer'],
     correctIndex: 1,
     funFact:
-      "Cirie is the first player to compete 6 times and was famously eliminated by 'Advantageddon' with zero votes against her.",
+      'Cirie started as someone "afraid to get off the couch" and became one of the best to never win.',
   },
   {
-    castaway: 'Coach Wade',
-    question: 'What unique professional title does Coach Wade hold?',
-    options: ['Olympic Athlete', 'Symphony Conductor', 'Marine Biologist', 'Astronaut'],
+    castaway: 'Tyson Apostol',
+    question: 'What embarrassing mistake did Tyson Apostol make in Heroes vs Villains?',
+    options: ['Lost his buff', 'Voted himself out', 'Forgot to vote', 'Played idol wrong'],
     correctIndex: 1,
     funFact:
-      "Coach, nicknamed 'The Dragon Slayer,' was the first returning player to reach Final Tribal Council without receiving a single vote throughout the season.",
+      'Tyson is a professional cyclist who once voted himself out by mistake in Heroes vs Villains.',
   },
   {
-    castaway: 'Colby Donaldson',
-    question: 'Colby Donaldson set what record in Australian Outback?',
-    options: [
-      'Most tribal councils attended',
-      '5 consecutive individual immunity wins',
-      'Most votes against',
-      'Longest fire-making challenge',
-    ],
-    correctIndex: 1,
-    funFact:
-      'Colby was the first castaway to fall victim to the Car Curse and is forever associated in Survivor lore with Jerri Manthey.',
-  },
-  {
-    castaway: 'Dee Valladares',
-    question: 'Dee Valladares had a quirky talking point about having what?',
-    options: ['Million-dollar smile', 'Million-dollar toes', 'Lucky socks', 'Magic hands'],
-    correctIndex: 1,
-    funFact:
-      'Dee immigrated from Cuba at age 2 and had a showmance with Austin Li Coon during her season.',
-  },
-  {
-    castaway: 'Emily Flippen',
-    question: 'Emily Flippen is remembered for a key confessional that was loosened by what?',
-    options: ['A nap', 'Winning reward', 'A large glass of wine', 'Finding an idol'],
-    correctIndex: 2,
-    funFact:
-      'Emily challenged a returning player on the opening mat for having an advantage, and Survivor fans love making memes about her job title and name.',
-  },
-  {
-    castaway: 'Genevieve Mushaluk',
-    question:
-      "Which memorable quote is associated with Genevieve Mushaluk's gameplay in Season 47?",
-    options: [
-      'The tribe has spoken',
-      'Make Kishan the plan',
-      'Blindside the blindsider',
-      'Trust the process',
-    ],
-    correctIndex: 1,
-    funFact:
-      "Genevieve was part of 'Operation: Italy' and intentionally started emotionless then realized emotion was key to her game.",
-  },
-  {
-    castaway: 'Jenna Lewis-Dougherty',
-    question: 'Jenna Lewis-Dougherty holds what impressive Survivor gap record?',
-    options: [
-      'Longest time between seasons (42)',
-      'Most reunions attended',
-      'Most tribal councils',
-      'Most confessionals',
-    ],
+    castaway: 'Sarah Lacina',
+    question: 'How did Sarah Lacina describe her winning Game Changers strategy?',
+    options: ['Playing like a criminal instead of a cop', 'Under the radar', 'Challenge beast mode', 'Loyal to the end'],
     correctIndex: 0,
     funFact:
-      'Jenna was the only Borneo contestant to make merge in All-Stars and co-hosted a podcast with Rob Cesternino prior to RHAP.',
+      'Sarah was the first player to win Game Changers by playing like a criminal instead of a cop.',
   },
   {
-    castaway: 'Joe Hunter',
-    question: "What is notable about Joe Hunter's voting record in Season 48?",
-    options: [
-      'Received the most votes',
-      'Never received a single vote',
-      'Voted wrong every time',
-      'Never voted',
-    ],
-    correctIndex: 1,
-    funFact:
-      'Joe is an advocate for domestic violence prevention and survivors, and attended the Emmys as a guest after his season.',
-  },
-  {
-    castaway: 'Jonathan Young',
-    question: 'Jonathan Young holds a Guinness World Record for doing what?',
-    options: [
-      'Most push-ups in a minute',
-      '15 chin-ups with 100 lbs in 60 seconds',
-      'Longest plank',
-      'Fastest mile carrying weight',
-    ],
-    correctIndex: 1,
-    funFact:
-      'Jonathan was originally cast for Season 41 before filming was suspended due to COVID-19, and is remembered for single-handedly dragging his boat through rough waters.',
-  },
-  {
-    castaway: 'Kamilla Karthigesu',
-    question: "What do Kamilla Karthigesu's fans call themselves?",
-    options: ['Kamilla Crew', 'The Kamillitary', 'Team Kamilla', 'Karthigesu Nation'],
-    correctIndex: 1,
-    funFact:
-      'Kamilla had a game-long secret alliance revealed during Final Tribal Council and intentionally made people look worse than her.',
-  },
-  {
-    castaway: 'Kyle Fraser',
-    question: 'What mishap occurred when Kyle Fraser competed in a reward challenge?',
-    options: ['Broke the puzzle', 'Broke the water jug', 'Lost his shoes', 'Forgot the rules'],
-    correctIndex: 1,
-    funFact:
-      'Kyle talks openly about his history of incarceration and had a game-long secret alliance revealed during Final Tribal Council.',
-  },
-  {
-    castaway: 'Mike White',
-    question: "Mike White found another castaway's hidden immunity idol clue while doing what?",
-    options: ['Fishing', 'Building shelter', 'Drinking wine', 'Taking a nap'],
+    castaway: 'Ben Driebergen',
+    question: 'How many hidden immunity idols did Ben Driebergen find in his winning season?',
+    options: ['1', '2', '3', '4'],
     correctIndex: 2,
     funFact:
-      "Mike is the creator of 'The White Lotus' and wrote 'School of Rock.' He's a close friend of Survivor host Jeff Probst.",
+      'Ben found 3 idols in his winning season and won the fire-making challenge to reach Final 3.',
   },
   {
-    castaway: 'Ozzy Lusth',
-    question: 'Ozzy Lusth created a historic first in Survivor by doing what?',
-    options: [
-      'Winning 5 immunities in a row',
-      'Making a fake idol that was played by another castaway',
-      'Finding 4 idols',
-      'Competing without getting votes',
-    ],
-    correctIndex: 1,
-    funFact:
-      'Ozzy was voted out three times in a single season and was blindsided by the Black Widow Brigade.',
-  },
-  {
-    castaway: 'Q Burdette',
-    question: 'Q Burdette is the inventor of what unique Survivor fashion item?',
-    options: ['The Q-Hat', 'The Q-Skirt', 'The Q-Bandana', 'The Q-Shoes'],
-    correctIndex: 1,
-    funFact:
-      "Q famously said, 'Thought she could rally the troops and send me packing? You can cancel Christmas, girl.'",
-  },
-  {
-    castaway: 'Rick Devens',
-    question: 'Rick Devens was the first castaway to co-host which podcast?',
-    options: ['RHAP', 'On Fire with Jeff Probst', 'Survivor Winners at War', 'The Drop'],
-    correctIndex: 1,
-    funFact:
-      'Rick re-entered the game after winning the re-entry duel challenge at the merge and possessed four hidden immunity idols during the season.',
-  },
-  {
-    castaway: 'Rizo Velovic',
-    question: 'How did Rizo Velovic infamously win a tribe supplies challenge?',
-    options: [
-      'Solving it first',
-      "Copying a competitor's puzzle",
-      'Getting help from his tribe',
-      'Finding a shortcut',
-    ],
-    correctIndex: 1,
-    funFact:
-      'Rizo held a publicly known immunity idol through nine Tribal Councils and was the first Survivor player of Albanian descent.',
-  },
-  {
-    castaway: 'Savannah Louie',
-    question: 'What distinction does Savannah Louie hold among female Survivor contestants?',
-    options: [
-      'Most confessionals',
-      'Most individual immunity wins in a season (4)',
-      'Longest challenge win',
-      'Most votes survived',
-    ],
-    correctIndex: 1,
-    funFact:
-      'Savannah was part of an all-female Final Tribal Council, the first time in 20 seasons. She received her first callback for Survivor at age 19.',
-  },
-  {
-    castaway: 'Stephenie LaGrossa Kendrick',
-    question: 'What injury did Stephenie LaGrossa famously suffer and immediately fix herself?',
-    options: ['Broken finger', 'Dislocated shoulder', 'Twisted ankle', 'Cut hand'],
-    correctIndex: 1,
-    funFact:
-      'Stephenie was famously the last castaway on a pre-merge tribe and was the first female to return to play in a mixed game of returning and new players.',
-  },
-  {
-    castaway: 'Tiffany Nicole Ervin',
-    question: "How many days did Tiffany's tribe go without fire in Season 46?",
-    options: ['5 days', '8 days', '11 days', '14 days'],
+    castaway: 'Natalie Anderson',
+    question: 'What happened to Natalie Anderson\'s twin sister Nadiya in San Juan del Sur?',
+    options: ['Made the merge', 'Won immunity', 'Voted out first', 'Made Final 3'],
     correctIndex: 2,
     funFact:
-      'Tiffany was voted out with a hidden immunity idol in her pocket and switched careers to art and content creation after a layoff in 2020.',
+      'Natalie won San Juan del Sur after her twin sister Nadiya was voted out first.',
+  },
+  {
+    castaway: 'Parvati Shallow',
+    question: 'What famous alliance did Parvati Shallow pioneer in Micronesia?',
+    options: ['The Villains', 'Black Widow Brigade', 'The Four Horsemen', 'Stealth R Us'],
+    correctIndex: 1,
+    funFact:
+      'Parvati pioneered the "Black Widow Brigade" alliance and flirting strategy.',
+  },
+  {
+    castaway: 'Kim Spradlin-Wolfe',
+    question: 'Which season is Kim Spradlin-Wolfe considered to have played the most dominant game?',
+    options: ['Cambodia', 'One World', 'Cagayan', 'Pearl Islands'],
+    correctIndex: 1,
+    funFact:
+      'Kim is considered to have played the most dominant winning game ever in One World.',
+  },
+  {
+    castaway: 'Jeremy Collins',
+    question: 'What strategy did Jeremy Collins use to win Cambodia?',
+    options: ['Under the radar', 'Meat shield strategy', 'Challenge beast', 'Idol hunting'],
+    correctIndex: 1,
+    funFact:
+      'Jeremy won Cambodia by successfully playing his meat shield strategy.',
+  },
+  {
+    castaway: 'Michele Fitzgerald',
+    question: 'What was unique about Michele Fitzgerald\'s Final Tribal Council win?',
+    options: ['Unanimous vote', 'Won without receiving votes until winner reveal', 'Tied with another player', 'Won by one vote'],
+    correctIndex: 1,
+    funFact:
+      'Michele won despite not receiving votes at final tribal until the winner reveal.',
+  },
+  {
+    castaway: 'Wendell Holland',
+    question: 'What historic first occurred when Wendell Holland won Ghost Island?',
+    options: ['First unanimous winner', 'First tie-breaker vote at Final Tribal', 'First idol play at FTC', 'First fire-making winner'],
+    correctIndex: 1,
+    funFact:
+      'Wendell won Ghost Island in the first ever tie-breaker vote at Final Tribal Council.',
+  },
+  {
+    castaway: 'Sophie Clarke',
+    question: 'How did Sophie Clarke beat Coach in South Pacific?',
+    options: ['Won fire-making', 'Called out his religious hypocrisy', 'Had more immunity wins', 'Found more idols'],
+    correctIndex: 1,
+    funFact:
+      'Sophie beat Coach in South Pacific by calling out his religious hypocrisy.',
+  },
+  {
+    castaway: 'Yul Kwon',
+    question: 'What famous comeback did Yul Kwon lead in Cook Islands?',
+    options: ['Aitu Four from 4 vs 8', 'Foa Foa from 4 vs 8', 'Heroes from 5 vs 5', 'Villains from 3 vs 6'],
+    correctIndex: 0,
+    funFact:
+      'Yul led the famous "Aitu Four" comeback from 4 vs 8 to win Cook Islands.',
+  },
+  {
+    castaway: 'Denise Stapley',
+    question: 'What remarkable record did Denise Stapley set in Philippines?',
+    options: ['Most challenge wins', 'Attended every tribal council and won', 'Found most idols', 'Received zero votes'],
+    correctIndex: 1,
+    funFact:
+      'Denise attended every single tribal council in Philippines and still won.',
+  },
+  {
+    castaway: 'Ethan Zohn',
+    question: 'What charity did Ethan Zohn start with his Survivor winnings?',
+    options: ['Feed the Children', 'Grassroot Soccer', 'Red Cross', 'Habitat for Humanity'],
+    correctIndex: 1,
+    funFact:
+      'Ethan is a cancer survivor who used his winnings to start Grassroot Soccer charity.',
+  },
+  {
+    castaway: 'Tina Wesson',
+    question: 'What historic Survivor first does Tina Wesson hold?',
+    options: ['First unanimous winner', 'First female winner', 'First to find an idol', 'First to play twice'],
+    correctIndex: 1,
+    funFact:
+      'Tina was the first female winner of Survivor and later returned with her daughter Katie.',
+  },
+  {
+    castaway: 'Earl Cole',
+    question: 'What two historic firsts did Earl Cole achieve in Fiji?',
+    options: ['Won without watching the show before and first unanimous winner', 'First idol find and most days played', 'First challenge sweep and zero votes against', 'First minority winner and most confessionals'],
+    correctIndex: 0,
+    funFact:
+      'Earl was the first unanimous winner in Survivor history and never watched the show before playing.',
+  },
+  {
+    castaway: 'JT Thomas',
+    question: 'What infamous move did JT Thomas make in Heroes vs Villains?',
+    options: ['Voted out his ally', 'Gave his idol to Russell', 'Threw a challenge', 'Quit the game'],
+    correctIndex: 1,
+    funFact:
+      'JT won Tocantins with zero votes against him but is infamous for giving his idol to Russell in HvV.',
+  },
+  {
+    castaway: 'Vecepia Towery',
+    question: 'What historic first did Vecepia Towery achieve in Marquesas?',
+    options: ['First female winner', 'First African American winner', 'First unanimous winner', 'First to find an idol'],
+    correctIndex: 1,
+    funFact:
+      'Vecepia was the first African American winner of Survivor, known for her under-the-radar game.',
+  },
+  {
+    castaway: 'Danni Boatwright',
+    question: 'How did Danni Boatwright hide her strategy from producers in Guatemala?',
+    options: ['Never spoke in confessionals', 'Spoke in code', 'Wrote notes instead', 'Used hand signals'],
+    correctIndex: 1,
+    funFact:
+      'Danni won Guatemala while hiding her strategy from producers by speaking in code.',
+  },
+  {
+    castaway: 'Adam Klein',
+    question: 'Who did Adam Klein dedicate his Survivor win to?',
+    options: ['His father', 'His mother who passed away from cancer', 'His sister', 'His best friend'],
+    correctIndex: 1,
+    funFact:
+      'Adam dedicated his win to his mother who passed away from lung cancer days after filming.',
+  },
+  {
+    castaway: 'Nick Wilson',
+    question: 'What was unique about how Nick Wilson named his alliances?',
+    options: ['Named them after animals', 'Named them after famous duos', 'Named them after movies', 'Named them after songs'],
+    correctIndex: 1,
+    funFact:
+      'Nick named all his alliances after famous duos (Mason-Dixon, Rockstars, etc.).',
   },
 ];
 
