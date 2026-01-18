@@ -375,6 +375,54 @@ router.get('/leaderboard', authenticate, async (req, res) => {
         return sendInternalError(res, 'Failed to fetch leaderboard');
     }
 });
+// GET /api/trivia/history - Get user's answered questions history
+router.get('/history', authenticate, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        // Get all answered questions with question details
+        const { data: answers, error } = await supabaseAdmin
+            .from('daily_trivia_answers')
+            .select(`
+        id,
+        question_id,
+        selected_index,
+        is_correct,
+        answered_at,
+        daily_trivia_questions (
+          id,
+          question_number,
+          question,
+          options,
+          correct_index,
+          fun_fact,
+          castaway_name
+        )
+      `)
+            .eq('user_id', userId)
+            .eq('is_correct', true)
+            .order('answered_at', { ascending: true });
+        if (error) {
+            console.error('History error:', error);
+            return sendInternalError(res, 'Failed to fetch history');
+        }
+        const history = (answers || []).map((answer) => ({
+            questionNumber: answer.daily_trivia_questions?.question_number,
+            question: answer.daily_trivia_questions?.question,
+            options: answer.daily_trivia_questions?.options,
+            selectedIndex: answer.selected_index,
+            correctIndex: answer.daily_trivia_questions?.correct_index,
+            isCorrect: answer.is_correct,
+            funFact: answer.daily_trivia_questions?.fun_fact,
+            castaway: answer.daily_trivia_questions?.castaway_name,
+            answeredAt: answer.answered_at,
+        }));
+        return sendSuccess(res, { history });
+    }
+    catch (error) {
+        console.error('Trivia history error:', error);
+        return sendInternalError(res, 'Failed to fetch history');
+    }
+});
 // POST /api/trivia/signup - Sign up for trivia with email (public, no auth required)
 router.post('/signup', async (req, res) => {
     try {

@@ -124,8 +124,8 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Severity and title are required' });
         }
         // Validate severity
-        if (!['P1', 'P2', 'P3', 'P4'].includes(severity)) {
-            return res.status(400).json({ error: 'Invalid severity. Must be P1, P2, P3, or P4' });
+        if (!['PL', 'P0', 'P1', 'P2', 'P3', 'P4'].includes(severity)) {
+            return res.status(400).json({ error: 'Invalid severity. Must be PL, P0, P1, P2, P3, or P4' });
         }
         // Create incident
         const { data: incident, error } = await supabaseAdmin

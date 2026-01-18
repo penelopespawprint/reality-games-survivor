@@ -19,3 +19,4 @@ export { TriviaCompletionCard } from './TriviaCompletionCard';
 export { TriviaQuestionCard } from './TriviaQuestionCard';
 export { TriviaCTACard } from './TriviaCTACard';
 export { TriviaLeaderboardModal } from './TriviaLeaderboardModal';
+export { TriviaHistoryModal } from './TriviaHistoryModal';

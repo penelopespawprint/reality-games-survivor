@@ -22,6 +22,7 @@ import {
   TriviaQuestionCard,
   TriviaCTACard,
   TriviaLeaderboardModal,
+  TriviaHistoryModal,
 } from '@/components/trivia';
 
 interface TriviaQuestion {
@@ -95,6 +96,7 @@ export function Trivia() {
   const [wrongMessage, setWrongMessage] = useState<string>("It's time for you to go.");
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardTitle, setLeaderboardTitle] = useState<string>('The Tribe Has Spoken');
+  const [showHistory, setShowHistory] = useState(false);
 
   // Track previous lockout state to detect when it changes
   const [wasLocked, setWasLocked] = useState(false);
@@ -433,6 +435,18 @@ export function Trivia() {
           />
         )}
 
+        {/* View Past Questions Button */}
+        {progress && progress.questionsCorrect > 0 && (
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => setShowHistory(true)}
+              className="px-4 py-2 text-sm font-medium text-burgundy-600 bg-burgundy-50 hover:bg-burgundy-100 rounded-lg border border-burgundy-200 transition-colors"
+            >
+              View Past Questions ({progress.questionsCorrect})
+            </button>
+          </div>
+        )}
+
         {/* Lockout Card */}
         {isLocked && lockedUntil && <TriviaLockoutCard lockedUntil={lockedUntil} />}
 
@@ -522,6 +536,13 @@ export function Trivia() {
             : 'Your torch has been snuffed. Come back in 2 hours.'
         }
         isCompletion={isComplete || false}
+      />
+
+      {/* History Modal - view past answered questions */}
+      <TriviaHistoryModal
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
+        accessToken={session?.access_token || ''}
       />
     </div>
   );
