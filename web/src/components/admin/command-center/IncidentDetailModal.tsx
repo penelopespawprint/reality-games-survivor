@@ -10,6 +10,7 @@ import {
   Send,
   Server,
   ExternalLink,
+  RotateCcw,
 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
@@ -197,6 +198,19 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
       queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
       queryClient.invalidateQueries({ queryKey: ['command-center'] });
       setNewStatus(null);
+    },
+  });
+
+  const reopenIncident = useMutation({
+    mutationFn: () =>
+      apiWithAuth(`/api/admin/incidents/${incidentId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'investigating' }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
+      queryClient.invalidateQueries({ queryKey: ['command-center'] });
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
     },
   });
 
@@ -510,7 +524,7 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
 
         {/* Resolved Footer */}
         {isResolved && (
-          <div className="p-5 border-t border-neutral-700">
+          <div className="p-5 border-t border-neutral-700 space-y-3">
             <div className="flex items-center justify-center gap-2 text-green-400">
               <CheckCircle className="h-5 w-5" />
               <span>Incident Resolved</span>
@@ -520,6 +534,18 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
                 </span>
               )}
             </div>
+            <button
+              onClick={() => reopenIncident.mutate()}
+              disabled={reopenIncident.isPending}
+              className="w-full py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-neutral-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              {reopenIncident.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCcw className="h-4 w-4" />
+              )}
+              Reopen Incident
+            </button>
           </div>
         )}
       </div>
