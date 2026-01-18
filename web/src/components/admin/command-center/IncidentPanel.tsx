@@ -18,10 +18,21 @@ interface IncidentPanelProps {
 }
 
 const severityColors = {
+  PL: 'bg-purple-600 text-white',
+  P0: 'bg-red-800 text-white',
   P1: 'bg-red-600 text-white',
   P2: 'bg-orange-600 text-white',
   P3: 'bg-yellow-600 text-black',
   P4: 'bg-blue-600 text-white',
+};
+
+const severityDescriptions = {
+  PL: 'Cannot launch without',
+  P0: 'Critical Game Function',
+  P1: 'Major Web Update',
+  P2: 'Minor Web Update',
+  P3: 'Minor Edits',
+  P4: 'Nice to have',
 };
 
 const statusLabels = {
@@ -55,7 +66,7 @@ async function apiWithAuth(endpoint: string, options?: RequestInit) {
 
 const ITEMS_PER_PAGE = 5;
 
-export function IncidentPanel({ incidents }: IncidentPanelProps) {
+export function IncidentPanel({ incidents: propIncidents }: IncidentPanelProps) {
   const queryClient = useQueryClient();
   const [showDeclareForm, setShowDeclareForm] = useState(false);
   const [showResolved, setShowResolved] = useState(false);
@@ -70,6 +81,14 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
     link: '',
   });
 
+  // Fetch all active incidents (not resolved)
+  const { data: activeData } = useQuery<{ incidents: Incident[]; total: number }>({
+    queryKey: ['incidents', 'active'],
+    queryFn: () =>
+      apiWithAuth('/api/admin/incidents?includeResolved=false&limit=100'),
+    refetchInterval: 10000,
+  });
+
   // Fetch resolved incidents when toggle is on
   const { data: resolvedData } = useQuery<{ incidents: Incident[] }>({
     queryKey: ['incidents', 'resolved'],
@@ -77,6 +96,9 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
       apiWithAuth('/api/admin/incidents?status=resolved&limit=50'),
     enabled: showResolved,
   });
+
+  // Use fetched incidents, fallback to prop
+  const incidents = activeData?.incidents || propIncidents;
 
   // Paginate active incidents
   const totalActivePages = Math.ceil(incidents.length / ITEMS_PER_PAGE);
@@ -137,18 +159,22 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
           <div className="space-y-3">
             <div>
               <label className="block text-xs text-neutral-400 mb-1">Severity</label>
-              <div className="flex gap-2">
-                {['P1', 'P2', 'P3', 'P4'].map((sev) => (
+              <div className="flex flex-wrap gap-2">
+                {['PL', 'P0', 'P1', 'P2', 'P3', 'P4'].map((sev) => (
                   <button
                     key={sev}
                     onClick={() => setNewIncident((n) => ({ ...n, severity: sev }))}
-                    className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                    className={`px-3 py-1 rounded text-xs font-medium transition-colors relative group ${
                       newIncident.severity === sev
                         ? severityColors[sev as keyof typeof severityColors]
                         : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
                     }`}
+                    title={severityDescriptions[sev as keyof typeof severityDescriptions]}
                   >
                     {sev}
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-900 text-neutral-200 text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                      {severityDescriptions[sev as keyof typeof severityDescriptions]}
+                    </span>
                   </button>
                 ))}
               </div>

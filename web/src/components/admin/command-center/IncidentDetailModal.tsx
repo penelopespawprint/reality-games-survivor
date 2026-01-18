@@ -51,6 +51,8 @@ interface IncidentDetailModalProps {
 }
 
 const severityColors = {
+  PL: 'bg-purple-600 text-white',
+  P0: 'bg-red-800 text-white',
   P1: 'bg-red-600 text-white',
   P2: 'bg-orange-600 text-white',
   P3: 'bg-yellow-600 text-black',
@@ -58,10 +60,12 @@ const severityColors = {
 };
 
 const severityLabels = {
-  P1: 'Critical',
-  P2: 'High',
-  P3: 'Medium',
-  P4: 'Low',
+  PL: 'Cannot launch without',
+  P0: 'Critical Game Function',
+  P1: 'Major Web Update',
+  P2: 'Minor Web Update',
+  P3: 'Minor Edits',
+  P4: 'Nice to have',
 };
 
 const statusColors = {
@@ -171,6 +175,18 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
     },
   });
 
+  const updateSeverity = useMutation({
+    mutationFn: (severity: string) =>
+      apiWithAuth(`/api/admin/incidents/${incidentId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ severity }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
+      queryClient.invalidateQueries({ queryKey: ['command-center'] });
+    },
+  });
+
   const handleSubmitNote = () => {
     if (!newNote.trim()) return;
     addNote.mutate({
@@ -260,9 +276,31 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-neutral-500 mb-1">Severity</label>
-              <p className="text-sm text-white">
-                {incident.severity} - {severityLabels[incident.severity as keyof typeof severityLabels]}
-              </p>
+              {!isResolved ? (
+                <div className="flex items-center gap-2">
+                  <select
+                    value={incident.severity}
+                    onChange={(e) => updateSeverity.mutate(e.target.value)}
+                    disabled={updateSeverity.isPending}
+                    className={`px-2 py-1 rounded text-sm font-bold border-0 cursor-pointer ${
+                      severityColors[incident.severity as keyof typeof severityColors]
+                    } ${updateSeverity.isPending ? 'opacity-50' : ''}`}
+                  >
+                    {['PL', 'P0', 'P1', 'P2', 'P3', 'P4'].map((sev) => (
+                      <option key={sev} value={sev} className="bg-neutral-800 text-white">
+                        {sev} - {severityLabels[sev as keyof typeof severityLabels]}
+                      </option>
+                    ))}
+                  </select>
+                  {updateSeverity.isPending && (
+                    <Loader2 className="h-4 w-4 animate-spin text-neutral-400" />
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-white">
+                  {incident.severity} - {severityLabels[incident.severity as keyof typeof severityLabels]}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-xs text-neutral-500 mb-1">Created</label>

@@ -14,7 +14,7 @@ import { logAdminAction, AUDIT_ACTIONS } from '../../services/audit-logger.js';
 
 const router = Router();
 
-type Severity = 'P1' | 'P2' | 'P3' | 'P4';
+type Severity = 'PL' | 'P0' | 'P1' | 'P2' | 'P3' | 'P4';
 type Status = 'investigating' | 'identified' | 'monitoring' | 'needs_verified' | 'verified' | 'resolved';
 
 interface CreateIncidentBody {
@@ -162,8 +162,8 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
     }
 
     // Validate severity
-    if (!['P1', 'P2', 'P3', 'P4'].includes(severity)) {
-      return res.status(400).json({ error: 'Invalid severity. Must be P1, P2, P3, or P4' });
+    if (!['PL', 'P0', 'P1', 'P2', 'P3', 'P4'].includes(severity)) {
+      return res.status(400).json({ error: 'Invalid severity. Must be PL, P0, P1, P2, P3, or P4' });
     }
 
     // Create incident
