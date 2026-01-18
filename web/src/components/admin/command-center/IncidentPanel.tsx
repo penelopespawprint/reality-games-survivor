@@ -28,6 +28,8 @@ const statusLabels = {
   investigating: 'Investigating',
   identified: 'Identified',
   monitoring: 'Monitoring',
+  needs_verified: 'Needs Verified',
+  verified: 'Verified',
   resolved: 'Resolved',
 };
 

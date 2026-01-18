@@ -15,7 +15,7 @@ import { logAdminAction, AUDIT_ACTIONS } from '../../services/audit-logger.js';
 const router = Router();
 
 type Severity = 'P1' | 'P2' | 'P3' | 'P4';
-type Status = 'investigating' | 'identified' | 'monitoring' | 'resolved';
+type Status = 'investigating' | 'identified' | 'monitoring' | 'needs_verified' | 'verified' | 'resolved';
 
 interface CreateIncidentBody {
   severity: Severity;

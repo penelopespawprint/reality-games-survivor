@@ -9,10 +9,6 @@ import {
   BookOpen,
   ArrowRight,
   Target,
-  Zap,
-  Shield,
-  Clock,
-  Flame,
   MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -51,26 +47,6 @@ export default function HowToPlay() {
     },
   });
 
-  // Fetch strategy order from database
-  const { data: strategyOrder } = useQuery({
-    queryKey: ['how-to-play', 'strategy-order'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('site_copy')
-        .select('content')
-        .eq('key', 'how-to-play.strategy-order')
-        .single();
-      if (data?.content) {
-        try {
-          return JSON.parse(data.content) as number[];
-        } catch {
-          return [0, 1, 2, 3];
-        }
-      }
-      return [0, 1, 2, 3];
-    },
-  });
-
   // Mutation to save step order
   const saveStepOrder = useMutation({
     mutationFn: async (newOrder: number[]) => {
@@ -89,24 +65,6 @@ export default function HowToPlay() {
     },
   });
 
-  // Mutation to save strategy order
-  const saveStrategyOrder = useMutation({
-    mutationFn: async (newOrder: number[]) => {
-      const { error } = await supabase
-        .from('site_copy')
-        .upsert({
-          key: 'how-to-play.strategy-order',
-          page: 'how-to-play',
-          content: JSON.stringify(newOrder),
-          is_active: true,
-        }, { onConflict: 'key' });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['how-to-play', 'strategy-order'] });
-    },
-  });
-
   const handleStepMoveUp = (currentIndex: number) => {
     if (!stepOrder || currentIndex === 0) return;
     const newOrder = [...stepOrder];
@@ -119,20 +77,6 @@ export default function HowToPlay() {
     const newOrder = [...stepOrder];
     [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
     saveStepOrder.mutate(newOrder);
-  };
-
-  const handleStrategyMoveUp = (currentIndex: number) => {
-    if (!strategyOrder || currentIndex === 0) return;
-    const newOrder = [...strategyOrder];
-    [newOrder[currentIndex - 1], newOrder[currentIndex]] = [newOrder[currentIndex], newOrder[currentIndex - 1]];
-    saveStrategyOrder.mutate(newOrder);
-  };
-
-  const handleStrategyMoveDown = (currentIndex: number) => {
-    if (!strategyOrder || currentIndex === strategyOrder.length - 1) return;
-    const newOrder = [...strategyOrder];
-    [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
-    saveStrategyOrder.mutate(newOrder);
   };
 
   const steps = [
@@ -184,41 +128,6 @@ export default function HowToPlay() {
       description: getCopy(
         'how-to-play.step6.description',
         'The player with the most total points at the end of the season wins! Track your progress on the leaderboard.'
-      ),
-    },
-  ];
-
-  const strategies = [
-    {
-      icon: Zap,
-      title: getCopy('how-to-play.strategy1.title', 'Study the Edit'),
-      description: getCopy(
-        'how-to-play.strategy1.description',
-        'Castaways with more screen time and confessionals tend to score more points. Pay attention to who the editors are focusing on.'
-      ),
-    },
-    {
-      icon: Shield,
-      title: getCopy('how-to-play.strategy2.title', 'Balance Risk'),
-      description: getCopy(
-        'how-to-play.strategy2.description',
-        "Sometimes the safe pick isn't the best pick. A castaway in danger might score big if they survive or play an idol."
-      ),
-    },
-    {
-      icon: Flame,
-      title: getCopy('how-to-play.strategy3.title', 'Know the Meta'),
-      description: getCopy(
-        'how-to-play.strategy3.description',
-        'Challenge beasts score consistently. Strategic players score in bursts. Social players accumulate over time.'
-      ),
-    },
-    {
-      icon: Clock,
-      title: getCopy('how-to-play.strategy4.title', 'Think Long-Term'),
-      description: getCopy(
-        'how-to-play.strategy4.description',
-        "Don't just think about this week. Consider who will make the merge, who has idol-finding potential, who might win."
       ),
     },
   ];
@@ -375,49 +284,6 @@ export default function HowToPlay() {
                   </div>
                 </div>
               </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Strategy Tips */}
-        <section className="mb-16">
-          <EditableText copyKey="how-to-play.strategies.section-title" as="h2" className="text-2xl font-display font-bold text-neutral-800 mb-8 text-center">
-            {getCopy('how-to-play.strategies.section-title', 'Strategy Tips')}
-          </EditableText>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {(strategyOrder || [0, 1, 2, 3]).map((originalIndex, displayIndex) => {
-              const strategy = strategies[originalIndex];
-              if (!strategy) return null;
-              return (
-                <div
-                  key={originalIndex}
-                  className="bg-white rounded-2xl shadow-card border border-cream-200 p-6 relative"
-                >
-                  {isAdmin && isEditMode && (
-                    <div className="absolute top-2 right-2">
-                      <AdminReorderControls
-                        index={displayIndex}
-                        totalItems={strategies.length}
-                        onMoveUp={() => handleStrategyMoveUp(displayIndex)}
-                        onMoveDown={() => handleStrategyMoveDown(displayIndex)}
-                      />
-                    </div>
-                  )}
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <strategy.icon className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <div className="flex-1">
-                      <EditableText copyKey={`how-to-play.strategy${originalIndex + 1}.title`} as="h3" className="font-display font-bold text-neutral-800 mb-1">
-                        {strategy.title}
-                      </EditableText>
-                      <EditableText copyKey={`how-to-play.strategy${originalIndex + 1}.description`} as="p" className="text-neutral-600 text-sm">
-                        {strategy.description}
-                      </EditableText>
-                    </div>
-                  </div>
-                </div>
               );
             })}
           </div>

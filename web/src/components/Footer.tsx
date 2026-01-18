@@ -61,6 +61,14 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
+                  to="/faq"
+                  className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
+                >
+                  <EditableText copyKey="footer.link_faq" as="span" className="">{getCopy('footer.link_faq', 'FAQ')}</EditableText>
+                </Link>
+              </li>
+              <li>
+                <Link
                   to="/contact"
                   className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
                 >

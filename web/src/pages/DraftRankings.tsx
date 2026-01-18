@@ -3,8 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { useSiteCopy } from '@/lib/hooks/useSiteCopy';
+import { useEditMode } from '@/lib/hooks/useEditMode';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
+import { EditableText } from '@/components/EditableText';
+import { AdminReorderControls } from '@/components/AdminReorderControls';
 import {
   ArrowLeft,
   Loader2,
@@ -14,6 +17,9 @@ import {
   Save,
   GripVertical,
   Users,
+  Zap,
+  Shield,
+  Flame,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCastaways } from '@/lib/hooks';
@@ -22,8 +28,9 @@ import { formatDateTimeFull } from '@/lib/date-utils';
 import type { Castaway } from '@/types';
 
 export default function DraftRankings() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { getCopy } = useSiteCopy();
+  const { isEditMode } = useEditMode();
   const queryClient = useQueryClient();
   const [rankings, setRankings] = useState<string[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
@@ -65,6 +72,93 @@ export default function DraftRankings() {
     },
     enabled: !!activeSeason?.id && !!user?.id,
   });
+
+  // Fetch strategy order from database
+  const { data: strategyOrder } = useQuery({
+    queryKey: ['draft-rankings', 'strategy-order'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('site_copy')
+        .select('content')
+        .eq('key', 'draft-rankings.strategy-order')
+        .single();
+      if (data?.content) {
+        try {
+          return JSON.parse(data.content) as number[];
+        } catch {
+          return [0, 1, 2, 3];
+        }
+      }
+      return [0, 1, 2, 3];
+    },
+  });
+
+  // Mutation to save strategy order
+  const saveStrategyOrder = useMutation({
+    mutationFn: async (newOrder: number[]) => {
+      const { error } = await supabase
+        .from('site_copy')
+        .upsert({
+          key: 'draft-rankings.strategy-order',
+          page: 'draft-rankings',
+          content: JSON.stringify(newOrder),
+          is_active: true,
+        }, { onConflict: 'key' });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['draft-rankings', 'strategy-order'] });
+    },
+  });
+
+  const handleStrategyMoveUp = (currentIndex: number) => {
+    if (!strategyOrder || currentIndex === 0) return;
+    const newOrder = [...strategyOrder];
+    [newOrder[currentIndex - 1], newOrder[currentIndex]] = [newOrder[currentIndex], newOrder[currentIndex - 1]];
+    saveStrategyOrder.mutate(newOrder);
+  };
+
+  const handleStrategyMoveDown = (currentIndex: number) => {
+    if (!strategyOrder || currentIndex === strategyOrder.length - 1) return;
+    const newOrder = [...strategyOrder];
+    [newOrder[currentIndex], newOrder[currentIndex + 1]] = [newOrder[currentIndex + 1], newOrder[currentIndex]];
+    saveStrategyOrder.mutate(newOrder);
+  };
+
+  const strategies = [
+    {
+      icon: Zap,
+      title: getCopy('draft-rankings.strategy1.title', 'Study the Edit'),
+      description: getCopy(
+        'draft-rankings.strategy1.description',
+        'Castaways with more screen time and confessionals tend to score more points. Pay attention to who the editors are focusing on.'
+      ),
+    },
+    {
+      icon: Shield,
+      title: getCopy('draft-rankings.strategy2.title', 'Balance Risk'),
+      description: getCopy(
+        'draft-rankings.strategy2.description',
+        "Sometimes the safe pick isn't the best pick. A castaway in danger might score big if they survive or play an idol."
+      ),
+    },
+    {
+      icon: Flame,
+      title: getCopy('draft-rankings.strategy3.title', 'Know the Meta'),
+      description: getCopy(
+        'draft-rankings.strategy3.description',
+        'Challenge beasts score consistently. Strategic players score in bursts. Social players accumulate over time.'
+      ),
+    },
+    {
+      icon: Clock,
+      title: getCopy('draft-rankings.strategy4.title', 'Think Long-Term'),
+      description: getCopy(
+        'draft-rankings.strategy4.description',
+        "Don't just think about this week. Consider who will make the merge, who has idol-finding potential, who might win."
+      ),
+    },
+  ];
 
   // Shuffle array using Fisher-Yates algorithm (randomized per user session)
   const shuffleArray = <T,>(array: T[]): T[] => {
@@ -264,6 +358,49 @@ export default function DraftRankings() {
             <p className="text-green-800 font-medium">Rankings saved successfully!</p>
           </div>
         )}
+
+        {/* Strategy Tips */}
+        <section className="mb-8">
+          <EditableText copyKey="draft-rankings.strategies.section-title" as="h2" className="text-xl font-display font-bold text-neutral-800 mb-4">
+            {getCopy('draft-rankings.strategies.section-title', 'Strategy Tips')}
+          </EditableText>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {(strategyOrder || [0, 1, 2, 3]).map((originalIndex, displayIndex) => {
+              const strategy = strategies[originalIndex];
+              if (!strategy) return null;
+              return (
+                <div
+                  key={originalIndex}
+                  className="bg-white rounded-xl shadow-card border border-cream-200 p-4 relative"
+                >
+                  {isAdmin && isEditMode && (
+                    <div className="absolute top-2 right-2">
+                      <AdminReorderControls
+                        index={displayIndex}
+                        totalItems={strategies.length}
+                        onMoveUp={() => handleStrategyMoveUp(displayIndex)}
+                        onMoveDown={() => handleStrategyMoveDown(displayIndex)}
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <strategy.icon className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <div className="flex-1">
+                      <EditableText copyKey={`draft-rankings.strategy${originalIndex + 1}.title`} as="h3" className="font-display font-bold text-neutral-800 text-sm mb-1">
+                        {strategy.title}
+                      </EditableText>
+                      <EditableText copyKey={`draft-rankings.strategy${originalIndex + 1}.description`} as="p" className="text-neutral-600 text-xs">
+                        {strategy.description}
+                      </EditableText>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
 
         <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
           <div className="p-6 border-b border-cream-100 flex items-center justify-between">

@@ -66,6 +66,8 @@ const statusColors = {
   investigating: 'bg-red-900/50 text-red-300 border-red-700',
   identified: 'bg-orange-900/50 text-orange-300 border-orange-700',
   monitoring: 'bg-blue-900/50 text-blue-300 border-blue-700',
+  needs_verified: 'bg-purple-900/50 text-purple-300 border-purple-700',
+  verified: 'bg-teal-900/50 text-teal-300 border-teal-700',
   resolved: 'bg-green-900/50 text-green-300 border-green-700',
 };
 
@@ -73,6 +75,8 @@ const statusLabels = {
   investigating: 'Investigating',
   identified: 'Identified',
   monitoring: 'Monitoring',
+  needs_verified: 'Needs Verified',
+  verified: 'Verified',
   resolved: 'Resolved',
 };
 
@@ -387,6 +391,8 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
                 <option value="investigating">Investigating</option>
                 <option value="identified">Identified</option>
                 <option value="monitoring">Monitoring</option>
+                <option value="needs_verified">Needs Verified</option>
+                <option value="verified">Verified</option>
               </select>
               <input
                 type="text"
