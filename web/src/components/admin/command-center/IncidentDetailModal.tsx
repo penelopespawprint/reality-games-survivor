@@ -150,6 +150,13 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
     queryFn: () => apiWithAuth(`/api/admin/incidents/${incidentId}`),
   });
 
+  const invalidateAllIncidentQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
+    queryClient.invalidateQueries({ queryKey: ['incidents', 'active'] });
+    queryClient.invalidateQueries({ queryKey: ['incidents', 'resolved'] });
+    queryClient.invalidateQueries({ queryKey: ['command-center'] });
+  };
+
   const addNote = useMutation({
     mutationFn: (data: { note: string; status?: string }) =>
       apiWithAuth(`/api/admin/incidents/${incidentId}/notes`, {
@@ -157,8 +164,7 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
-      queryClient.invalidateQueries({ queryKey: ['command-center'] });
+      invalidateAllIncidentQueries();
       setNewNote('');
       setNewStatus(null);
     },
@@ -171,8 +177,7 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
         body: JSON.stringify({ note }),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
-      queryClient.invalidateQueries({ queryKey: ['command-center'] });
+      invalidateAllIncidentQueries();
     },
   });
 
@@ -183,8 +188,7 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
         body: JSON.stringify({ severity }),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
-      queryClient.invalidateQueries({ queryKey: ['command-center'] });
+      invalidateAllIncidentQueries();
     },
   });
 
@@ -195,8 +199,7 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
         body: JSON.stringify({ status }),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
-      queryClient.invalidateQueries({ queryKey: ['command-center'] });
+      invalidateAllIncidentQueries();
       setNewStatus(null);
     },
   });
@@ -208,9 +211,7 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
         body: JSON.stringify({ status: 'investigating' }),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
-      queryClient.invalidateQueries({ queryKey: ['command-center'] });
-      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      invalidateAllIncidentQueries();
     },
   });
 
