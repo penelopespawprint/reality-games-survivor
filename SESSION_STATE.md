@@ -7,8 +7,8 @@
 
 ## Current State
 
-**Last Session:** 3
-**Last Updated:** 2026-01-12
+**Last Session:** 4
+**Last Updated:** 2026-01-18
 
 ### Completed
 - Full codebase audit completed
@@ -30,6 +30,7 @@
 - Fixed EditableText "Failed to update site copy" errors (API endpoint mismatch)
 - Added upsert support to site-copy API (auto-creates records if they don't exist)
 - Build verification passed after changes
+- Built incident detail UI with full history viewing, note submission, and resolution
 
 ### Blocked
 - None
@@ -111,3 +112,21 @@
 - All castaway detail labels now editable: Age, From, Occupation, Fun Fact, Total Points, etc.
 - claude.md now documents: EditableText pattern, Layout wrapper pattern, category management, key files, common tasks
 - Railway deployment triggered via API for survivor-web service
+
+### Session 4
+**Date:** 2026-01-18
+**Completed:**
+- Created IncidentDetailModal component for viewing full incident details
+- Added incident update timeline display showing all status changes and notes
+- Added form to submit new notes with optional status changes
+- Added resolve incident button with confirmation
+- Updated IncidentPanel to make incidents clickable (opens detail modal)
+- Added toggle to view resolved incidents (fetches from API when expanded)
+- Build verification passed (0 TypeScript errors)
+
+**Notes:**
+- web/src/components/admin/command-center/IncidentDetailModal.tsx: New component (339 lines)
+- web/src/components/admin/command-center/IncidentPanel.tsx: Added modal integration, resolved toggle, clickable incidents
+- IncidentDetailModal features: severity/status display, affected systems, description, workaround, timeline of updates, add note form, resolve button
+- API endpoints used: GET /api/admin/incidents/:id, POST /api/admin/incidents/:id/notes, POST /api/admin/incidents/:id/resolve
+- Testing required: Manual verification in browser at /admin/command-center

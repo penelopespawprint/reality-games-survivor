@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { AlertTriangle, Plus, X, Loader2 } from 'lucide-react';
+import { AlertTriangle, Plus, X, Loader2, History, ChevronRight } from 'lucide-react';
+import { IncidentDetailModal } from './IncidentDetailModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
 
@@ -53,11 +54,21 @@ async function apiWithAuth(endpoint: string, options?: RequestInit) {
 export function IncidentPanel({ incidents }: IncidentPanelProps) {
   const queryClient = useQueryClient();
   const [showDeclareForm, setShowDeclareForm] = useState(false);
+  const [showResolved, setShowResolved] = useState(false);
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [newIncident, setNewIncident] = useState({
     severity: 'P2',
     title: '',
     description: '',
     affectedSystems: [] as string[],
+  });
+
+  // Fetch resolved incidents when toggle is on
+  const { data: resolvedData } = useQuery<{ incidents: Incident[] }>({
+    queryKey: ['incidents', 'resolved'],
+    queryFn: () =>
+      apiWithAuth('/api/admin/incidents?status=resolved&limit=10'),
+    enabled: showResolved,
   });
 
   const declareIncident = useMutation({
@@ -178,9 +189,10 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
       {incidents.length > 0 ? (
         <div className="space-y-2">
           {incidents.map((incident) => (
-            <div
+            <button
               key={incident.id}
-              className="flex items-center gap-3 p-3 bg-neutral-900 rounded-lg border border-neutral-700"
+              onClick={() => setSelectedIncidentId(incident.id)}
+              className="w-full flex items-center gap-3 p-3 bg-neutral-900 rounded-lg border border-neutral-700 hover:border-neutral-500 hover:bg-neutral-800 transition-colors text-left"
             >
               <span
                 className={`px-2 py-0.5 rounded text-xs font-bold ${
@@ -195,7 +207,8 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
                   {statusLabels[incident.status as keyof typeof statusLabels]}
                 </p>
               </div>
-            </div>
+              <ChevronRight className="h-4 w-4 text-neutral-500" />
+            </button>
           ))}
         </div>
       ) : (
@@ -206,6 +219,61 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
           <p className="text-sm text-neutral-400">No active incidents</p>
           <p className="text-xs text-neutral-500 mt-1">All systems operational</p>
         </div>
+      )}
+
+      {/* Resolved Incidents Toggle */}
+      <div className="mt-4 pt-4 border-t border-neutral-700">
+        <button
+          onClick={() => setShowResolved(!showResolved)}
+          className="w-full flex items-center justify-between text-sm text-neutral-400 hover:text-white transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <History className="h-4 w-4" />
+            Resolved Incidents
+          </span>
+          <ChevronRight
+            className={`h-4 w-4 transition-transform ${showResolved ? 'rotate-90' : ''}`}
+          />
+        </button>
+
+        {showResolved && resolvedData?.incidents && (
+          <div className="mt-3 space-y-2">
+            {resolvedData.incidents.length === 0 ? (
+              <p className="text-xs text-neutral-500 text-center py-2">
+                No resolved incidents
+              </p>
+            ) : (
+              resolvedData.incidents.map((incident) => (
+                <button
+                  key={incident.id}
+                  onClick={() => setSelectedIncidentId(incident.id)}
+                  className="w-full flex items-center gap-3 p-2 bg-neutral-900/50 rounded-lg border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800/50 transition-colors text-left opacity-75"
+                >
+                  <span
+                    className={`px-2 py-0.5 rounded text-xs font-bold ${
+                      severityColors[incident.severity as keyof typeof severityColors]
+                    }`}
+                  >
+                    {incident.severity}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-neutral-300 truncate">{incident.title}</p>
+                    <p className="text-xs text-green-600">Resolved</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-neutral-600" />
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Incident Detail Modal */}
+      {selectedIncidentId && (
+        <IncidentDetailModal
+          incidentId={selectedIncidentId}
+          onClose={() => setSelectedIncidentId(null)}
+        />
       )}
     </div>
   );
