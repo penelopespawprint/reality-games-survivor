@@ -295,20 +295,15 @@ export function Trivia() {
     submitAnswer.mutate(index);
   };
 
-  // Auto-advance to next question after correct answer
-  useEffect(() => {
-    if (showResult && !triviaData?.isLocked && isCorrect) {
-      const timer = setTimeout(() => {
-        refetchQuestion();
-        setShowResult(false);
-        setSelectedIndex(null);
-        setIsTimedOut(false);
-        setTimeRemaining(20);
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [showResult, triviaData?.isLocked, isCorrect, refetchQuestion]);
+  // Handle next question button click (replaces auto-advance)
+  const handleNextQuestion = useCallback(() => {
+    refetchQuestion();
+    setShowResult(false);
+    setSelectedIndex(null);
+    setIsTimedOut(false);
+    setTimeRemaining(20);
+    setQuestionReady(false); // User must click "Start" for new question
+  }, [refetchQuestion]);
 
   // Show leaderboard when completing all 24 questions
   useEffect(() => {
@@ -495,6 +490,7 @@ export function Trivia() {
             onAnswer={handleAnswer}
             questionReady={questionReady}
             onStartQuestion={handleStartQuestion}
+            onNextQuestion={handleNextQuestion}
           />
         )}
 

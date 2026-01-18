@@ -5,7 +5,7 @@
  * Shows a "Start" button before timer begins.
  */
 
-import { Clock, Check, X, Play } from 'lucide-react';
+import { Clock, Check, X, Play, ArrowRight } from 'lucide-react';
 
 interface TriviaQuestion {
   id: string;
@@ -35,6 +35,7 @@ interface TriviaQuestionCardProps {
   onAnswer: (index: number) => void;
   questionReady: boolean;
   onStartQuestion: () => void;
+  onNextQuestion: () => void;
 }
 
 export function TriviaQuestionCard({
@@ -54,6 +55,7 @@ export function TriviaQuestionCard({
   onAnswer,
   questionReady,
   onStartQuestion,
+  onNextQuestion,
 }: TriviaQuestionCardProps) {
   // Show "Ready to Start" screen before timer begins
   if (!questionReady && !alreadyAnswered && !showResult) {
@@ -185,9 +187,18 @@ export function TriviaQuestionCard({
           }`}
         >
           {isCorrect ? (
-            <p className="text-lg font-bold text-green-800 flex items-center gap-2">
-              <span className="text-2xl">🔥</span> Correct!
-            </p>
+            <>
+              <p className="text-lg font-bold text-green-800 flex items-center justify-center gap-2 mb-4">
+                <span className="text-2xl">🔥</span> Correct!
+              </p>
+              <button
+                onClick={onNextQuestion}
+                className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold text-lg rounded-xl hover:from-green-500 hover:to-green-600 transition-all shadow-lg flex items-center justify-center gap-2"
+              >
+                Next Question
+                <ArrowRight className="h-5 w-5" />
+              </button>
+            </>
           ) : (
             <>
               <p className="text-2xl font-bold text-red-800 mb-3 text-center">💀 {wrongMessage}</p>

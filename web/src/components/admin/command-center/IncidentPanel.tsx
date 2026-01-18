@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { AlertTriangle, Plus, X, Loader2, History, ChevronRight } from 'lucide-react';
+import { AlertTriangle, Plus, X, Loader2, History, ChevronRight, ChevronLeft } from 'lucide-react';
 import { IncidentDetailModal } from './IncidentDetailModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
@@ -53,11 +53,15 @@ async function apiWithAuth(endpoint: string, options?: RequestInit) {
   return response.json();
 }
 
+const ITEMS_PER_PAGE = 5;
+
 export function IncidentPanel({ incidents }: IncidentPanelProps) {
   const queryClient = useQueryClient();
   const [showDeclareForm, setShowDeclareForm] = useState(false);
   const [showResolved, setShowResolved] = useState(false);
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const [activePage, setActivePage] = useState(0);
+  const [resolvedPage, setResolvedPage] = useState(0);
   const [newIncident, setNewIncident] = useState({
     severity: 'P2',
     title: '',
@@ -69,9 +73,24 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
   const { data: resolvedData } = useQuery<{ incidents: Incident[] }>({
     queryKey: ['incidents', 'resolved'],
     queryFn: () =>
-      apiWithAuth('/api/admin/incidents?status=resolved&limit=10'),
+      apiWithAuth('/api/admin/incidents?status=resolved&limit=50'),
     enabled: showResolved,
   });
+
+  // Paginate active incidents
+  const totalActivePages = Math.ceil(incidents.length / ITEMS_PER_PAGE);
+  const paginatedActiveIncidents = incidents.slice(
+    activePage * ITEMS_PER_PAGE,
+    (activePage + 1) * ITEMS_PER_PAGE
+  );
+
+  // Paginate resolved incidents
+  const resolvedIncidents = resolvedData?.incidents || [];
+  const totalResolvedPages = Math.ceil(resolvedIncidents.length / ITEMS_PER_PAGE);
+  const paginatedResolvedIncidents = resolvedIncidents.slice(
+    resolvedPage * ITEMS_PER_PAGE,
+    (resolvedPage + 1) * ITEMS_PER_PAGE
+  );
 
   const declareIncident = useMutation({
     mutationFn: (data: typeof newIncident) =>
@@ -190,7 +209,7 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
       {/* Active Incidents */}
       {incidents.length > 0 ? (
         <div className="space-y-2">
-          {incidents.map((incident) => (
+          {paginatedActiveIncidents.map((incident) => (
             <button
               key={incident.id}
               onClick={() => setSelectedIncidentId(incident.id)}
@@ -212,6 +231,30 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
               <ChevronRight className="h-4 w-4 text-neutral-500" />
             </button>
           ))}
+          {/* Active Incidents Pagination */}
+          {totalActivePages > 1 && (
+            <div className="flex items-center justify-between pt-2">
+              <button
+                onClick={() => setActivePage((p) => Math.max(0, p - 1))}
+                disabled={activePage === 0}
+                className="flex items-center gap-1 text-xs text-neutral-400 hover:text-white disabled:opacity-50 disabled:hover:text-neutral-400 transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </button>
+              <span className="text-xs text-neutral-500">
+                {activePage + 1} / {totalActivePages}
+              </span>
+              <button
+                onClick={() => setActivePage((p) => Math.min(totalActivePages - 1, p + 1))}
+                disabled={activePage >= totalActivePages - 1}
+                className="flex items-center gap-1 text-xs text-neutral-400 hover:text-white disabled:opacity-50 disabled:hover:text-neutral-400 transition-colors"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-center py-6">
@@ -238,33 +281,59 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
           />
         </button>
 
-        {showResolved && resolvedData?.incidents && (
+        {showResolved && (
           <div className="mt-3 space-y-2">
-            {resolvedData.incidents.length === 0 ? (
+            {resolvedIncidents.length === 0 ? (
               <p className="text-xs text-neutral-500 text-center py-2">
                 No resolved incidents
               </p>
             ) : (
-              resolvedData.incidents.map((incident) => (
-                <button
-                  key={incident.id}
-                  onClick={() => setSelectedIncidentId(incident.id)}
-                  className="w-full flex items-center gap-3 p-2 bg-neutral-900/50 rounded-lg border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800/50 transition-colors text-left opacity-75"
-                >
-                  <span
-                    className={`px-2 py-0.5 rounded text-xs font-bold ${
-                      severityColors[incident.severity as keyof typeof severityColors]
-                    }`}
+              <>
+                {paginatedResolvedIncidents.map((incident) => (
+                  <button
+                    key={incident.id}
+                    onClick={() => setSelectedIncidentId(incident.id)}
+                    className="w-full flex items-center gap-3 p-2 bg-neutral-900/50 rounded-lg border border-neutral-700/50 hover:border-neutral-600 hover:bg-neutral-800/50 transition-colors text-left opacity-75"
                   >
-                    {incident.severity}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-neutral-300 truncate">{incident.title}</p>
-                    <p className="text-xs text-green-600">Resolved</p>
+                    <span
+                      className={`px-2 py-0.5 rounded text-xs font-bold ${
+                        severityColors[incident.severity as keyof typeof severityColors]
+                      }`}
+                    >
+                      {incident.severity}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-neutral-300 truncate">{incident.title}</p>
+                      <p className="text-xs text-green-600">Resolved</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-neutral-600" />
+                  </button>
+                ))}
+                {/* Resolved Incidents Pagination */}
+                {totalResolvedPages > 1 && (
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      onClick={() => setResolvedPage((p) => Math.max(0, p - 1))}
+                      disabled={resolvedPage === 0}
+                      className="flex items-center gap-1 text-xs text-neutral-400 hover:text-white disabled:opacity-50 disabled:hover:text-neutral-400 transition-colors"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Prev
+                    </button>
+                    <span className="text-xs text-neutral-500">
+                      {resolvedPage + 1} / {totalResolvedPages}
+                    </span>
+                    <button
+                      onClick={() => setResolvedPage((p) => Math.min(totalResolvedPages - 1, p + 1))}
+                      disabled={resolvedPage >= totalResolvedPages - 1}
+                      className="flex items-center gap-1 text-xs text-neutral-400 hover:text-white disabled:opacity-50 disabled:hover:text-neutral-400 transition-colors"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-neutral-600" />
-                </button>
-              ))
+                )}
+              </>
             )}
           </div>
         )}

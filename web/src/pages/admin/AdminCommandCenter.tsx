@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Navigation } from '@/components/Navigation';
 import { AdminNavBar } from '@/components/AdminNavBar';
 import { SystemStatusPanel } from '@/components/admin/command-center/SystemStatusPanel';
-import { ActiveWindowPanel } from '@/components/admin/command-center/ActiveWindowPanel';
 import { IncidentPanel } from '@/components/admin/command-center/IncidentPanel';
 import { QuickActionsBar } from '@/components/admin/command-center/QuickActionsBar';
 import { LiveActivityFeed } from '@/components/admin/command-center/LiveActivityFeed';
@@ -25,13 +24,6 @@ interface SystemStatus {
   };
   activeIncidents: Array<{ id: string; severity: string; title: string; status: string }>;
   lastChecked: string;
-}
-
-interface ActiveWindow {
-  mode: 'normal' | 'episode' | 'scoring' | 'draft' | 'incident' | 'off-cycle';
-  title: string;
-  subtitle: string;
-  data: Record<string, any>;
 }
 
 interface AttentionItem {
@@ -97,18 +89,6 @@ export function AdminCommandCenter() {
     retry: 2,
   });
 
-  // Fetch active window
-  const {
-    data: activeWindow,
-    isLoading: windowLoading,
-    error: windowError,
-  } = useQuery<ActiveWindow>({
-    queryKey: ['command-center', 'active-window'],
-    queryFn: () => apiWithAuth('/api/admin/command-center/active-window'),
-    refetchInterval: 30000, // Every 30 seconds
-    retry: 2,
-  });
-
   // Fetch attention items
   const {
     data: attention,
@@ -137,7 +117,7 @@ export function AdminCommandCenter() {
   });
 
   // Track overall error state
-  const hasErrors = statusError || windowError || attentionError || opsError;
+  const hasErrors = statusError || attentionError || opsError;
 
   // Refresh all data
   const refreshAll = () => {
@@ -145,8 +125,7 @@ export function AdminCommandCenter() {
   };
 
   // Determine command center mode
-  const mode = activeWindow?.mode || 'normal';
-  const isIncidentMode = mode === 'incident' || (systemStatus?.activeIncidents?.length ?? 0) > 0;
+  const isIncidentMode = (systemStatus?.activeIncidents?.length ?? 0) > 0;
 
   return (
     <div className={`min-h-screen ${isIncidentMode ? 'bg-red-950' : 'bg-neutral-900'}`}>
@@ -232,11 +211,12 @@ export function AdminCommandCenter() {
             </div>
           )}
 
-        {/* Top Row: Status, Active Window, Incident Panel */}
+        {/* Top Row: System Status and Incident Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <SystemStatusPanel status={systemStatus} isLoading={statusLoading} />
-          <ActiveWindowPanel window={activeWindow} isLoading={windowLoading} />
-          <IncidentPanel incidents={systemStatus?.activeIncidents || []} />
+          <div className="lg:col-span-2">
+            <IncidentPanel incidents={systemStatus?.activeIncidents || []} />
+          </div>
         </div>
 
         {/* Quick Actions Bar */}

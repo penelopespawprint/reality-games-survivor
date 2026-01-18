@@ -42,6 +42,44 @@ router.get('/next', authenticate, async (req: AuthenticatedRequest, res: Respons
       });
     }
 
+    // Check if user just came back from lockout - delete their last wrong answer so they can retry
+    const { data: userData } = await supabaseAdmin
+      .from('users')
+      .select('trivia_locked_until')
+      .eq('id', userId)
+      .single();
+
+    if (userData?.trivia_locked_until) {
+      const lockoutTime = new Date(userData.trivia_locked_until);
+      const now = new Date();
+
+      // If lockout just expired (within last check), delete the wrong answer to allow retry
+      if (now > lockoutTime) {
+        // Find and delete the most recent wrong answer
+        const { data: wrongAnswer } = await supabaseAdmin
+          .from('daily_trivia_answers')
+          .select('id, question_id')
+          .eq('user_id', userId)
+          .eq('is_correct', false)
+          .order('answered_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (wrongAnswer) {
+          await supabaseAdmin
+            .from('daily_trivia_answers')
+            .delete()
+            .eq('id', wrongAnswer.id);
+        }
+
+        // Clear the lockout timestamp
+        await supabaseAdmin
+          .from('users')
+          .update({ trivia_locked_until: null })
+          .eq('id', userId);
+      }
+    }
+
     // Get progress
     const { data: progress, error: progressError } = await supabaseAdmin.rpc('get_trivia_progress', {
       p_user_id: userId,
