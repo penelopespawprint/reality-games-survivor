@@ -44,6 +44,15 @@ const statusLabels = {
   resolved: 'Resolved',
 };
 
+const statusColors = {
+  investigating: 'bg-red-900/50 text-red-300 border-red-700',
+  identified: 'bg-orange-900/50 text-orange-300 border-orange-700',
+  monitoring: 'bg-blue-900/50 text-blue-300 border-blue-700',
+  needs_verified: 'bg-purple-900/50 text-purple-300 border-purple-700',
+  verified: 'bg-teal-900/50 text-teal-300 border-teal-700',
+  resolved: 'bg-green-900/50 text-green-300 border-green-700',
+};
+
 async function apiWithAuth(endpoint: string, options?: RequestInit) {
   const session = await supabase.auth.getSession();
   const token = session.data.session?.access_token;
@@ -265,11 +274,15 @@ export function IncidentPanel({ incidents: propIncidents }: IncidentPanelProps) 
               >
                 {incident.severity}
               </span>
+              <span
+                className={`px-2 py-0.5 rounded text-xs border ${
+                  statusColors[incident.status as keyof typeof statusColors]
+                }`}
+              >
+                {statusLabels[incident.status as keyof typeof statusLabels]}
+              </span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white truncate">{incident.title}</p>
-                <p className="text-xs text-neutral-500">
-                  {statusLabels[incident.status as keyof typeof statusLabels]}
-                </p>
               </div>
               <ChevronRight className="h-4 w-4 text-neutral-500" />
             </button>

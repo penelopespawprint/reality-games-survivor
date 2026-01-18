@@ -187,7 +187,25 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
     },
   });
 
+  const updateStatus = useMutation({
+    mutationFn: (status: string) =>
+      apiWithAuth(`/api/admin/incidents/${incidentId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['incident', incidentId] });
+      queryClient.invalidateQueries({ queryKey: ['command-center'] });
+      setNewStatus(null);
+    },
+  });
+
   const handleSubmitNote = () => {
+    // If no note but status changed, just update status
+    if (!newNote.trim() && newStatus) {
+      updateStatus.mutate(newStatus);
+      return;
+    }
     if (!newNote.trim()) return;
     addNote.mutate({
       note: newNote,
@@ -465,10 +483,10 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
               />
               <button
                 onClick={handleSubmitNote}
-                disabled={!newNote.trim() || addNote.isPending}
+                disabled={(!newNote.trim() && !newStatus) || addNote.isPending || updateStatus.isPending}
                 className="px-4 py-2 bg-survivor-orange hover:bg-survivor-orange/80 disabled:bg-neutral-600 text-white rounded-lg transition-colors flex items-center gap-2"
               >
-                {addNote.isPending ? (
+                {(addNote.isPending || updateStatus.isPending) ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Send className="h-4 w-4" />
