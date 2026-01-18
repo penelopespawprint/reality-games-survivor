@@ -44,10 +44,10 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/castaways"
+                  to="/leagues"
                   className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
                 >
-                  <EditableText copyKey="footer.link_castaways" as="span" className="">{getCopy('footer.link_castaways', 'Castaways')}</EditableText>
+                  <EditableText copyKey="footer.link_leagues" as="span" className="">{getCopy('footer.link_leagues', 'Leagues')}</EditableText>
                 </Link>
               </li>
             </ul>

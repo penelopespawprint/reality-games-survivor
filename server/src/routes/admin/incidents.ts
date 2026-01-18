@@ -24,6 +24,7 @@ interface CreateIncidentBody {
   affectedSystems?: string[];
   usersAffected?: number;
   workaround?: string;
+  link?: string;
 }
 
 interface UpdateIncidentBody {
@@ -33,6 +34,7 @@ interface UpdateIncidentBody {
   affectedSystems?: string[];
   usersAffected?: number;
   workaround?: string;
+  link?: string;
 }
 
 /**
@@ -149,7 +151,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
  */
 router.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { severity, title, description, affectedSystems, usersAffected, workaround } = 
+    const { severity, title, description, affectedSystems, usersAffected, workaround, link } =
       req.body as CreateIncidentBody;
     const adminId = req.user!.id;
     const now = DateTime.now().setZone('America/Los_Angeles');
@@ -175,6 +177,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
         affected_systems: affectedSystems || [],
         users_affected: usersAffected,
         workaround,
+        link,
         created_by: adminId,
       })
       .select()

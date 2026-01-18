@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { AlertTriangle, Plus, X, Loader2, History, ChevronRight, ChevronLeft } from 'lucide-react';
+import { AlertTriangle, Plus, X, Loader2, History, ChevronRight, ChevronLeft, Link as LinkIcon } from 'lucide-react';
 import { IncidentDetailModal } from './IncidentDetailModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
@@ -67,6 +67,7 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
     title: '',
     description: '',
     affectedSystems: [] as string[],
+    link: '',
   });
 
   // Fetch resolved incidents when toggle is on
@@ -101,7 +102,7 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['command-center'] });
       setShowDeclareForm(false);
-      setNewIncident({ severity: 'P2', title: '', description: '', affectedSystems: [] });
+      setNewIncident({ severity: 'P2', title: '', description: '', affectedSystems: [], link: '' });
     },
   });
 
@@ -188,6 +189,22 @@ export function IncidentPanel({ incidents }: IncidentPanelProps) {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-neutral-400 mb-1">
+                <span className="flex items-center gap-1">
+                  <LinkIcon className="h-3 w-3" />
+                  Link (optional)
+                </span>
+              </label>
+              <input
+                type="url"
+                value={newIncident.link}
+                onChange={(e) => setNewIncident((n) => ({ ...n, link: e.target.value }))}
+                placeholder="https://..."
+                className="w-full bg-neutral-800 border border-neutral-600 rounded px-3 py-2 text-sm text-white placeholder-neutral-500"
+              />
             </div>
 
             <button

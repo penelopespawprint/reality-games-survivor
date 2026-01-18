@@ -9,6 +9,7 @@ import {
   Loader2,
   Send,
   Server,
+  ExternalLink,
 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://rgfl-api-production.up.railway.app';
@@ -33,6 +34,7 @@ interface IncidentDetail {
   affected_systems: string[] | null;
   users_affected: number | null;
   workaround: string | null;
+  link: string | null;
   created_at: string;
   resolved_at: string | null;
   created_by_user: {
@@ -323,6 +325,22 @@ export function IncidentDetailModal({ incidentId, onClose }: IncidentDetailModal
               <p className="text-sm text-neutral-300 bg-neutral-900 rounded-lg p-3">
                 {incident.workaround}
               </p>
+            </div>
+          )}
+
+          {/* Link */}
+          {incident.link && (
+            <div>
+              <label className="block text-xs text-neutral-500 mb-1">Related Link</label>
+              <a
+                href={incident.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 bg-neutral-900 rounded-lg p-3 transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                {incident.link}
+              </a>
             </div>
           )}
 
