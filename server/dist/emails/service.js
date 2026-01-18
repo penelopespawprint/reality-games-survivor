@@ -341,7 +341,7 @@ function triviaSignupWelcomeEmailTemplate(_data) {
       ${heading('How Trivia Works', 2)}
       ${paragraph(`<strong>24 Questions</strong> — Spanning all 50 seasons of Survivor`)}
       ${paragraph(`<strong>20 Seconds Each</strong> — Think fast`)}
-      ${paragraph(`<strong>24-Hour Lockout</strong> — Miss one? Come back tomorrow`)}
+      ${paragraph(`<strong>2-Hour Lockout</strong> — Miss one? Come back soon`)}
       ${paragraph(`<strong>Leaderboard</strong> — Complete all 24 to claim your spot`)}
     `)}
     ${button('Create Account & Play', `${BASE_URL}/signup`)}

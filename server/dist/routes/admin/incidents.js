@@ -116,7 +116,7 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', async (req, res) => {
     try {
-        const { severity, title, description, affectedSystems, usersAffected, workaround } = req.body;
+        const { severity, title, description, affectedSystems, usersAffected, workaround, link } = req.body;
         const adminId = req.user.id;
         const now = DateTime.now().setZone('America/Los_Angeles');
         // Validate required fields
@@ -138,6 +138,7 @@ router.post('/', async (req, res) => {
             affected_systems: affectedSystems || [],
             users_affected: usersAffected,
             workaround,
+            link,
             created_by: adminId,
         })
             .select()

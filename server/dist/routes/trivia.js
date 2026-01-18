@@ -1,6 +1,6 @@
 /**
  * Trivia Routes
- * Handles 24-question trivia with 24h lockout on wrong answer
+ * Handles 24-question trivia with 2h lockout on wrong answer
  */
 import { Router } from 'express';
 import { authenticate } from '../middleware/authenticate.js';
@@ -31,8 +31,41 @@ router.get('/next', authenticate, async (req, res) => {
             return sendSuccess(res, {
                 isLocked: true,
                 lockedUntil: user?.trivia_locked_until || null,
-                message: 'You got a question wrong! Come back in 24 hours to continue.',
+                message: 'You got a question wrong! Come back in 2 hours to continue.',
             });
+        }
+        // Check if user just came back from lockout - delete their last wrong answer so they can retry
+        const { data: userData } = await supabaseAdmin
+            .from('users')
+            .select('trivia_locked_until')
+            .eq('id', userId)
+            .single();
+        if (userData?.trivia_locked_until) {
+            const lockoutTime = new Date(userData.trivia_locked_until);
+            const now = new Date();
+            // If lockout just expired (within last check), delete the wrong answer to allow retry
+            if (now > lockoutTime) {
+                // Find and delete the most recent wrong answer
+                const { data: wrongAnswer } = await supabaseAdmin
+                    .from('daily_trivia_answers')
+                    .select('id, question_id')
+                    .eq('user_id', userId)
+                    .eq('is_correct', false)
+                    .order('answered_at', { ascending: false })
+                    .limit(1)
+                    .single();
+                if (wrongAnswer) {
+                    await supabaseAdmin
+                        .from('daily_trivia_answers')
+                        .delete()
+                        .eq('id', wrongAnswer.id);
+                }
+                // Clear the lockout timestamp
+                await supabaseAdmin
+                    .from('users')
+                    .update({ trivia_locked_until: null })
+                    .eq('id', userId);
+            }
         }
         // Get progress
         const { data: progress, error: progressError } = await supabaseAdmin.rpc('get_trivia_progress', {
@@ -126,7 +159,7 @@ router.post('/answer', authenticate, async (req, res) => {
         });
         const isLocked = lockoutCheck?.[0]?.is_user_trivia_locked ?? false;
         if (isLocked) {
-            return sendForbidden(res, 'You are locked out for 24 hours after getting a question wrong');
+            return sendForbidden(res, 'You are locked out for 2 hours after getting a question wrong');
         }
         // Get the question
         const { data: question, error: questionError } = await supabaseAdmin
@@ -186,10 +219,10 @@ router.post('/answer', authenticate, async (req, res) => {
                 // Don't fail the request if email fails
             }
         }
-        // If wrong answer, lock user out for 24 hours and increment attempts
+        // If wrong answer, lock user out for 2 hours and increment attempts
         if (!isCorrect) {
             const lockoutUntil = new Date();
-            lockoutUntil.setHours(lockoutUntil.getHours() + 24);
+            lockoutUntil.setHours(lockoutUntil.getHours() + 2);
             // Get current attempts count
             const { data: userData } = await supabaseAdmin
                 .from('users')
@@ -267,7 +300,7 @@ router.post('/answer', authenticate, async (req, res) => {
             funFact: question.fun_fact,
             isTimeout,
             isLocked: !isCorrect, // Locked if wrong
-            lockedUntil: !isCorrect ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null,
+            lockedUntil: !isCorrect ? new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString() : null,
         });
     }
     catch (error) {

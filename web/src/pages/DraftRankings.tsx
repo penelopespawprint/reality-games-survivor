@@ -338,29 +338,8 @@ export default function DraftRankings() {
           </p>
         </div>
 
-        {deadline && (
-          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 flex items-center gap-3">
-            <Clock className="h-5 w-5 text-orange-600 flex-shrink-0" />
-            <div>
-              <p className="text-orange-800 font-medium">
-                Draft Deadline: {formatDateTimeFull(deadline.toISOString())}
-              </p>
-              {isPastDeadline && (
-                <p className="text-orange-600 text-sm mt-1">Deadline has passed</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {saveSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-center gap-3">
-            <Check className="h-5 w-5 text-green-600" />
-            <p className="text-green-800 font-medium">Rankings saved successfully!</p>
-          </div>
-        )}
-
-        {/* Strategy Tips */}
-        <section className="mb-8">
+        {/* Strategy Tips - At Top */}
+        <section className="mb-6">
           <EditableText copyKey="draft-rankings.strategies.section-title" as="h2" className="text-xl font-display font-bold text-neutral-800 mb-4">
             {getCopy('draft-rankings.strategies.section-title', 'Strategy Tips')}
           </EditableText>
@@ -401,6 +380,27 @@ export default function DraftRankings() {
             })}
           </div>
         </section>
+
+        {deadline && (
+          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+            <Clock className="h-5 w-5 text-orange-600 flex-shrink-0" />
+            <div>
+              <p className="text-orange-800 font-medium">
+                Draft Deadline: {formatDateTimeFull(deadline.toISOString())}
+              </p>
+              {isPastDeadline && (
+                <p className="text-orange-600 text-sm mt-1">Deadline has passed</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {saveSuccess && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+            <Check className="h-5 w-5 text-green-600" />
+            <p className="text-green-800 font-medium">Rankings saved successfully!</p>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-card border border-cream-200 overflow-hidden">
           <div className="p-6 border-b border-cream-100 flex items-center justify-between">

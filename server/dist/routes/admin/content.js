@@ -312,11 +312,13 @@ router.get('/site-copy/:key', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch site copy' });
     }
 });
-// Update site copy
+// Update site copy (with auto-create if doesn't exist)
 const updateCopySchema = z.object({
     content: z.string().min(1),
     is_active: z.boolean().optional(),
     description: z.string().optional(),
+    page: z.string().optional(),
+    section: z.string().optional(),
 });
 router.put('/site-copy/:key', async (req, res) => {
     try {
@@ -326,19 +328,45 @@ router.put('/site-copy/:key', async (req, res) => {
         if (!parsed.success) {
             return res.status(400).json({ error: 'Invalid input', details: parsed.error.errors });
         }
-        const { data, error } = await supabaseAdmin
+        // Try to update first
+        const { data: updateData, error: updateError } = await supabaseAdmin
             .from('site_copy')
             .update({
-            ...parsed.data,
+            content: parsed.data.content,
+            is_active: parsed.data.is_active,
+            description: parsed.data.description,
             updated_by: userId,
             updated_at: new Date().toISOString(),
         })
             .eq('key', key)
             .select()
             .single();
-        if (error)
-            throw error;
-        res.json({ data, message: 'Copy updated successfully' });
+        // If record doesn't exist, create it
+        if (updateError && updateError.code === 'PGRST116') {
+            // Extract page from key (e.g., "page.section.field" -> "page")
+            const pageName = parsed.data.page || key.split('.')[0] || 'general';
+            const sectionName = parsed.data.section || key.split('.')[1] || null;
+            const { data: createData, error: createError } = await supabaseAdmin
+                .from('site_copy')
+                .insert({
+                key,
+                page: pageName,
+                section: sectionName,
+                content: parsed.data.content,
+                content_type: 'text',
+                is_active: parsed.data.is_active ?? true,
+                description: parsed.data.description,
+                updated_by: userId,
+            })
+                .select()
+                .single();
+            if (createError)
+                throw createError;
+            return res.json({ data: createData, message: 'Copy created successfully', created: true });
+        }
+        if (updateError)
+            throw updateError;
+        res.json({ data: updateData, message: 'Copy updated successfully' });
     }
     catch (err) {
         console.error('Failed to update site copy:', err);

@@ -4,7 +4,7 @@
  */
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/supabase.js';
-// Simple admin check middleware
+// Simple admin check middleware - also attaches user info for logging
 async function requireAdmin(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
@@ -19,12 +19,14 @@ async function requireAdmin(req, res, next) {
         // Check if user is admin
         const { data: profile } = await supabaseAdmin
             .from('users')
-            .select('role')
+            .select('role, display_name')
             .eq('id', user.id)
             .single();
         if (profile?.role !== 'admin') {
             return res.status(403).json({ error: 'Admin access required' });
         }
+        // Attach user info for logging
+        req.adminUser = { id: user.id, email: user.email || profile?.display_name || 'Unknown' };
         next();
     }
     catch {
@@ -114,7 +116,7 @@ router.get('/key/:key', async (req, res) => {
     }
 });
 // Clear cache (admin only - called after updates)
-router.post('/clear-cache', async (req, res) => {
+router.post('/clear-cache', requireAdmin, async (req, res) => {
     copyCache = null;
     cacheTime = 0;
     res.json({ message: 'Cache cleared' });
@@ -125,6 +127,16 @@ router.post('/update', requireAdmin, async (req, res) => {
         const { key, value } = req.body;
         if (!key || typeof value !== 'string') {
             return res.status(400).json({ error: 'Key and value are required' });
+        }
+        // Input validation
+        if (key.length > 200) {
+            return res.status(400).json({ error: 'Key too long (max 200 chars)' });
+        }
+        if (value.length > 10000) {
+            return res.status(400).json({ error: 'Value too long (max 10000 chars)' });
+        }
+        if (!/^[a-zA-Z0-9._-]+$/.test(key)) {
+            return res.status(400).json({ error: 'Invalid key format' });
         }
         // Check if key exists
         const { data: existing } = await supabaseAdmin
@@ -175,6 +187,16 @@ router.post('/section-order', requireAdmin, async (req, res) => {
         const { pageId, order } = req.body;
         if (!pageId || !Array.isArray(order)) {
             return res.status(400).json({ error: 'pageId and order array are required' });
+        }
+        // Input validation
+        if (!/^[a-zA-Z0-9_-]{1,100}$/.test(pageId)) {
+            return res.status(400).json({ error: 'Invalid pageId format' });
+        }
+        if (order.length > 50) {
+            return res.status(400).json({ error: 'Too many sections (max 50)' });
+        }
+        if (!order.every(id => typeof id === 'string' && id.length < 100)) {
+            return res.status(400).json({ error: 'Invalid section IDs in order' });
         }
         // Store section order in a special site_copy entry
         const key = `_section_order.${pageId}`;
