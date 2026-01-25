@@ -158,19 +158,17 @@ export function AdminFAQ() {
     },
   });
 
-  // Move FAQ up/down
+  // Move FAQ up/down within category
   const moveFAQ = useMutation({
-    mutationFn: async ({ id, direction }: { id: string; direction: 'up' | 'down' }) => {
-      if (!faqs) return;
-
-      const currentIndex = faqs.findIndex((f) => f.id === id);
+    mutationFn: async ({ id, direction, categoryItems }: { id: string; direction: 'up' | 'down'; categoryItems: FAQItem[] }) => {
+      const currentIndex = categoryItems.findIndex((f) => f.id === id);
       if (currentIndex === -1) return;
 
       const swapIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-      if (swapIndex < 0 || swapIndex >= faqs.length) return;
+      if (swapIndex < 0 || swapIndex >= categoryItems.length) return;
 
-      const current = faqs[currentIndex];
-      const swap = faqs[swapIndex];
+      const current = categoryItems[currentIndex];
+      const swap = categoryItems[swapIndex];
 
       // Swap sort orders
       await supabase.from('site_copy').update({ sort_order: swap.sort_order }).eq('id', current.id);
@@ -450,7 +448,7 @@ export function AdminFAQ() {
                         {/* Drag handle / reorder */}
                         <div className="flex flex-col gap-1 pt-1">
                           <button
-                            onClick={() => moveFAQ.mutate({ id: faq.id, direction: 'up' })}
+                            onClick={() => moveFAQ.mutate({ id: faq.id, direction: 'up', categoryItems: items })}
                             disabled={index === 0}
                             className="p-1 text-neutral-400 hover:text-neutral-600 disabled:opacity-30"
                           >
@@ -458,7 +456,7 @@ export function AdminFAQ() {
                           </button>
                           <GripVertical className="h-4 w-4 text-neutral-300" />
                           <button
-                            onClick={() => moveFAQ.mutate({ id: faq.id, direction: 'down' })}
+                            onClick={() => moveFAQ.mutate({ id: faq.id, direction: 'down', categoryItems: items })}
                             disabled={index === items.length - 1}
                             className="p-1 text-neutral-400 hover:text-neutral-600 disabled:opacity-30"
                           >

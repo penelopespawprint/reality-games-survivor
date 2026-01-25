@@ -257,10 +257,12 @@ export default function FAQ() {
       if (data && data.length > 0) {
         return data.map((item, index) => ({
           id: item.id,
-          question: item.key.replace('faq.', '').replace(/_/g, ' '),
+          // Use description field for question (has proper capitalization/punctuation)
+          // Fall back to parsing key only if description is empty
+          question: item.description || item.key.replace('faq.', '').replace(/_/g, ' '),
           answer: item.content,
           category: item.section || 'General',
-          sort_order: index,
+          sort_order: item.sort_order ?? index,
         })) as FAQItem[];
       }
 
