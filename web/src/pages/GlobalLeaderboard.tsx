@@ -112,10 +112,9 @@ export default function GlobalLeaderboard() {
     : getCopy('leaderboard.header.title', 'Global Leaderboard');
 
   return (
-    <>
-      <div className="max-w-6xl mx-auto px-4 py-8 w-full">
-        {/* Header */}
-        <div className="mb-6 text-center">
+    <div className="pb-4">
+      {/* Header */}
+      <div className="mb-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-2">
             <Trophy className="h-8 w-8 text-burgundy-500" />
             {/* Only show EditableText when using CMS fallback, not dynamic season title */}
@@ -439,7 +438,6 @@ export default function GlobalLeaderboard() {
             </div>
           );
         })()}
-      </div>
-    </>
+    </div>
   );
 }
