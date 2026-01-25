@@ -57,6 +57,10 @@ async function apiWithAuth(endpoint: string, options?: RequestInit) {
   const session = await supabase.auth.getSession();
   const token = session.data.session?.access_token;
 
+  if (!token) {
+    throw new Error('Not authenticated - please log in again');
+  }
+
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
@@ -67,7 +71,8 @@ async function apiWithAuth(endpoint: string, options?: RequestInit) {
   });
 
   if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `API error: ${response.status}`);
   }
 
   return response.json();
@@ -124,6 +129,8 @@ export function IncidentPanel({ incidents: propIncidents }: IncidentPanelProps) 
     (resolvedPage + 1) * ITEMS_PER_PAGE
   );
 
+  const [declareError, setDeclareError] = useState<string | null>(null);
+
   const declareIncident = useMutation({
     mutationFn: (data: typeof newIncident) =>
       apiWithAuth('/api/admin/incidents', {
@@ -132,8 +139,13 @@ export function IncidentPanel({ incidents: propIncidents }: IncidentPanelProps) 
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['command-center'] });
+      queryClient.invalidateQueries({ queryKey: ['incidents', 'active'] });
       setShowDeclareForm(false);
+      setDeclareError(null);
       setNewIncident({ severity: 'P2', title: '', description: '', affectedSystems: [], link: '' });
+    },
+    onError: (error) => {
+      setDeclareError(error instanceof Error ? error.message : 'Failed to declare incident');
     },
   });
 
@@ -242,8 +254,17 @@ export function IncidentPanel({ incidents: propIncidents }: IncidentPanelProps) 
               />
             </div>
 
+            {declareError && (
+              <div className="p-2 bg-red-900/50 border border-red-700 rounded text-red-300 text-xs">
+                {declareError}
+              </div>
+            )}
+
             <button
-              onClick={() => declareIncident.mutate(newIncident)}
+              onClick={() => {
+                setDeclareError(null);
+                declareIncident.mutate(newIncident);
+              }}
               disabled={!newIncident.title || declareIncident.isPending}
               className="w-full bg-red-600 hover:bg-red-700 disabled:bg-neutral-600 text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >

@@ -27,6 +27,7 @@ export function GlobalChat() {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -120,10 +121,10 @@ export function GlobalChat() {
     };
   }, [leagueId, queryClient]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive (within container only, not page)
   useEffect(() => {
-    if (isExpanded) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isExpanded && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [messages, isExpanded]);
 
@@ -179,7 +180,7 @@ export function GlobalChat() {
       {isExpanded && (
         <>
           {/* Messages */}
-          <div className="h-64 overflow-y-auto p-4 space-y-3 bg-cream-50/50">
+          <div ref={messagesContainerRef} className="h-64 overflow-y-auto p-4 space-y-3 bg-cream-50/50">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-6 w-6 text-burgundy-500 animate-spin" />

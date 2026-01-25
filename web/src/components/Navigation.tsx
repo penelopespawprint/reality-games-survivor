@@ -226,7 +226,7 @@ export function Navigation() {
                             : 'text-neutral-600'
                         }`}
                       >
-                        <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Scoring Rules')}</EditableText>
+                        <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Sample Scoring Rules')}</EditableText>
                       </Link>
                       <Link
                         to="/sms-commands"
@@ -502,7 +502,7 @@ export function Navigation() {
                         : 'text-neutral-600'
                     }`}
                   >
-                    <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Scoring Rules')}</EditableText>
+                    <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Sample Scoring Rules')}</EditableText>
                   </Link>
                   <Link
                     to="/timeline"
@@ -645,7 +645,7 @@ export function Navigation() {
                   : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
               }`}
             >
-              <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Scoring Rules')}</EditableText>
+              <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Sample Scoring Rules')}</EditableText>
             </Link>
             <div className="relative group">
               <button
@@ -741,7 +741,7 @@ export function Navigation() {
                   : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >
-              <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Scoring Rules')}</EditableText>
+              <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Sample Scoring Rules')}</EditableText>
             </Link>
             <Link
               to="/contact"

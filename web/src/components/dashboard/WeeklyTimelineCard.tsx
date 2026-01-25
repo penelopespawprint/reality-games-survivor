@@ -29,7 +29,7 @@ export function WeeklyTimelineCard() {
               {getCopy('dashboard.timeline.picks_lock_time', 'Wednesday 8pm ET / 5pm PT')}
             </EditableText>
             <EditableText copyKey="dashboard.timeline.picks_lock_desc" as="p" className="text-xs text-neutral-500">
-              {getCopy('dashboard.timeline.picks_lock_desc', 'Picks lock & episode airs on CBS')}
+              {getCopy('dashboard.timeline.picks_lock_desc', 'Picks lock & episode airs on CBS and Paramount+')}
             </EditableText>
           </div>
         </div>
@@ -37,7 +37,7 @@ export function WeeklyTimelineCard() {
           <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
           <div>
             <EditableText copyKey="dashboard.timeline.results_time" as="p" className="text-sm font-medium text-neutral-800">
-              {getCopy('dashboard.timeline.results_time', 'Wednesday ~9pm PT')}
+              {getCopy('dashboard.timeline.results_time', 'Wednesday ~1am ET / 10pm PT')}
             </EditableText>
             <EditableText copyKey="dashboard.timeline.results_desc" as="p" className="text-xs text-neutral-500">
               {getCopy('dashboard.timeline.results_desc', 'Results posted (exceptions may apply)')}

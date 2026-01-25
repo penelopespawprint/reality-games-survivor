@@ -23,6 +23,7 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -95,9 +96,11 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
     };
   }, [leagueId, queryClient]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive (within container only, not page)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -178,7 +181,7 @@ export function LeagueChat({ leagueId }: LeagueChatProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {Object.keys(groupedMessages).length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <MessageCircle className="h-12 w-12 text-neutral-300 mb-3" />

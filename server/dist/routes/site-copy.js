@@ -115,6 +115,64 @@ router.get('/key/:key', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch site copy' });
     }
 });
+// Update site copy by key (PUT endpoint for EditableText component)
+router.put('/:key', requireAdmin, async (req, res) => {
+    try {
+        const { key } = req.params;
+        const { content } = req.body;
+        if (typeof content !== 'string') {
+            return res.status(400).json({ error: 'Content is required' });
+        }
+        // Input validation
+        if (key.length > 200) {
+            return res.status(400).json({ error: 'Key too long (max 200 chars)' });
+        }
+        if (content.length > 10000) {
+            return res.status(400).json({ error: 'Content too long (max 10000 chars)' });
+        }
+        // Check if key exists
+        const { data: existing } = await supabaseAdmin
+            .from('site_copy')
+            .select('id')
+            .eq('key', key)
+            .single();
+        if (existing) {
+            // Update existing
+            const { error } = await supabaseAdmin
+                .from('site_copy')
+                .update({ content, updated_at: new Date().toISOString() })
+                .eq('key', key);
+            if (error)
+                throw error;
+        }
+        else {
+            // Create new entry - parse key to get page/section
+            const parts = key.split('.');
+            const page = parts[0] || 'general';
+            const section = parts[1] || 'content';
+            const { error } = await supabaseAdmin
+                .from('site_copy')
+                .insert({
+                key,
+                content,
+                page,
+                section,
+                label: key,
+                is_active: true,
+            });
+            if (error)
+                throw error;
+        }
+        // Clear cache so changes are visible immediately
+        copyCache = null;
+        cacheTime = 0;
+        res.json({ success: true, key, content });
+    }
+    catch (err) {
+        console.error('Failed to update site copy:', err);
+        res.status(500).json({ error: 'Failed to update site copy' });
+    }
+});
 // Clear cache (admin only - called after updates)
 router.post('/clear-cache', requireAdmin, async (req, res) => {
     copyCache = null;

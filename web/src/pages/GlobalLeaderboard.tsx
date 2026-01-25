@@ -115,30 +115,30 @@ export default function GlobalLeaderboard() {
     <>
       <div className="max-w-6xl mx-auto px-4 py-8 w-full">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-          <Trophy className="h-8 w-8 text-burgundy-500" />
-          {/* Only show EditableText when using CMS fallback, not dynamic season title */}
-          {activeSeason ? (
-            <h1 className="text-3xl font-display font-bold text-neutral-800">{seasonTitle}</h1>
-          ) : (
-            <EditableText
-              copyKey="leaderboard.header.title"
-              as="h1"
-              className="text-3xl font-display font-bold text-neutral-800"
-            >
-              {seasonTitle}
-            </EditableText>
-          )}
+        <div className="mb-6 text-center">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <Trophy className="h-8 w-8 text-burgundy-500" />
+            {/* Only show EditableText when using CMS fallback, not dynamic season title */}
+            {activeSeason ? (
+              <h1 className="text-3xl font-display font-bold text-neutral-800">{seasonTitle}</h1>
+            ) : (
+              <EditableText
+                copyKey="leaderboard.header.title"
+                as="h1"
+                className="text-3xl font-display font-bold text-neutral-800"
+              >
+                {seasonTitle}
+              </EditableText>
+            )}
+          </div>
+          <EditableText
+            copyKey="leaderboard.header.subtitle"
+            as="p"
+            className="text-neutral-500"
+          >
+            {getCopy('leaderboard.header.subtitle', 'See where you rank among all players')}
+          </EditableText>
         </div>
-        <EditableText
-          copyKey="leaderboard.header.subtitle"
-          as="p"
-          className="text-neutral-500"
-        >
-          {getCopy('leaderboard.header.subtitle', 'See where you rank among all players')}
-        </EditableText>
-      </div>
 
       {/* Stats Summary */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
