@@ -170,17 +170,20 @@ export default function DraftRankings() {
   };
 
   useEffect(() => {
-    if (castaways && castaways.length > 0 && rankings.length === 0) {
+    // Wait for both castaways AND rankings query to complete before initializing
+    // This prevents race condition where castaways load first and we randomize
+    // before checking if user has saved rankings
+    if (castaways && castaways.length > 0 && rankings.length === 0 && !rankingsLoading) {
       if (existingRankings?.rankings && Array.isArray(existingRankings.rankings)) {
         // Cast from Json[] to string[] - rankings are stored as castaway IDs
         setRankings(existingRankings.rankings as string[]);
       } else {
-        // Randomize initial order so users don't all start with the same order
+        // No saved rankings - randomize initial order so users don't all start with the same order
         const randomizedOrder = shuffleArray(castaways.map((c) => c.id));
         setRankings(randomizedOrder);
       }
     }
-  }, [castaways, existingRankings, rankings.length]);
+  }, [castaways, existingRankings, rankings.length, rankingsLoading]);
 
   const saveRankings = useMutation({
     mutationFn: async () => {
