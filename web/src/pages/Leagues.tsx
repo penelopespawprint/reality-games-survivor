@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -61,6 +61,11 @@ export default function Leagues() {
   const [search, setSearch] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [myLeaguesExpanded, setMyLeaguesExpanded] = useState(true);
+
+  // Ensure page scrolls to top on mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
 
   // Fetch all leagues
   const { data: leagues, isLoading } = useQuery({

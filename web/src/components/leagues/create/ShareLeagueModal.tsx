@@ -6,6 +6,8 @@ import {
   MessageCircle,
   Mail,
   Facebook,
+  Instagram,
+  Share2,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -75,6 +77,14 @@ export function ShareLeagueModal({
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       '_blank'
     );
+  };
+
+  const shareViaInstagram = () => {
+    // Instagram doesn't have a direct share URL, so we copy link and open Instagram
+    navigator.clipboard.writeText(getInviteLink());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    window.open('https://www.instagram.com/', '_blank');
   };
 
   const shareViaSMS = () => {
@@ -162,17 +172,17 @@ export function ShareLeagueModal({
         <div className="grid grid-cols-3 gap-3 mb-3">
           <button
             onClick={shareViaSMS}
-            className="flex flex-col items-center gap-1 p-3 rounded-xl bg-green-50 hover:bg-green-100 transition-colors"
+            className="flex flex-col items-center gap-1 p-2 rounded-xl bg-green-50 hover:bg-green-100 transition-colors"
           >
-            <MessageCircle className="h-6 w-6 text-green-600" />
-            <span className="text-xs text-neutral-600">SMS</span>
+            <MessageCircle className="h-5 w-5 text-green-600" />
+            <span className="text-[10px] text-neutral-600">SMS</span>
           </button>
           <button
             onClick={shareViaEmail}
-            className="flex flex-col items-center gap-1 p-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors"
+            className="flex flex-col items-center gap-1 p-2 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors"
           >
-            <Mail className="h-6 w-6 text-blue-600" />
-            <span className="text-xs text-neutral-600">Email</span>
+            <Mail className="h-5 w-5 text-blue-600" />
+            <span className="text-[10px] text-neutral-600">Email</span>
           </button>
           <button
             onClick={shareViaWhatsApp}
@@ -192,10 +202,10 @@ export function ShareLeagueModal({
           </button>
           <button
             onClick={shareViaFacebook}
-            className="flex flex-col items-center gap-1 p-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 transition-colors"
+            className="flex flex-col items-center gap-1 p-2 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors"
           >
-            <Facebook className="h-6 w-6 text-indigo-600" />
-            <span className="text-xs text-neutral-600">Facebook</span>
+            <Facebook className="h-5 w-5 text-blue-600" />
+            <span className="text-[10px] text-neutral-600">Facebook</span>
           </button>
           <button
             onClick={shareViaReddit}
@@ -204,6 +214,39 @@ export function ShareLeagueModal({
             <RedditIcon className="h-6 w-6 text-orange-600" />
             <span className="text-xs text-neutral-600">Reddit</span>
           </button>
+        </div>
+        <div className="grid grid-cols-5 gap-2">
+          <button
+            onClick={shareViaInstagram}
+            className="flex flex-col items-center gap-1 p-2 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-colors"
+          >
+            <Instagram className="h-5 w-5 text-pink-600" />
+            <span className="text-[10px] text-neutral-600">Instagram</span>
+          </button>
+          <button
+            onClick={shareViaBlueSky}
+            className="flex flex-col items-center gap-1 p-2 rounded-xl bg-sky-50 hover:bg-sky-100 transition-colors"
+          >
+            <BlueSkyIcon className="h-5 w-5 text-sky-500" />
+            <span className="text-[10px] text-neutral-600">BlueSky</span>
+          </button>
+          <button
+            onClick={shareViaReddit}
+            className="flex flex-col items-center gap-1 p-2 rounded-xl bg-orange-50 hover:bg-orange-100 transition-colors"
+          >
+            <RedditIcon className="h-5 w-5 text-orange-600" />
+            <span className="text-[10px] text-neutral-600">Reddit</span>
+          </button>
+          <button
+            onClick={shareViaTikTok}
+            className="flex flex-col items-center gap-1 p-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 transition-colors"
+          >
+            <TikTokIcon className="h-5 w-5 text-neutral-800" />
+            <span className="text-[10px] text-neutral-600">TikTok</span>
+          </button>
+          <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-transparent">
+            {/* Empty cell for grid alignment */}
+          </div>
         </div>
 
         <button

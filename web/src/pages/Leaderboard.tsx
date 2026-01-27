@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -106,31 +106,12 @@ export function Leaderboard() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 animate-fade-in">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <Link
-              to="/dashboard"
-              className="text-neutral-400 hover:text-neutral-600 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </Link>
-            <h1 className="text-2xl font-display text-neutral-800">Leaderboard</h1>
-          </div>
-          <p className="text-neutral-500">{league?.name || 'Loading...'}</p>
-        </div>
-
-        <div className="text-right">
-          <p className="text-sm text-neutral-500">League Code</p>
-          <p className="font-mono font-bold text-burgundy-600">{league?.code}</p>
-        </div>
+      <div className="text-center mb-8 animate-fade-in">
+        <h1 className="text-2xl font-display text-neutral-800 mb-2">Leaderboard</h1>
+        <p className="text-neutral-500">{league?.name || 'Loading...'}</p>
+        <p className="text-sm text-neutral-400 mt-1">
+          League Code: <span className="font-mono font-bold text-burgundy-600">{league?.code}</span>
+        </p>
       </div>
 
       {/* Leaderboard Table */}
