@@ -257,10 +257,10 @@ export default function FAQ() {
       if (data && data.length > 0) {
         return data.map((item, index) => ({
           id: item.id,
-          question: item.key.replace('faq.', '').replace(/_/g, ' '),
+          question: item.description || item.key.replace('faq.', '').replace(/_/g, ' '),
           answer: item.content,
           category: item.section || 'General',
-          sort_order: index,
+          sort_order: item.sort_order ?? index,
         })) as FAQItem[];
       }
 
@@ -350,11 +350,11 @@ export default function FAQ() {
               <span className="text-sm font-medium text-neutral-700 group-hover:text-burgundy-700">Dashboard</span>
             </Link>
             <Link
-              to="/leaderboard"
+              to="/draft/rankings"
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-cream-50 hover:bg-burgundy-50 border border-cream-200 hover:border-burgundy-200 transition-colors group"
             >
               <Trophy className="h-6 w-6 text-burgundy-500 group-hover:text-burgundy-600" />
-              <span className="text-sm font-medium text-neutral-700 group-hover:text-burgundy-700">Rank List</span>
+              <span className="text-sm font-medium text-neutral-700 group-hover:text-burgundy-700">Draft Rankings</span>
             </Link>
             <Link
               to="/how-to-play"

@@ -131,7 +131,7 @@ export function IncidentPanel({ incidents: propIncidents }: IncidentPanelProps) 
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['command-center'] });
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
       setShowDeclareForm(false);
       setNewIncident({ severity: 'P2', title: '', description: '', affectedSystems: [], link: '' });
     },

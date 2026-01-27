@@ -99,7 +99,6 @@ export default function App() {
             <Route path="/scoring" element={<ScoringRules />} />
             <Route path="/scoring-rules" element={<ScoringRules />} />
             <Route path="/timeline" element={<WeeklyTimeline />} />
-            <Route path="/sms" element={<SMSCommands />} />
             <Route path="/l/:code" element={<PublicLeaderboard />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
@@ -120,6 +119,8 @@ export default function App() {
                 <Route path="/leagues/:leagueId/leaderboard" element={<Leaderboard />} />
                 <Route path="/leaderboard" element={<GlobalLeaderboard />} />
                 <Route path="/leagues" element={<Leagues />} />
+                <Route path="/sms" element={<SMSCommands />} />
+                <Route path="/sms-commands" element={<SMSCommands />} />
               </Route>
               {/* Full-page protected routes (no Layout wrapper) */}
               <Route path="/join" element={<Navigate to="/signup" replace />} />

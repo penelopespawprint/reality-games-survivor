@@ -9,7 +9,6 @@ import { Footer } from '@/components/Footer';
 import { EditableText } from '@/components/EditableText';
 import { AdminReorderControls } from '@/components/AdminReorderControls';
 import {
-  ArrowLeft,
   Loader2,
   Clock,
   Check,
@@ -186,12 +185,15 @@ export default function DraftRankings() {
   const saveRankings = useMutation({
     mutationFn: async () => {
       if (!activeSeason?.id || !user?.id) throw new Error('Missing season or user');
-      const { error } = await supabase.from('draft_rankings').upsert({
-        user_id: user.id,
-        season_id: activeSeason.id,
-        rankings,
-        updated_at: new Date().toISOString(),
-      });
+      const { error } = await supabase.from('draft_rankings').upsert(
+        {
+          user_id: user.id,
+          season_id: activeSeason.id,
+          rankings,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,season_id' }
+      );
       if (error) throw error;
     },
     onSuccess: () => {
@@ -319,14 +321,7 @@ export default function DraftRankings() {
     <div className="min-h-screen bg-gradient-to-b from-cream-100 to-cream-200 flex flex-col">
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-        <div className="mb-6">
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-2 text-neutral-600 hover:text-neutral-800 mb-4"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
-          </Link>
+        <div className="mb-6 text-center">
           <h1 className="text-3xl font-display font-bold text-neutral-800 mb-2">
             {getCopy('draft-rankings.header.title', 'Draft Rankings')}
           </h1>

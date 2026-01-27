@@ -39,7 +39,7 @@ export function Footer() {
                   to="/how-to-play#scoring"
                   className="text-neutral-300 hover:text-burgundy-400 transition-colors text-sm"
                 >
-                  <EditableText copyKey="footer.link_scoring_rules" as="span" className="">{getCopy('footer.link_scoring_rules', 'Scoring Rules')}</EditableText>
+                  <EditableText copyKey="footer.link_scoring_rules" as="span" className="">{getCopy('footer.link_scoring_rules', 'Sample Scoring Rules')}</EditableText>
                 </Link>
               </li>
               <li>
