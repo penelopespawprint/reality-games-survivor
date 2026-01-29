@@ -218,9 +218,7 @@ export function Navigation() {
                   }`}
                 >
                   <Users className="h-4 w-4 text-neutral-400" />
-                  <div>
-                    <EditableText copyKey="nav.my_leagues" as="span" className="font-medium">{getCopy('nav.my_leagues', 'My Leagues')}</EditableText>
-                  </div>
+                  <EditableText copyKey="nav.my_leagues" as="span" className="font-medium">{getCopy('nav.my_leagues', 'My Leagues')}</EditableText>
                 </Link>
                 <Link
                   to="/leagues?view=all"
@@ -228,9 +226,7 @@ export function Navigation() {
                   className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-neutral-50 text-neutral-600"
                 >
                   <Gamepad2 className="h-4 w-4 text-neutral-400" />
-                  <div>
-                    <EditableText copyKey="nav.all_leagues" as="span" className="font-medium">{getCopy('nav.all_leagues', 'All Leagues')}</EditableText>
-                  </div>
+                  <EditableText copyKey="nav.all_leagues" as="span" className="font-medium">{getCopy('nav.all_leagues', 'All Leagues')}</EditableText>
                 </Link>
                 <Link
                   to="/draft/rankings"
@@ -240,9 +236,7 @@ export function Navigation() {
                   }`}
                 >
                   <Trophy className="h-4 w-4 text-neutral-400" />
-                  <div>
-                    <EditableText copyKey="nav.draft_rankings" as="span" className="font-medium">{getCopy('nav.draft_rankings', 'Draft Rankings')}</EditableText>
-                  </div>
+                  <EditableText copyKey="nav.draft_rankings" as="span" className="font-medium">{getCopy('nav.draft_rankings', 'Draft Rankings')}</EditableText>
                 </Link>
                 <hr className="my-1 border-neutral-100" />
                 <Link
@@ -288,116 +282,6 @@ export function Navigation() {
                   <Trophy className="h-4 w-4 text-neutral-400" />
                   <EditableText copyKey="nav.leaderboard" as="span" className="font-medium">{getCopy('nav.leaderboard', 'Leaderboard')}</EditableText>
                 </Link>
-                <div className="relative" ref={howToPlayRef}>
-                  <button
-                    onClick={() => setHowToPlayOpen(!howToPlayOpen)}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1 ${
-                      isActive('/how-to-play') || isActive('/scoring') || isActive('/timeline')
-                        ? 'text-burgundy-600 bg-burgundy-50'
-                        : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
-                    }`}
-                  >
-                    <EditableText copyKey="nav.how_to_play" as="span" className="">{getCopy('nav.how_to_play', 'How to Play')}</EditableText>
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform ${howToPlayOpen ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  {howToPlayOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-neutral-200 min-w-[180px] z-50 py-1">
-                      <Link
-                        to="/how-to-play"
-                        onClick={() => setHowToPlayOpen(false)}
-                        className={`block px-4 py-2 text-sm hover:bg-neutral-50 ${
-                          isActive('/how-to-play') &&
-                          !isActive('/scoring') &&
-                          !isActive('/timeline')
-                            ? 'text-burgundy-600 bg-burgundy-50'
-                            : 'text-neutral-600'
-                        }`}
-                      >
-                        <EditableText copyKey="nav.how_to_play_overview" as="span" className="">{getCopy('nav.how_to_play_overview', 'How to Play')}</EditableText>
-                      </Link>
-                      <Link
-                        to="/scoring-rules"
-                        onClick={() => setHowToPlayOpen(false)}
-                        className={`block px-4 py-2 text-sm hover:bg-neutral-50 ${
-                          isActive('/scoring') || isActive('/scoring-rules')
-                            ? 'text-burgundy-600 bg-burgundy-50'
-                            : 'text-neutral-600'
-                        }`}
-                      >
-                        <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Sample Scoring Rules')}</EditableText>
-                      </Link>
-                      <Link
-                        to="/sms-commands"
-                        onClick={() => setHowToPlayOpen(false)}
-                        className={`block px-4 py-2 text-sm hover:bg-neutral-50 ${
-                          isActive('/sms-commands')
-                            ? 'text-burgundy-600 bg-burgundy-50'
-                            : 'text-neutral-600'
-                        }`}
-                      >
-                        <EditableText copyKey="nav.sms_commands" as="span" className="">{getCopy('nav.sms_commands', 'SMS Commands')}</EditableText>
-                      </Link>
-                      <Link
-                        to="/timeline"
-                        onClick={() => setHowToPlayOpen(false)}
-                        className={`block px-4 py-2 text-sm hover:bg-neutral-50 ${
-                          isActive('/timeline')
-                            ? 'text-burgundy-600 bg-burgundy-50'
-                            : 'text-neutral-600'
-                        }`}
-                      >
-                        <EditableText copyKey="nav.weekly_timeline" as="span" className="">{getCopy('nav.weekly_timeline', 'Weekly Timeline')}</EditableText>
-                      </Link>
-                    </div>
-                  )}
-                </div>
-                {/* Contact Dropdown */}
-                <div className="relative" ref={contactRef}>
-                  <button
-                    onClick={() => setContactOpen(!contactOpen)}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1 ${
-                      isActive('/contact') || isActive('/faq')
-                        ? 'text-burgundy-600 bg-burgundy-50'
-                        : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
-                    }`}
-                  >
-                    <EditableText copyKey="nav.contact" as="span" className="">{getCopy('nav.contact', 'Contact')}</EditableText>
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform ${contactOpen ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  {contactOpen && (
-                    <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-neutral-200 min-w-[180px] z-50 py-1">
-                      <Link
-                        to="/contact"
-                        onClick={() => setContactOpen(false)}
-                        className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-neutral-50 ${
-                          isActive('/contact') && !isActive('/faq')
-                            ? 'text-burgundy-600 bg-burgundy-50'
-                            : 'text-neutral-600'
-                        }`}
-                      >
-                        <Mail className="h-4 w-4" />
-                        <EditableText copyKey="nav.contact_us" as="span" className="">{getCopy('nav.contact_us', 'Contact Us')}</EditableText>
-                      </Link>
-                      <Link
-                        to="/faq"
-                        onClick={() => setContactOpen(false)}
-                        className={`flex items-center gap-2 px-4 py-2 text-sm hover:bg-neutral-50 ${
-                          isActive('/faq')
-                            ? 'text-burgundy-600 bg-burgundy-50'
-                            : 'text-neutral-600'
-                        }`}
-                      >
-                        <HelpCircle className="h-4 w-4" />
-                        <EditableText copyKey="nav.faq" as="span" className="">{getCopy('nav.faq', 'FAQ')}</EditableText>
-                      </Link>
-                    </div>
-                  )}
-                </div>
-                {/* TRIVIA - Highlighted with animation */}
                 <Link
                   to="/timeline"
                   onClick={() => setOpenDropdown(null)}
@@ -787,6 +671,26 @@ export function Navigation() {
             >
               <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Sample Scoring Rules')}</EditableText>
             </Link>
+            <Link
+              to="/faq"
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/faq')
+                  ? 'text-burgundy-600 bg-burgundy-50'
+                  : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
+              }`}
+            >
+              <EditableText copyKey="nav.faq" as="span" className="">{getCopy('nav.faq', 'FAQ')}</EditableText>
+            </Link>
+            <Link
+              to="/contact"
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                isActive('/contact')
+                  ? 'text-burgundy-600 bg-burgundy-50'
+                  : 'text-neutral-600 hover:text-burgundy-600 hover:bg-neutral-50'
+              }`}
+            >
+              <EditableText copyKey="nav.contact_us" as="span" className="">{getCopy('nav.contact_us', 'Contact Us')}</EditableText>
+            </Link>
           </div>
 
           {/* Right: Login + Sign Up */}
@@ -846,16 +750,6 @@ export function Navigation() {
               }`}
             >
               <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Sample Scoring Rules')}</EditableText>
-            </Link>
-            <Link
-              to="/contact"
-              className={`block px-4 py-3 text-sm font-medium rounded-lg mx-2 ${
-                isActive('/contact') && !isActive('/faq')
-                  ? 'text-burgundy-600 bg-burgundy-50'
-                  : 'text-neutral-600 hover:bg-neutral-50'
-              }`}
-            >
-              <EditableText copyKey="nav.contact_us" as="span" className="">{getCopy('nav.contact_us', 'Contact Us')}</EditableText>
             </Link>
             <Link
               to="/faq"
