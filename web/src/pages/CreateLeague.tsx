@@ -303,7 +303,11 @@ export default function CreateLeague() {
           league={createdLeague}
           joinCode={joinCode}
           isPrivate={isPrivate}
-          onClose={() => setShowShareModal(false)}
+          onClose={() => {
+            // Always navigate to the new league when closing the modal
+            // This prevents accidentally creating duplicate leagues
+            navigate(`/leagues/${createdLeague.id}`);
+          }}
         />
       )}
     </div>
