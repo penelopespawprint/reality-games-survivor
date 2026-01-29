@@ -641,92 +641,78 @@ export function Navigation() {
                 >
                   <EditableText copyKey="nav.leaderboard" as="span" className="">{getCopy('nav.leaderboard', 'Leaderboard')}</EditableText>
                 </Link>
-                <div>
-                  <div className="px-4 py-2 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                    <EditableText copyKey="nav.how_to_play" as="span" className="">{getCopy('nav.how_to_play', 'How to Play')}</EditableText>
-                  </div>
-                  <Link
-                    to="/how-to-play"
-                    className={`block px-8 py-2 text-sm ${
-                      isActive('/how-to-play') && !isActive('/scoring') && !isActive('/timeline')
-                        ? 'text-burgundy-600 bg-burgundy-50'
-                        : 'text-neutral-600'
-                    }`}
-                  >
-                    <EditableText copyKey="nav.overview" as="span" className="">{getCopy('nav.overview', 'Overview')}</EditableText>
-                  </Link>
-                  <Link
-                    to="/scoring-rules"
-                    className={`block px-8 py-2 text-sm ${
-                      isActive('/scoring') || isActive('/scoring-rules')
-                        ? 'text-burgundy-600 bg-burgundy-50'
-                        : 'text-neutral-600'
-                    }`}
-                  >
-                    <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Sample Scoring Rules')}</EditableText>
-                  </Link>
-                  <Link
-                    to="/timeline"
-                    className={`block px-8 py-2 text-sm ${
-                      isActive('/timeline')
-                        ? 'text-burgundy-600 bg-burgundy-50'
-                        : 'text-neutral-600'
-                    }`}
-                  >
-                    <EditableText copyKey="nav.weekly_timeline" as="span" className="">{getCopy('nav.weekly_timeline', 'Weekly Timeline')}</EditableText>
-                  </Link>
-                  <Link
-                    to="/sms-commands"
-                    className={`block px-8 py-2 text-sm ${
-                      isActive('/sms-commands')
-                        ? 'text-burgundy-600 bg-burgundy-50'
-                        : 'text-neutral-600'
-                    }`}
-                  >
-                    <EditableText copyKey="nav.sms_commands" as="span" className="">{getCopy('nav.sms_commands', 'SMS Commands')}</EditableText>
-                  </Link>
-                </div>
-                <div>
-                  <div className="px-4 py-2 text-sm font-semibold text-neutral-800 uppercase tracking-wide">
-                    <EditableText copyKey="nav.contact" as="span" className="">{getCopy('nav.contact', 'Contact')}</EditableText>
-                  </div>
-                  <Link
-                    to="/contact"
-                    className={`block px-8 py-2 text-sm ${
-                      isActive('/contact') && !isActive('/faq')
-                        ? 'text-burgundy-600 bg-burgundy-50'
-                        : 'text-neutral-600'
-                    }`}
-                  >
-                    <EditableText copyKey="nav.contact_us" as="span" className="">{getCopy('nav.contact_us', 'Contact Us')}</EditableText>
-                  </Link>
-                  <Link
-                    to="/faq"
-                    className={`block px-8 py-2 text-sm ${
-                      isActive('/faq')
-                        ? 'text-burgundy-600 bg-burgundy-50'
-                        : 'text-neutral-600'
-                    }`}
-                  >
-                    <EditableText copyKey="nav.faq" as="span" className="">{getCopy('nav.faq', 'FAQ')}</EditableText>
-                  </Link>
-                </div>
-                {/* Admin link for mobile */}
-                {isAdmin && (
-                  <>
-                    <hr className="my-2 border-burgundy-100" />
-                    <Link
-                      to="/admin"
-                      className="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-orange-600 bg-orange-50"
-                    >
-                      <Shield className="h-4 w-4" />
-                      Admin Panel
-                    </Link>
-                  </>
-                )}
-                <hr className="my-2 border-burgundy-100" />
-                <Link to="/profile" className="block px-4 py-3 text-sm text-neutral-600">
-                  <EditableText copyKey="nav.profile_settings" as="span" className="">{getCopy('nav.profile_settings', 'Profile Settings')}</EditableText>
+                <Link
+                  to="/timeline"
+                  className={`block px-8 py-2.5 text-sm ${
+                    isActive('/timeline') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
+                  }`}
+                >
+                  <EditableText copyKey="nav.weekly_timeline" as="span" className="">{getCopy('nav.weekly_timeline', 'Weekly Timeline')}</EditableText>
+                </Link>
+              </MobileAccordion>
+
+              {/* Help Accordion */}
+              <MobileAccordion label={getCopy('nav.help', 'Help')} accordionKey="help">
+                <Link
+                  to="/how-to-play"
+                  className={`block px-8 py-2.5 text-sm ${
+                    isActive('/how-to-play') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
+                  }`}
+                >
+                  <EditableText copyKey="nav.how_to_play" as="span" className="">{getCopy('nav.how_to_play', 'How to Play')}</EditableText>
+                </Link>
+                <Link
+                  to="/scoring-rules"
+                  className={`block px-8 py-2.5 text-sm ${
+                    isActive('/scoring') || isActive('/scoring-rules') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
+                  }`}
+                >
+                  <EditableText copyKey="nav.scoring_rules" as="span" className="">{getCopy('nav.scoring_rules', 'Sample Scoring Rules')}</EditableText>
+                </Link>
+                <Link
+                  to="/faq"
+                  className={`block px-8 py-2.5 text-sm ${
+                    isActive('/faq') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
+                  }`}
+                >
+                  <EditableText copyKey="nav.faq" as="span" className="">{getCopy('nav.faq', 'FAQ')}</EditableText>
+                </Link>
+                <Link
+                  to="/contact"
+                  className={`block px-8 py-2.5 text-sm ${
+                    isActive('/contact') ? 'text-burgundy-600 bg-burgundy-50' : 'text-neutral-600'
+                  }`}
+                >
+                  <EditableText copyKey="nav.contact_us" as="span" className="">{getCopy('nav.contact_us', 'Contact Us')}</EditableText>
+                </Link>
+              </MobileAccordion>
+
+              {/* Admin link for mobile */}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-2 px-4 py-3 text-sm font-semibold text-orange-600 bg-orange-50 border-b border-neutral-100"
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin Panel
+                </Link>
+              )}
+
+              {/* User options */}
+              <div className="border-t border-neutral-100 mt-2 pt-2">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-neutral-600"
+                >
+                  <User className="h-4 w-4 text-neutral-400" />
+                  <EditableText copyKey="nav.profile" as="span" className="">{getCopy('nav.profile', 'Profile')}</EditableText>
+                </Link>
+                <Link
+                  to="/profile/settings"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-neutral-600"
+                >
+                  <Settings className="h-4 w-4 text-neutral-400" />
+                  <EditableText copyKey="nav.settings" as="span" className="">{getCopy('nav.settings', 'Settings')}</EditableText>
                 </Link>
                 <button
                   onClick={handleSignOut}
