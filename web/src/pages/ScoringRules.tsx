@@ -70,7 +70,7 @@ const SCORING_RULES = [
       },
       {
         positive: false,
-        text: "Your player finds a fake advantage and believes it is real (eg 'It's a f***ing stick!' incident (if the stick was an advantage rather than an idol) would yield Jason -1 because he believed it was real but yield Eliza 0 because she did not believe it was real)",
+        text: "Your player finds a fake advantage and believes it is real (eg 'It's a f***ing stick!' incident (if the stick was an advantage rather than an idol) would yield Jason -1 because he believed it was real but yield Eliza 0 because she did not believe it was real).",
       },
     ],
   },

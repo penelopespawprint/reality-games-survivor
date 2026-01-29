@@ -55,6 +55,11 @@ export default function LeagueHome() {
   const { data: userProfile } = useUserProfile(user?.id);
   const { data: nextEpisode } = useNextEpisode(league?.season_id);
 
+  // Scroll to top on mount to prevent auto-scroll to elements
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
   // Handle joined=true query parameter from Stripe redirect
   // The webhook may take a moment to process, so we poll for membership
   useEffect(() => {
